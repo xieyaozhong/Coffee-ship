@@ -18,7 +18,8 @@
     style.textContent = `
       .role-code-box{margin-top:14px;padding:14px;border:1px solid rgba(255,244,216,.18);border-radius:16px;background:rgba(18,11,23,.32)}
       .role-code-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.role-code-row input{min-width:180px;flex:1}.role-code-note{margin:8px 0 0;opacity:.86;font-size:14px}
-      .role-panel{position:absolute;right:18px;bottom:18px;z-index:12;padding:12px;border:2px solid #76536a;border-radius:14px;background:rgba(21,16,32,.94);color:#fff4d8;box-shadow:0 8px 0 rgba(0,0,0,.25);max-width:260px}.role-title{font-weight:900;margin-bottom:4px}.role-power{font-size:13px;opacity:.88;margin-bottom:10px}.role-power-btn{width:100%;border:0;border-radius:10px;padding:10px 12px;font-weight:900;cursor:pointer;background:#d7bb79;color:#21182a}
+      .role-panel{position:absolute;right:18px;top:72px;bottom:auto;z-index:12;padding:10px 12px;border:2px solid #76536a;border-radius:14px;background:rgba(21,16,32,.94);color:#fff4d8;box-shadow:0 8px 0 rgba(0,0,0,.25);max-width:260px}.role-title{font-weight:900;margin-bottom:4px}.role-power{font-size:13px;opacity:.88;margin-bottom:8px}.role-power-btn{width:100%;border:0;border-radius:10px;padding:9px 10px;font-weight:900;cursor:pointer;background:#d7bb79;color:#21182a}
+      @media (max-width: 720px){.role-panel{left:10px;right:10px;top:82px;bottom:auto;max-width:none;padding:8px 10px;display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center}.role-title{font-size:13px;margin:0}.role-power{font-size:11px;margin:0;opacity:.75}.role-power-btn{grid-row:1 / span 2;grid-column:2;width:auto;min-width:86px;padding:8px 10px;font-size:12px}}
       .role-fx{position:fixed;pointer-events:none;z-index:9999;font-size:26px;font-weight:900;text-shadow:2px 2px 0 #120b17;animation:role-fx 1.4s ease-out forwards}@keyframes role-fx{0%{transform:translateY(0) scale(.8);opacity:0}20%{opacity:1}100%{transform:translateY(-90px) scale(1.25);opacity:0}}
       .heart-shot{position:fixed;pointer-events:none;z-index:9999;font-size:24px;font-weight:900;text-shadow:2px 2px 0 #120b17;animation:heart-shot 1.25s ease-out forwards}@keyframes heart-shot{0%{transform:translate(0,0) scale(.7);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.35);opacity:0}}
       .happy-toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:9999;background:rgba(21,16,32,.94);border:2px solid #ff8fb3;border-radius:14px;padding:10px 14px;color:#fff4d8;font-weight:900;box-shadow:0 8px 0 rgba(0,0,0,.25);animation:happy-toast 2s ease-out forwards}@keyframes happy-toast{0%{opacity:0;transform:translateX(-50%) translateY(10px)}20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-18px)}}
@@ -95,12 +96,9 @@
     const startBtn = document.getElementById('startBtn');
     const playerNameInput = document.getElementById('playerName');
     if (playerNameInput) playerNameInput.value = name;
-
     localStorage.setItem('coffeeShipRole', JSON.stringify({ role: role.role, icon: role.icon, name }));
     window.COFFEE_SHIP_PENDING_ROLE = { role: role.role, icon: role.icon, name };
-
     if (startBtn) startBtn.click();
-
     setTimeout(() => {
       const creator = document.getElementById('creator');
       const gamePanel = document.getElementById('gamePanel');
