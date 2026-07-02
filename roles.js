@@ -96,8 +96,13 @@
     const startBtn = document.getElementById('startBtn');
     const playerNameInput = document.getElementById('playerName');
     if (playerNameInput) playerNameInput.value = name;
-    localStorage.setItem('coffeeShipRole', JSON.stringify({ role: role.role, icon: role.icon, name }));
-    window.COFFEE_SHIP_PENDING_ROLE = { role: role.role, icon: role.icon, name };
+
+    const roleState = { role: role.role, icon: role.icon, name, specialHuman: true, animal: 'human' };
+    localStorage.setItem('coffeeShipRole', JSON.stringify(roleState));
+    localStorage.setItem('coffeeShipAnimal', 'human');
+    window.COFFEE_SHIP_PENDING_ROLE = roleState;
+    window.COFFEE_SHIP_FORCE_HUMAN_ROLE = true;
+
     if (startBtn) startBtn.click();
     setTimeout(() => {
       const creator = document.getElementById('creator');
