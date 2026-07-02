@@ -37,7 +37,29 @@ button:active{transform:translateY(4px);box-shadow:0 2px 0 #9b5d31}
 #avatarName{color:var(--ink);font-size:20px;margin-right:10px}#coffeeBadge{background:#1a1220;border:1px solid #76536a;border-radius:999px;padding:6px 10px}.controls{font-size:14px}
 canvas{display:block;width:100%;image-rendering:pixelated;border-radius:18px;border:3px solid #76536a;background:#151020}
 .mobile-controls{display:none;gap:8px;flex-wrap:wrap;margin-top:12px}.mobile-controls button{min-width:54px;padding:12px}
-@media(max-width:760px){.hero{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.game-topbar{align-items:flex-start;flex-direction:column}.controls{display:none}.mobile-controls{display:flex}}
+@media(max-width:760px){
+  body{background:#120d1b}
+  .shell{width:min(100%,430px);padding:12px 12px 28px}
+  .hero{display:block;text-align:center;margin-bottom:10px}
+  .hero .eyebrow,.hero .tagline,.status-card{display:none!important}
+  h1{font-size:30px;line-height:1.05;text-shadow:none;margin:0 auto 8px}
+  .panel{border-radius:18px;padding:16px;box-shadow:0 10px 0 #120b17,inset 0 0 0 2px #ffffff10}
+  .creator h2{display:none}
+  .form-grid{grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+  label{gap:6px;font-size:17px}
+  input,select{padding:10px 12px;border-radius:14px;font-size:16px}
+  #startBtn,#randomAnimalBtn{width:calc(50% - 6px);min-height:50px;padding:10px 8px;font-size:17px;border-radius:15px;margin:6px 0 0!important;vertical-align:top}
+  #randomAnimalBtn{margin-left:8px!important;font-size:0}
+  #randomAnimalBtn::after{content:'🎲 隨機冒險';font-size:17px}
+  #animalHint{margin:8px 0 0!important;font-size:14px;line-height:1.45}
+  .creator>.hint{display:none!important}
+  .role-code-box{margin-top:12px!important;padding:12px!important;border-radius:16px!important}
+  .role-code-row{display:grid!important;grid-template-columns:1fr auto;gap:8px!important}
+  .role-code-row input{min-width:0!important;padding:10px 12px!important}
+  .role-code-row button{padding:10px 14px!important;white-space:nowrap!important}
+  .role-code-note{font-size:13px!important;line-height:1.45!important;margin-top:8px!important}
+  .game-topbar{align-items:flex-start;flex-direction:column}.controls{display:none}.mobile-controls{display:flex}
+}
 .message-board{
   margin-top:16px;
   background:linear-gradient(180deg,#21182a,#19111f);
