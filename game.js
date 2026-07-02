@@ -17,6 +17,9 @@ const messagesList = document.getElementById('messagesList');
 const messageForm = document.getElementById('messageForm');
 const messageInput = document.getElementById('messageInput');
 const closeBoardBtn = document.getElementById('closeBoardBtn');
+const coffeeMenu = document.getElementById('coffeeMenu');
+const coffeeOptions = document.getElementById('coffeeOptions');
+const closeCoffeeMenuBtn = document.getElementById('closeCoffeeMenuBtn');
 
 const keys = new Set();
 const mobile = { up:false, down:false, left:false, right:false };
@@ -63,8 +66,17 @@ const player = {
   hasCoffee:false, sitting:false, emote:null, emoteTimer:0
 };
 
+const coffeeMenuItems = [
+  {name:'船長美式', icon:'☕', desc:'清爽、直接，適合剛登船的客人。', price:'80 beans'},
+  {name:'星光拿鐵', icon:'🌙', desc:'奶泡柔和，喝起來像夜晚甲板的光。', price:'120 beans'},
+  {name:'焦糖海鹽拿鐵', icon:'🍯', desc:'甜味和海風感，Momo 最推薦。', price:'135 beans'},
+  {name:'深海義式濃縮', icon:'⚓', desc:'短小、濃烈，適合需要醒腦的旅人。', price:'90 beans'},
+  {name:'漂流手沖', icon:'🌊', desc:'慢慢沖、慢慢喝，適合在窗邊留言。', price:'150 beans'},
+  {name:'雲朵可可咖啡', icon:'☁️', desc:'咖啡加可可，甜一點，心情也軟一點。', price:'130 beans'}
+];
+
 const npcs = [
-  {name:'Momo', x:260, y:250, hair:'#5b2b1e', shirt:'#79d0b1', emote:'☕'},
+  {name:'Momo', x:235, y:214, hair:'#5b2b1e', shirt:'#79d0b1', emote:'☕', barista:true, homeX:235, homeY:214, targetX:330, targetY:214, wait:0, dir:'right', emoteTimer:999999},
   {name:'Peak', x:705, y:332, hair:'#1f1930', shirt:'#8460c8', emote:'♪'},
   {name:'Bean', x:755, y:180, hair:'#e0b45d', shirt:'#d7bb79', emote:'...'}
 ];
@@ -74,6 +86,7 @@ const chairs = [
 ];
 const tables = [{x:290,y:400},{x:680,y:400},{x:730,y:276},{x:195,y:276}];
 const counter = {x:120,y:96,w:360,h:88};
+const momoZone = {x:150,y:198,w:300,h:74};
 const board = {x:560,y:104,w:210,h:72};
 const blocks = [counter, {x:98,y:96,w:28,h:300}, {x:834,y:96,w:28,h:300}];
 
@@ -106,6 +119,7 @@ function drawCafe(){
   drawPixelRect(counter.x,counter.y,counter.w,18,'#a56b45');
   drawPixelRect(180,122,42,34,'#21182a'); drawPixelRect(190,112,22,14,'#d7bb79');
   drawText('BAR', counter.x+counter.w/2, counter.y+58, 18, 'center', '#ffe5ae');
+  drawText('Momo 店長', 305, 202, 14, 'center', '#79d0b1');
   drawPixelRect(board.x,board.y,board.w,board.h,'#3a293d');
   drawPixelRect(board.x+10,board.y+10,board.w-20,board.h-20,'#21182a');
   drawText(cloudReady ? '雲端留言  B' : '留言板  B', board.x+board.w/2, board.y+44, 18, 'center', cloudReady ? '#79d0b1' : '#f0a75c');
@@ -117,6 +131,10 @@ function drawCafe(){
 
 function drawAvatar(a, isPlayer=false){
   const x=Math.round(a.x), y=Math.round(a.y);
+  if(a.barista){
+    drawPixelRect(x-18,y-14,36,40,'#fff4d8');
+    drawPixelRect(x-14,y-10,28,10,'#d7bb79');
+  }
   drawPixelRect(x-11,y+16,22,6,'#120b17');
   drawPixelRect(x-10,y-28,20,18,a.skin || '#f0c7a0');
   drawPixelRect(x-12,y-34,24,12,a.hair); drawPixelRect(x-14,y-28,6,12,a.hair); drawPixelRect(x+8,y-28,6,12,a.hair);
@@ -126,6 +144,7 @@ function drawAvatar(a, isPlayer=false){
   drawPixelRect(x-5,y-20,4,4,'#21182a'); drawPixelRect(x+5,y-20,4,4,'#21182a');
   drawPixelRect(x-4,y-12,8,3,'#b86766');
   if(a.hasCoffee){drawPixelRect(x+17,y+3,10,12,'#fff4d8'); drawPixelRect(x+19,y+5,6,5,'#6d3f26')}
+  if(a.barista){drawPixelRect(x-19,y+2,8,12,'#fff4d8'); drawPixelRect(x-17,y+4,4,5,'#6d3f26');}
   drawText(a.name, x, y-42, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
   if(a.emote && (a.emoteTimer === undefined || a.emoteTimer > 0)) drawText(a.emote, x, y-62, 22);
 }
@@ -154,7 +173,34 @@ function tryMove(dx,dy){
   for(const b of blocks) if(rectsOverlap(next,b)) return;
   player.x += dx; player.y += dy;
 }
+function updateMomo(){
+  const momo = npcs.find(n=>n.barista);
+  if(!momo) return;
+  const dist = Math.hypot(player.x - momo.x, player.y - momo.y);
+  if(dist < 105){
+    momo.emote = player.hasCoffee ? '歡迎慢用' : '要喝什麼？';
+    momo.emoteTimer = 999999;
+    momo.dir = player.x > momo.x ? 'right' : 'left';
+    if(Math.random() < 0.015) say('Momo 店長：歡迎登船，今天想喝哪一杯？靠近我按 C 看咖啡單。', 160);
+    return;
+  }
+  if(momo.wait > 0){momo.wait--; return;}
+  const dx = momo.targetX - momo.x;
+  const dy = momo.targetY - momo.y;
+  const d = Math.hypot(dx, dy);
+  if(d < 3){
+    momo.wait = 40 + Math.floor(Math.random()*80);
+    momo.targetX = momoZone.x + Math.random()*momoZone.w;
+    momo.targetY = momoZone.y + Math.random()*momoZone.h;
+    momo.emote = Math.random() > .5 ? '☕' : '整理杯子';
+    return;
+  }
+  momo.x += dx/d * 0.7;
+  momo.y += dy/d * 0.7;
+}
+
 function update(){
+  updateMomo();
   let dx=0, dy=0;
   if(keys.has('ArrowUp')||keys.has('w')||mobile.up) dy-=player.speed;
   if(keys.has('ArrowDown')||keys.has('s')||mobile.down) dy+=player.speed;
@@ -171,11 +217,38 @@ function render(){
 }
 function loop(){update();render();requestAnimationFrame(loop)}
 
-function orderCoffee(){
-  if(near(player.x, player.y, counter.x+counter.w/2, counter.y+counter.h+35, 150)){
-    player.hasCoffee = true; player.emote='☕'; player.emoteTimer=90; coffeeBadge.textContent = `手上有一杯${player.coffeeType}`; say(`${player.name} 點了一杯${player.coffeeType}。咖啡香在船上漂起來了。`); spawnSparkles();
-  } else say('要靠近吧台才能點咖啡喔。');
+function closeCoffeeMenu(){coffeeMenu.classList.add('hidden');}
+function openCoffeeMenu(force=false){
+  const momo = npcs.find(n=>n.barista);
+  const closeToMomo = momo && near(player.x, player.y, momo.x, momo.y, 130);
+  const closeToCounter = near(player.x, player.y, counter.x+counter.w/2, counter.y+counter.h+35, 170);
+  if(!force && !closeToMomo && !closeToCounter){say('要靠近吧台或 Momo 店長，才能點咖啡喔。'); return;}
+  renderCoffeeOptions();
+  coffeeMenu.classList.remove('hidden');
+  say('Momo 店長把咖啡單遞給你：今天想喝哪一杯？', 220);
 }
+function renderCoffeeOptions(){
+  coffeeOptions.innerHTML = coffeeMenuItems.map((item, i)=>`
+    <button class="coffee-option" data-coffee-index="${i}">
+      <strong>${item.icon} ${item.name}</strong>
+      <span>${item.desc}</span>
+      <small>${item.price}</small>
+    </button>
+  `).join('');
+}
+function chooseCoffee(item){
+  player.coffeeType = item.name;
+  player.hasCoffee = true;
+  player.emote = item.icon + '✨';
+  player.emoteTimer = 110;
+  coffeeBadge.textContent = `手上有一杯${item.name}`;
+  const momo = npcs.find(n=>n.barista);
+  if(momo){momo.emote = '請慢用'; momo.emoteTimer = 999999;}
+  closeCoffeeMenu();
+  say(`Momo 店長為 ${player.name} 做好了一杯「${item.name}」。${item.desc}`, 320);
+  spawnSparkles();
+}
+function orderCoffee(){openCoffeeMenu();}
 function sitDown(){
   const chair = chairs.find(c=>near(player.x,player.y,c.x,c.y,52));
   if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`)}
@@ -242,7 +315,7 @@ startBtn.addEventListener('click',()=>{
   localStorage.setItem('coffeeShipAvatar', JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType}));
   creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent = player.name;
   statusText.textContent = cloudReady ? '雲端已連線' : '本機模式'; moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c'; moodDot.style.color = moodDot.style.background;
-  say(`歡迎 ${player.name} 登上 Coffee Ship。靠近留言板按 B，可以留下給下一個人的話。`, 320);
+  say(`歡迎 ${player.name} 登上 Coffee Ship。找吧台附近的 Momo 店長按 C，可以點不同咖啡。`, 320);
 });
 
 const saved = localStorage.getItem('coffeeShipAvatar');
@@ -260,11 +333,17 @@ document.querySelectorAll('[data-move]').forEach(btn=>{
   const on=()=>mobile[d]=true, off=()=>mobile[d]=false;
   btn.addEventListener('pointerdown',on); btn.addEventListener('pointerup',off); btn.addEventListener('pointerleave',off);
 });
-document.getElementById('coffeeBtn').onclick=orderCoffee;
+document.getElementById('coffeeBtn').onclick=()=>openCoffeeMenu(true);
 document.getElementById('sitBtn').onclick=sitDown;
 document.getElementById('messageBtn').onclick=()=>openBoard(true);
 document.getElementById('emoteBtn').onclick=emote;
 closeBoardBtn.onclick=closeBoard;
+closeCoffeeMenuBtn.onclick=closeCoffeeMenu;
+coffeeOptions.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-coffee-index]');
+  if(!btn) return;
+  chooseCoffee(coffeeMenuItems[Number(btn.dataset.coffeeIndex)]);
+});
 messageForm.addEventListener('submit', async e=>{
   e.preventDefault();
   const text = messageInput.value.trim();

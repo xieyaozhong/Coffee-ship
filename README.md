@@ -1,61 +1,27 @@
 # Coffee Ship
 
-像素風咖啡廳小遊戲。玩家可以建立分身、走動、點咖啡、坐下，並在船上留言板留下訊息。
+像素風咖啡廳網頁小遊戲。
 
-## 檔案
+## 這一版新增
 
-- `index.html`：網頁入口
-- `style.css`：畫面樣式
-- `game.js`：遊戲邏輯與留言板邏輯
-- `firebase-config.js`：雲端留言板設定
+- Momo 店長 NPC
+- Momo 會在吧台附近移動，像真的店長一樣巡吧台
+- 玩家靠近吧台或 Momo 後，按 `C` 可以打開咖啡單
+- 可選不同咖啡：船長美式、星光拿鐵、焦糖海鹽拿鐵、深海義式濃縮、漂流手沖、雲朵可可咖啡
+- 保留留言板功能
+- 支援 Firebase 雲端留言板，設定完成後不同裝置可看見同一批留言
 
-## 重要：要讓不同裝置看到同一個留言板
+## 操作
 
-這版已經寫好 Firebase Realtime Database 的程式，但你需要把自己的 Firebase 設定貼到 `firebase-config.js`。
+- WASD / 方向鍵：移動
+- C：找 Momo 點咖啡
+- E：坐下
+- B：打開留言板
+- Space：發表情
 
-### 1. 建立 Firebase 專案
+## Firebase 設定
 
-1. 到 Firebase Console
-2. 建立專案，例如 `coffee-ship`
-3. 新增 Web App
-4. 複製 Firebase 提供的 `firebaseConfig`
-5. 貼到 `firebase-config.js`
+打開 `firebase-config.js`，把 Firebase 專案的設定貼進去。
+完成後，留言板就能跨裝置同步。
 
-### 2. 開啟 Realtime Database
-
-1. Firebase 左側選單選 `Realtime Database`
-2. 建立資料庫
-3. 先選測試模式
-4. 規則可先用下面這份：
-
-```json
-{
-  "rules": {
-    "coffeeShip": {
-      "messages": {
-        ".read": true,
-        ".write": true
-      }
-    }
-  }
-}
-```
-
-這樣不同裝置打開同一個 GitHub Pages 網址，就會看到同一批留言。
-
-## GitHub Pages
-
-請把 GitHub Pages 設定成：
-
-- Branch: `main`
-- Folder: `/root`
-
-網站網址通常會是：
-
-```text
-https://你的帳號.github.io/Coffee-ship/
-```
-
-## 注意
-
-上面的資料庫規則是測試用，任何人都可以讀寫。正式公開前，應該加上防洗版、字數限制、簡單審核或登入機制。
+如果還沒設定 Firebase，遊戲仍可玩，但留言只會存在同一台裝置的瀏覽器。

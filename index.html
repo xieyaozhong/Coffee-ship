@@ -52,7 +52,7 @@
         </label>
       </div>
       <button id="startBtn">登上 Coffee Ship</button>
-      <p class="hint">方向鍵 / WASD 移動。靠近吧台按 C 拿咖啡，靠近椅子按 E 坐下，靠近留言板按 B 留言，按 Space 發送表情。</p>
+      <p class="hint">方向鍵 / WASD 移動。靠近吧台找店長 Momo，按 C 可以點不同咖啡；靠近椅子按 E 坐下，靠近留言板按 B 留言，按 Space 發送表情。</p>
     </section>
 
     <section id="gamePanel" class="panel game-panel hidden">
@@ -61,7 +61,7 @@
           <strong id="avatarName">Guest</strong>
           <span id="coffeeBadge">還沒點咖啡</span>
         </div>
-        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 坐下 · B 留言 · Space 表情</div>
+        <div class="controls">WASD / 方向鍵移動 · C 找 Momo 點咖啡 · E 坐下 · B 留言 · Space 表情</div>
       </div>
       <canvas id="game" width="960" height="576"></canvas>
       <div class="mobile-controls">
@@ -76,6 +76,19 @@
         <button id="messageBtn">留言</button>
         <button id="emoteBtn">✨</button>
       </div>
+
+
+      <aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite">
+        <div class="board-head">
+          <div>
+            <p class="eyebrow">MOMO'S BAR COUNTER</p>
+            <h2>Momo 店長的咖啡單</h2>
+          </div>
+          <button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button>
+        </div>
+        <p class="board-note">靠近吧台找 Momo，選一杯今天想喝的咖啡。Momo 會在吧台附近巡走招呼客人。</p>
+        <div id="coffeeOptions" class="coffee-options"></div>
+      </aside>
 
       <aside id="messageBoard" class="message-board hidden" aria-live="polite">
         <div class="board-head">
