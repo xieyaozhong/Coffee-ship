@@ -52,7 +52,7 @@
         </label>
       </div>
       <button id="startBtn">登上 Coffee Ship</button>
-      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近 Peak 或 Bean 按 E 互動；靠近椅子按 E 坐下，靠近留言板按 B 留言，按 Space 發送表情。</p>
+      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近 Peak、Bean 或 Mugi 按 E 互動；靠近椅子按 E 坐下，靠近留言板按 B 留言，按 Space 發送表情。</p>
     </section>
 
     <section id="gamePanel" class="panel game-panel hidden">
@@ -61,7 +61,7 @@
           <strong id="avatarName">Guest</strong>
           <span id="coffeeBadge">還沒點咖啡</span>
         </div>
-        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動/坐下 · B 留言 · Space 表情</div>
+        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動/摸貓/坐下 · B 留言 · Space 表情</div>
       </div>
       <canvas id="game" width="960" height="576"></canvas>
       <div class="mobile-controls">
@@ -72,11 +72,10 @@
           <button data-move="right">▶</button>
         </div>
         <button id="coffeeBtn">☕</button>
-        <button id="sitBtn">坐</button>
+        <button id="sitBtn">摸/坐</button>
         <button id="messageBtn">留言</button>
         <button id="emoteBtn">✨</button>
       </div>
-
 
       <aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite">
         <div class="board-head">
@@ -109,6 +108,5 @@
   </main>
   <script src="firebase-config.js"></script>
   <script type="module" src="game.js"></script>
-  <script src="cat.js"></script>
 </body>
 </html>
