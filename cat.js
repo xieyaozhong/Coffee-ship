@@ -2,6 +2,8 @@
   const CAT_NAME = 'Mugi';
   const lines = ['喵～', '呼嚕呼嚕…', 'Mugi 蹭了蹭你的手。', 'Mugi 看起來很滿意。', 'Mugi 在咖啡香裡打滾。'];
   const PET_DISTANCE = 92;
+  const CAT_RADIUS = 18;
+  const PLAYER_RADIUS = 26;
 
   function injectStyle() {
     const style = document.createElement('style');
@@ -18,9 +20,9 @@
         width: 38px;
         height: 30px;
         transform: translate(-50%, -50%);
-        transition: left 1.25s linear, top 1.25s linear;
         image-rendering: pixelated;
         filter: drop-shadow(0 3px 0 rgba(0,0,0,.35));
+        will-change: left, top, transform;
       }
       .shop-cat.flip { transform: translate(-50%, -50%) scaleX(-1); }
       .shop-cat.pet-happy { animation: cat-hop .34s steps(2) 3; }
@@ -115,17 +117,25 @@
 
     let x = 245;
     let y = 455;
+    let targetX = 320;
+    let targetY = 398;
     let lastX = x;
+    let pause = 30;
     let petCooldown = false;
+    let lastFrame = performance.now();
     const bubble = cat.querySelector('.shop-cat-bubble');
+    const bounds = { left: 150, right: 820, top: 230, bottom: 520 };
+    const blocked = [
+      { x: 120, y: 96, w: 360, h: 88 },
+      { x: 560, y: 104, w: 210, h: 72 },
+      { x: 260, y: 370, w: 70, h: 55 },
+      { x: 650, y: 370, w: 90, h: 55 },
+      { x: 720, y: 250, w: 70, h: 55 },
+      { x: 170, y: 250, w: 70, h: 55 }
+    ];
 
     function playerPosition() {
-      const canvasRect = canvas.getBoundingClientRect();
-      const panelRect = panel.getBoundingClientRect();
-      const playerEl = document.getElementById('avatarName');
-      const fallback = { x: 480, y: 360 };
-      // The main game does not expose player coordinates, so estimate from local collision world by using center when needed.
-      return window.COFFEE_SHIP_PLAYER_POS || fallback;
+      return window.COFFEE_SHIP_PLAYER_POS || { x: 480, y: 360 };
     }
 
     function toPanelPoint(gameX, gameY) {
@@ -137,7 +147,21 @@
       };
     }
 
+    function circleRectHit(cx, cy, r, rect) {
+      const nx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+      const ny = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+      return Math.hypot(cx - nx, cy - ny) < r;
+    }
+
+    function isBlocked(nx, ny) {
+      if (nx < bounds.left || nx > bounds.right || ny < bounds.top || ny > bounds.bottom) return true;
+      if (blocked.some(rect => circleRectHit(nx, ny, CAT_RADIUS, rect))) return true;
+      const pp = playerPosition();
+      return Math.hypot(pp.x - nx, pp.y - ny) < CAT_RADIUS + PLAYER_RADIUS;
+    }
+
     function render() {
+      window.COFFEE_SHIP_SHOP_CAT = { x, y, radius: CAT_RADIUS, name: CAT_NAME };
       const p = toPanelPoint(x, y);
       cat.style.left = `${p.x}px`;
       cat.style.top = `${p.y}px`;
@@ -152,11 +176,27 @@
       setTimeout(() => cat.classList.remove('show-bubble'), 2200);
     }
 
+    function chooseTarget() {
+      const tries = 18;
+      for (let i = 0; i < tries; i++) {
+        const nx = bounds.left + Math.random() * (bounds.right - bounds.left);
+        const ny = bounds.top + Math.random() * (bounds.bottom - bounds.top);
+        if (!isBlocked(nx, ny)) {
+          targetX = nx;
+          targetY = ny;
+          return;
+        }
+      }
+      targetX = x;
+      targetY = y;
+    }
+
     function petCat() {
       const pp = playerPosition();
       if (Math.hypot(pp.x - x, pp.y - y) > PET_DISTANCE) return false;
       if (petCooldown) return true;
       petCooldown = true;
+      pause = 120;
       cat.classList.add('pet-happy');
       say(lines[Math.floor(Math.random() * lines.length)]);
       setTimeout(() => cat.classList.remove('pet-happy'), 1100);
@@ -164,28 +204,57 @@
       return true;
     }
 
-    function chooseNext() {
-      lastX = x;
-      const spots = [
-        { x: 210, y: 430 },
-        { x: 320, y: 398 },
-        { x: 505, y: 505 },
-        { x: 665, y: 432 },
-        { x: 780, y: 368 },
-        { x: 185, y: 265 },
-        { x: 455, y: 235 }
-      ];
-      const spot = spots[Math.floor(Math.random() * spots.length)];
-      x = spot.x;
-      y = spot.y;
+    function wander(now) {
+      const dt = Math.min(2, (now - lastFrame) / 16.67);
+      lastFrame = now;
+      const pp = playerPosition();
+      const distToPlayer = Math.hypot(pp.x - x, pp.y - y);
+
+      if (distToPlayer < CAT_RADIUS + PLAYER_RADIUS + 8) {
+        pause = Math.max(pause, 20);
+        const awayX = x - pp.x;
+        const awayY = y - pp.y;
+        const d = Math.hypot(awayX, awayY) || 1;
+        const nx = x + (awayX / d) * 1.15 * dt;
+        const ny = y + (awayY / d) * 1.15 * dt;
+        if (!isBlocked(nx, ny)) {
+          lastX = x;
+          x = nx;
+          y = ny;
+        }
+      } else if (pause > 0) {
+        pause -= dt;
+      } else {
+        const dx = targetX - x;
+        const dy = targetY - y;
+        const d = Math.hypot(dx, dy);
+        if (d < 6) {
+          pause = 45 + Math.random() * 90;
+          if (Math.random() < 0.33) say(lines[Math.floor(Math.random() * lines.length)]);
+          chooseTarget();
+        } else {
+          const speed = 0.65;
+          const nx = x + (dx / d) * speed * dt;
+          const ny = y + (dy / d) * speed * dt;
+          if (!isBlocked(nx, ny)) {
+            lastX = x;
+            x = nx;
+            y = ny;
+          } else {
+            pause = 24;
+            chooseTarget();
+          }
+        }
+      }
+
       render();
-      if (Math.random() < 0.45) say(lines[Math.floor(Math.random() * lines.length)]);
+      requestAnimationFrame(wander);
     }
 
     render();
+    chooseTarget();
     setTimeout(() => say('喵～'), 1200);
-    setInterval(chooseNext, 4300);
-    setInterval(render, 250);
+    requestAnimationFrame(wander);
     window.addEventListener('resize', render);
     window.addEventListener('keydown', (e) => {
       if (e.key.toLowerCase() === 'p' && petCat()) e.preventDefault();
