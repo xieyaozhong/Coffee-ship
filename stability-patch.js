@@ -76,10 +76,20 @@
     setInterval(() => { badge.textContent = isDeckOpen() ? '🌊 Deck' : '☕ Cafe'; }, 350);
   }
 
+  function loadRoleSprites() {
+    if (document.querySelector('script[data-role-sprites="true"]')) return;
+    const script = document.createElement('script');
+    script.src = 'role-sprites.js';
+    script.defer = true;
+    script.dataset.roleSprites = 'true';
+    document.body.appendChild(script);
+  }
+
   function init() {
     bindMobileDeckControls();
     preventCafeMovementBehindDeck();
     addStatusBadge();
+    loadRoleSprites();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
