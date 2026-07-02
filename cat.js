@@ -1,6 +1,7 @@
 (() => {
-  const CAT_NAME = '店貓 Mugi';
-  const lines = ['喵～', 'Mugi 在吧台旁巡邏。', 'Mugi 想偷聞拿鐵。', 'Mugi 打了一個小哈欠。', 'Mugi 躺在暖光裡。'];
+  const CAT_NAME = 'Mugi';
+  const lines = ['喵～', '呼嚕呼嚕…', 'Mugi 蹭了蹭你的手。', 'Mugi 看起來很滿意。', 'Mugi 在咖啡香裡打滾。'];
+  const PET_DISTANCE = 92;
 
   function injectStyle() {
     const style = document.createElement('style');
@@ -8,112 +9,95 @@
       .game-panel { position: relative; overflow: hidden; }
       .shop-cat-layer {
         position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         pointer-events: none;
         z-index: 8;
       }
       .shop-cat {
         position: absolute;
-        width: 58px;
-        height: 44px;
+        width: 38px;
+        height: 30px;
         transform: translate(-50%, -50%);
-        transition: left 1.6s linear, top 1.6s linear;
+        transition: left 1.25s linear, top 1.25s linear;
         image-rendering: pixelated;
-        filter: drop-shadow(0 4px 0 rgba(0,0,0,.35));
-      }
-      .shop-cat-body {
-        position: absolute;
-        left: 13px;
-        top: 18px;
-        width: 34px;
-        height: 18px;
-        background: #d99a62;
-        border: 3px solid #241521;
-        border-radius: 12px 14px 10px 10px;
-        box-sizing: border-box;
-      }
-      .shop-cat-head {
-        position: absolute;
-        left: 3px;
-        top: 8px;
-        width: 25px;
-        height: 24px;
-        background: #e7ad72;
-        border: 3px solid #241521;
-        border-radius: 9px;
-        box-sizing: border-box;
-      }
-      .shop-cat-head::before,
-      .shop-cat-head::after {
-        content: '';
-        position: absolute;
-        top: -9px;
-        width: 10px;
-        height: 10px;
-        background: #e7ad72;
-        border-left: 3px solid #241521;
-        border-top: 3px solid #241521;
-        transform: rotate(45deg);
-        box-sizing: border-box;
-      }
-      .shop-cat-head::before { left: 0; }
-      .shop-cat-head::after { right: 0; }
-      .shop-cat-eye {
-        position: absolute;
-        top: 8px;
-        width: 4px;
-        height: 4px;
-        background: #241521;
-      }
-      .shop-cat-eye.left { left: 6px; }
-      .shop-cat-eye.right { right: 6px; }
-      .shop-cat-tail {
-        position: absolute;
-        right: 2px;
-        top: 10px;
-        width: 18px;
-        height: 18px;
-        border-top: 5px solid #d99a62;
-        border-right: 5px solid #241521;
-        border-radius: 50%;
-        transform: rotate(25deg);
-      }
-      .shop-cat.sleeping .shop-cat-eye {
-        height: 2px;
-        top: 10px;
+        filter: drop-shadow(0 3px 0 rgba(0,0,0,.35));
       }
       .shop-cat.flip { transform: translate(-50%, -50%) scaleX(-1); }
+      .shop-cat.pet-happy { animation: cat-hop .34s steps(2) 3; }
+      @keyframes cat-hop { 0%,100% { margin-top: 0; } 50% { margin-top: -5px; } }
+
+      .cat-pixel { position: absolute; width: 4px; height: 4px; background: var(--c); box-shadow: var(--s); }
+      .cat-outline { --c:#111; }
+      .cat-white { --c:#fffdf4; }
+      .cat-orange { --c:#df6d13; }
+      .cat-green { --c:#8b9a86; }
+      .cat-eye { --c:#30384d; }
+
       .shop-cat-label,
-      .shop-cat-bubble {
+      .shop-cat-bubble,
+      .shop-cat-hint {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
         font-family: ui-rounded, system-ui, sans-serif;
-        font-weight: 800;
+        font-weight: 900;
         text-shadow: 2px 2px 0 #120b17;
       }
       .shop-cat-label {
-        top: -20px;
+        top: -19px;
         color: #fff4d8;
-        font-size: 13px;
+        font-size: 12px;
       }
-      .shop-cat-bubble {
+      .shop-cat-bubble,
+      .shop-cat-hint {
         display: none;
-        bottom: 44px;
-        padding: 6px 9px;
+        bottom: 33px;
+        padding: 5px 8px;
         color: #fff4d8;
         background: #151020;
         border: 2px solid #76536a;
         border-radius: 8px;
-        font-size: 13px;
+        font-size: 12px;
       }
       .shop-cat.show-bubble .shop-cat-bubble { display: block; }
+      .shop-cat.near-player:not(.show-bubble) .shop-cat-hint { display: block; }
     `;
     document.head.appendChild(style);
+  }
+
+  function catSpriteHtml() {
+    return `
+      <div class="shop-cat-label">${CAT_NAME}</div>
+      <div class="shop-cat-bubble">喵～</div>
+      <div class="shop-cat-hint">按 P 摸摸</div>
+      <span class="cat-pixel cat-outline" style="left:0px;top:4px;width:4px;height:12px"></span>
+      <span class="cat-pixel cat-outline" style="left:4px;top:0px;width:8px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:12px;top:4px;width:4px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:16px;top:8px;width:8px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:24px;top:4px;width:4px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:28px;top:0px;width:8px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:36px;top:4px;width:4px;height:12px"></span>
+      <span class="cat-pixel cat-outline" style="left:4px;top:16px;width:32px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:4px;top:20px;width:4px;height:12px"></span>
+      <span class="cat-pixel cat-outline" style="left:12px;top:28px;width:4px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:20px;top:28px;width:12px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:36px;top:20px;width:4px;height:12px"></span>
+      <span class="cat-pixel cat-outline" style="left:40px;top:16px;width:4px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:44px;top:12px;width:4px;height:12px"></span>
+      <span class="cat-pixel cat-outline" style="left:48px;top:8px;width:4px;height:4px"></span>
+      <span class="cat-pixel cat-outline" style="left:52px;top:8px;width:4px;height:12px"></span>
+      <span class="cat-pixel cat-white" style="left:4px;top:4px;width:8px;height:12px"></span>
+      <span class="cat-pixel cat-white" style="left:16px;top:12px;width:20px;height:4px"></span>
+      <span class="cat-pixel cat-white" style="left:8px;top:20px;width:28px;height:8px"></span>
+      <span class="cat-pixel cat-green" style="left:8px;top:4px;width:8px;height:12px"></span>
+      <span class="cat-pixel cat-green" style="left:32px;top:20px;width:8px;height:8px"></span>
+      <span class="cat-pixel cat-orange" style="left:28px;top:4px;width:8px;height:12px"></span>
+      <span class="cat-pixel cat-orange" style="left:20px;top:20px;width:8px;height:4px"></span>
+      <span class="cat-pixel cat-orange" style="left:52px;top:12px;width:4px;height:8px"></span>
+      <span class="cat-pixel cat-eye" style="left:12px;top:12px;width:4px;height:4px"></span>
+      <span class="cat-pixel cat-eye" style="left:28px;top:12px;width:4px;height:4px"></span>
+    `;
   }
 
   function initCat() {
@@ -125,21 +109,24 @@
     layer.className = 'shop-cat-layer';
     const cat = document.createElement('div');
     cat.className = 'shop-cat';
-    cat.innerHTML = `
-      <div class="shop-cat-label">${CAT_NAME}</div>
-      <div class="shop-cat-bubble">喵～</div>
-      <div class="shop-cat-tail"></div>
-      <div class="shop-cat-body"></div>
-      <div class="shop-cat-head"><span class="shop-cat-eye left"></span><span class="shop-cat-eye right"></span></div>
-    `;
+    cat.innerHTML = catSpriteHtml();
     layer.appendChild(cat);
     panel.appendChild(layer);
 
     let x = 245;
     let y = 455;
     let lastX = x;
-    let sleeping = false;
+    let petCooldown = false;
     const bubble = cat.querySelector('.shop-cat-bubble');
+
+    function playerPosition() {
+      const canvasRect = canvas.getBoundingClientRect();
+      const panelRect = panel.getBoundingClientRect();
+      const playerEl = document.getElementById('avatarName');
+      const fallback = { x: 480, y: 360 };
+      // The main game does not expose player coordinates, so estimate from local collision world by using center when needed.
+      return window.COFFEE_SHIP_PLAYER_POS || fallback;
+    }
 
     function toPanelPoint(gameX, gameY) {
       const rect = canvas.getBoundingClientRect();
@@ -155,13 +142,26 @@
       cat.style.left = `${p.x}px`;
       cat.style.top = `${p.y}px`;
       cat.classList.toggle('flip', x < lastX);
-      cat.classList.toggle('sleeping', sleeping);
+      const pp = playerPosition();
+      cat.classList.toggle('near-player', Math.hypot(pp.x - x, pp.y - y) < PET_DISTANCE);
     }
 
     function say(text) {
       bubble.textContent = text;
       cat.classList.add('show-bubble');
       setTimeout(() => cat.classList.remove('show-bubble'), 2200);
+    }
+
+    function petCat() {
+      const pp = playerPosition();
+      if (Math.hypot(pp.x - x, pp.y - y) > PET_DISTANCE) return false;
+      if (petCooldown) return true;
+      petCooldown = true;
+      cat.classList.add('pet-happy');
+      say(lines[Math.floor(Math.random() * lines.length)]);
+      setTimeout(() => cat.classList.remove('pet-happy'), 1100);
+      setTimeout(() => { petCooldown = false; }, 1800);
+      return true;
     }
 
     function chooseNext() {
@@ -178,15 +178,19 @@
       const spot = spots[Math.floor(Math.random() * spots.length)];
       x = spot.x;
       y = spot.y;
-      sleeping = Math.random() < 0.25;
       render();
-      if (Math.random() < 0.55) say(lines[Math.floor(Math.random() * lines.length)]);
+      if (Math.random() < 0.45) say(lines[Math.floor(Math.random() * lines.length)]);
     }
 
     render();
-    setTimeout(() => say('Mugi 登船了。'), 1200);
-    setInterval(chooseNext, 4200);
+    setTimeout(() => say('喵～'), 1200);
+    setInterval(chooseNext, 4300);
+    setInterval(render, 250);
     window.addEventListener('resize', render);
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'p' && petCat()) e.preventDefault();
+    });
+    layer.addEventListener('pointerdown', () => petCat());
   }
 
   injectStyle();
