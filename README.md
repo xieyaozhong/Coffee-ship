@@ -1,27 +1,49 @@
 # Coffee Ship
 
-像素風咖啡船小遊戲。
+像素風咖啡廳小遊戲。這版已加入 Firebase Realtime Database：
 
-## 這版優化內容
+- 雲端留言板：不同裝置打開同一個 GitHub Pages 網址，都能看到同一批留言。
+- 基本多人同步：不同玩家進入後，會同步顯示在咖啡廳裡。
+- Momo 店長 NPC：在吧台附近移動，可以幫玩家點不同咖啡。
+- Peak 大提琴 NPC：可互動並播放簡易大提琴音色。
+- Bean 講笑話 NPC：靠近互動會說笑話。
+- NPC 會移動、碰撞、偶爾出現心情泡泡。
 
-- 以 `coffee_ship_momo_manager` 為基底優化
-- NPC 有碰撞體積，玩家不能穿過 NPC
-- Momo 是金髮店長，會在吧台附近移動並點咖啡
-- Peak 是大提琴 NPC，靠近按 E 會演奏合成大提琴聲
-- Bean 是講笑話 NPC，靠近按 E 會講笑話
-- Peak / Bean 會在各自區域移動
-- NPC 會隨機互動、偶爾出現心情泡泡
-- NPC 畫面只顯示名字
-- 保留留言板與 Firebase 雲端留言功能
+## 上傳到 GitHub Pages
 
-## 操作
+把以下檔案放在 repository 根目錄：
 
-- WASD / 方向鍵：移動
-- C：靠近 Momo 點咖啡
-- E：互動或坐下
-- B：打開留言板
-- Space：發表情
+```text
+index.html
+style.css
+game.js
+firebase-config.js
+README.md
+```
 
-## Firebase
+GitHub Pages 設定：
 
-若要跨裝置同步留言，請把 Firebase Realtime Database 設定填入 `firebase-config.js`。
+- Source: Deploy from a branch
+- Branch: main
+- Folder: /root
+
+網站網址：
+
+```text
+https://xieyaozhong.github.io/Coffee-ship/
+```
+
+## Firebase Realtime Database Rules
+
+測試期可以先用：
+
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+```
+
+正式公開前建議改成需要登入或加上寫入限制，避免任何人亂寫資料。

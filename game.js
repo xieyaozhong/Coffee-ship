@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getDatabase, ref, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, push, onValue, query, limitToLast, serverTimestamp, set, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -28,7 +28,14 @@ let audioCtx = null;
 let celloTimer = 0;
 let cloudReady = false;
 let messagesRef = null;
+let playersRef = null;
+let myPlayerRef = null;
+let myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+localStorage.setItem('coffeeShipPlayerId', myPlayerId);
+let remotePlayers = {};
 let cachedMessages = [];
+let lastPlayerSync = 0;
+let lastSyncedState = '';
 
 function isFirebaseConfigured(){
   const cfg = window.COFFEE_SHIP_FIREBASE_CONFIG;
@@ -40,12 +47,23 @@ try{
     const app = initializeApp(window.COFFEE_SHIP_FIREBASE_CONFIG);
     const db = getDatabase(app);
     messagesRef = ref(db, 'coffeeShip/messages');
+    playersRef = ref(db, 'coffeeShip/players');
     cloudReady = true;
     onValue(query(messagesRef, limitToLast(50)), snapshot => {
       const data = snapshot.val() || {};
       cachedMessages = Object.entries(data).map(([id, m]) => ({ id, ...m }))
         .sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
       renderMessages();
+    });
+    onValue(playersRef, snapshot => {
+      const data = snapshot.val() || {};
+      const now = Date.now();
+      remotePlayers = Object.fromEntries(
+        Object.entries(data)
+          .filter(([id, p]) => id !== myPlayerId && p && (now - (p.clientUpdatedAt || now)) < 30000)
+          .map(([id, p]) => [id, {...p, radius: 17, skin: p.skin || '#f0c7a0'}])
+      );
+      updateOnlineStatus();
     });
   }
 }catch(error){
@@ -57,7 +75,7 @@ const world = {
   tile: 48,
   w: 960,
   h: 576,
-  message: cloudReady ? '雲端留言板已連線。歡迎來到 Coffee Ship。' : '留言板目前使用本機模式；填好 Firebase 設定後就能跨裝置同步。',
+  message: cloudReady ? 'Firebase 已連線：留言板與玩家位置會跨裝置同步。' : '留言板目前使用本機模式；填好 Firebase 設定後就能跨裝置同步。',
   messageTimer: 300,
   particles: [],
   bubbles: []
@@ -228,6 +246,7 @@ function tryMove(dx,dy){
   if(next.x<70 || next.x+next.w>890 || next.y<74 || next.y+next.h>545) return;
   for(const b of blocks) if(rectsOverlap(next,b)) return;
   for(const n of npcs) if(rectsOverlap(next,npcHitbox(n))) return;
+  for(const r of Object.values(remotePlayers)) if(rectsOverlap(next, playerHitboxAt(r.x || 0, r.y || 0))) return;
   player.x += dx; player.y += dy;
 }
 
@@ -304,6 +323,38 @@ function interact(){
   sitDown();
 }
 
+function onlineCount(){return 1 + Object.keys(remotePlayers).length;}
+function updateOnlineStatus(){
+  if(!statusText) return;
+  statusText.textContent = cloudReady ? `雲端已連線 · ${onlineCount()} 人在線` : '本機模式';
+}
+function currentPlayerState(){
+  return {
+    name: player.name || 'Guest', x: Math.round(player.x), y: Math.round(player.y),
+    hair: player.hair, shirt: player.shirt, skin: player.skin,
+    coffeeType: player.coffeeType || '', hasCoffee: !!player.hasCoffee,
+    sitting: !!player.sitting, emote: player.emote || '', clientUpdatedAt: Date.now(), updatedAt: serverTimestamp()
+  };
+}
+async function syncPlayer(force=false){
+  if(!cloudReady || !myPlayerRef) return;
+  const state = currentPlayerState();
+  const stateKey = JSON.stringify({...state, updatedAt: 0, clientUpdatedAt: 0});
+  const now = Date.now();
+  if(!force && stateKey === lastSyncedState && now - lastPlayerSync < 1200) return;
+  if(!force && now - lastPlayerSync < 140) return;
+  lastSyncedState = stateKey;
+  lastPlayerSync = now;
+  try{ await set(myPlayerRef, state); }catch(err){ console.warn('player sync failed', err); }
+}
+function setupCloudPlayer(){
+  if(!cloudReady || !playersRef) return;
+  myPlayerRef = ref(getDatabase(), `coffeeShip/players/${myPlayerId}`);
+  onDisconnect(myPlayerRef).remove();
+  syncPlayer(true);
+  updateOnlineStatus();
+}
+
 function update(){
   npcs.forEach(updateNpc);
   socialTick();
@@ -315,13 +366,15 @@ function update(){
   if(keys.has('ArrowRight')||keys.has('d')||mobile.right) dx+=player.speed;
   if(dx&&dy){dx*=.707;dy*=.707}
   tryMove(dx,dy);
+  syncPlayer(false);
   if(world.messageTimer>0) world.messageTimer--;
   if(player.emoteTimer>0){player.emoteTimer--; if(player.emoteTimer===0) player.emote=null;}
 }
 function render(){
   drawFloor(); drawCafe(); drawParticles();
-  [...npcs].sort((a,b)=>a.y-b.y).forEach(n=>drawAvatar(n));
-  drawAvatar(player,true); drawBubbles(); drawMessage();
+  const actors = [...npcs, ...Object.values(remotePlayers), player].sort((a,b)=>(a.y||0)-(b.y||0));
+  actors.forEach(a => drawAvatar(a, a === player));
+  drawBubbles(); drawMessage();
 }
 function loop(t=0){
   lastTime = t;
@@ -388,6 +441,7 @@ function chooseCoffee(item){
   closeCoffeeMenu();
   say(`Momo 為 ${player.name} 做好了一杯「${item.name}」。${item.desc}`, 300);
   spawnSparkles();
+  syncPlayer(true);
 }
 function orderCoffee(){openCoffeeMenu();}
 function sitDown(){
@@ -395,7 +449,7 @@ function sitDown(){
   if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`)}
   else say('靠近椅子後按 E 就能坐下。靠近 NPC 按 E 則能互動。');
 }
-function emote(){player.emote = player.hasCoffee ? '☕✨' : '✨'; player.emoteTimer=95; say(`${player.name} 發出了一個小小的表情。`); spawnSparkles();}
+function emote(){player.emote = player.hasCoffee ? '☕✨' : '✨'; player.emoteTimer=95; say(`${player.name} 發出了一個小小的表情。`); spawnSparkles(); syncPlayer(true);}
 
 function getLocalMessages(){
   try{return JSON.parse(localStorage.getItem('coffeeShipMessages') || '[]')}catch(e){return []}
@@ -456,6 +510,7 @@ startBtn.addEventListener('click',()=>{
   localStorage.setItem('coffeeShipAvatar', JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType}));
   creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent = player.name;
   statusText.textContent = cloudReady ? '雲端已連線' : '本機模式'; moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c'; moodDot.style.color = moodDot.style.background;
+  setupCloudPlayer();
   say(`歡迎 ${player.name} 登上 Coffee Ship。找 Momo 點咖啡，找 Peak 聽大提琴，找 Bean 聽笑話。`, 340);
 });
 
@@ -485,6 +540,8 @@ coffeeOptions.addEventListener('click', e=>{
   if(!btn) return;
   chooseCoffee(coffeeMenuItems[Number(btn.dataset.coffeeIndex)]);
 });
+window.addEventListener('beforeunload', () => { if(cloudReady && myPlayerRef) remove(myPlayerRef); });
+
 messageForm.addEventListener('submit', async e=>{
   e.preventDefault();
   const text = messageInput.value.trim();
