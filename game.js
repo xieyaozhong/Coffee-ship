@@ -23,7 +23,9 @@ const closeCoffeeMenuBtn = document.getElementById('closeCoffeeMenuBtn');
 
 const keys = new Set();
 const mobile = { up:false, down:false, left:false, right:false };
-
+let lastTime = 0;
+let audioCtx = null;
+let celloTimer = 0;
 let cloudReady = false;
 let messagesRef = null;
 let cachedMessages = [];
@@ -56,12 +58,13 @@ const world = {
   w: 960,
   h: 576,
   message: cloudReady ? '雲端留言板已連線。歡迎來到 Coffee Ship。' : '留言板目前使用本機模式；填好 Firebase 設定後就能跨裝置同步。',
-  messageTimer: 320,
-  particles: []
+  messageTimer: 300,
+  particles: [],
+  bubbles: []
 };
 
 const player = {
-  name: 'Guest', x: 480, y: 360, speed: 2.4, dir: 'down',
+  name: 'Guest', x: 480, y: 360, speed: 2.4, dir: 'down', radius: 17,
   hair: '#2b1d16', shirt: '#c96a4a', skin:'#f0c7a0', coffeeType:'美式',
   hasCoffee:false, sitting:false, emote:null, emoteTimer:0
 };
@@ -75,10 +78,29 @@ const coffeeMenuItems = [
   {name:'雲朵可可咖啡', icon:'☁️', desc:'咖啡加可可，甜一點，心情也軟一點。', price:'130 beans'}
 ];
 
+const npcBounds = {
+  momo: {x:155,y:194,w:298,h:76},
+  peak: {x:600,y:286,w:185,h:92},
+  bean: {x:610,y:150,w:250,h:155}
+};
+
 const npcs = [
-  {name:'Momo', x:235, y:214, hair:'#5b2b1e', shirt:'#79d0b1', emote:'☕', barista:true, homeX:235, homeY:214, targetX:330, targetY:214, wait:0, dir:'right', emoteTimer:999999},
-  {name:'Peak', x:705, y:332, hair:'#1f1930', shirt:'#8460c8', emote:'♪'},
-  {name:'Bean', x:755, y:180, hair:'#e0b45d', shirt:'#d7bb79', emote:'...'}
+  {name:'Momo', role:'barista', x:235, y:214, targetX:330, targetY:214, speed:.72, radius:20, skin:'#f4c7a9', hair:'#f3c85a', shirt:'#78d2bd', apron:'#fff4d8', emote:'☕', emoteTimer:160, wait:0, bounds:npcBounds.momo, coffee:true},
+  {name:'Peak', role:'cellist', x:705, y:332, targetX:690, targetY:332, speed:.5, radius:21, skin:'#f0c7a0', hair:'#1f1930', shirt:'#8460c8', emote:'♪', emoteTimer:160, wait:80, bounds:npcBounds.peak, playing:true},
+  {name:'Bean', role:'joker', x:755, y:180, targetX:755, targetY:238, speed:.6, radius:18, skin:'#e9b98f', hair:'#6d3f26', shirt:'#d7bb79', emote:'🙂', emoteTimer:130, wait:100, bounds:npcBounds.bean}
+];
+
+const moods = ['☕','✨','💭','🙂','🌙','♪','😆'];
+const beanJokes = [
+  'Bean：為什麼咖啡不會迷路？因為它知道自己要去哪一杯。',
+  'Bean：我剛剛跟拿鐵吵架，因為它太會奶了。',
+  'Bean：這艘船不怕沉，因為大家都會浮誇。',
+  'Bean：我不是豆子，我是有理想的咖啡因。'
+];
+const peakLines = [
+  'Peak 輕輕拉了一段溫柔的大提琴旋律。',
+  'Peak 的大提琴聲在船艙裡慢慢散開。',
+  'Peak 點頭示意，音符像熱咖啡一樣冒出來。'
 ];
 
 const chairs = [
@@ -86,13 +108,20 @@ const chairs = [
 ];
 const tables = [{x:290,y:400},{x:680,y:400},{x:730,y:276},{x:195,y:276}];
 const counter = {x:120,y:96,w:360,h:88};
-const momoZone = {x:150,y:198,w:300,h:74};
 const board = {x:560,y:104,w:210,h:72};
 const blocks = [counter, {x:98,y:96,w:28,h:300}, {x:834,y:96,w:28,h:300}];
 
 function rectsOverlap(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y}
 function near(px,py,ox,oy,dist=70){return Math.hypot(px-ox, py-oy) < dist}
 function say(text, time=240){world.message = text; world.messageTimer = time;}
+function clamp(v,min,max){return Math.max(min, Math.min(max, v));}
+function chooseTarget(n){
+  n.targetX = n.bounds.x + 30 + Math.random() * Math.max(10, n.bounds.w - 60);
+  n.targetY = n.bounds.y + 26 + Math.random() * Math.max(10, n.bounds.h - 52);
+}
+function pushBubble(n, text, life=140){
+  world.bubbles.push({x:n.x, y:n.y-64, text, life, maxLife:life});
+}
 
 function drawPixelRect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function drawText(text,x,y,size=16,align='center',color='#fff4d8'){
@@ -119,34 +148,45 @@ function drawCafe(){
   drawPixelRect(counter.x,counter.y,counter.w,18,'#a56b45');
   drawPixelRect(180,122,42,34,'#21182a'); drawPixelRect(190,112,22,14,'#d7bb79');
   drawText('BAR', counter.x+counter.w/2, counter.y+58, 18, 'center', '#ffe5ae');
-  drawText('Momo 店長', 305, 202, 14, 'center', '#79d0b1');
   drawPixelRect(board.x,board.y,board.w,board.h,'#3a293d');
   drawPixelRect(board.x+10,board.y+10,board.w-20,board.h-20,'#21182a');
   drawText(cloudReady ? '雲端留言  B' : '留言板  B', board.x+board.w/2, board.y+44, 18, 'center', cloudReady ? '#79d0b1' : '#f0a75c');
   drawPixelRect(116,190,40,130,'#3d2a32'); drawPixelRect(804,190,40,130,'#3d2a32');
   tables.forEach(t=>{drawPixelRect(t.x-40,t.y-22,80,44,'#694638');drawPixelRect(t.x-28,t.y-12,56,24,'#9b6844');drawPixelRect(t.x-7,t.y-8,14,16,'#fff4d8')});
   chairs.forEach(c=>{drawPixelRect(c.x-16,c.y-14,32,28,'#4f8f73');drawPixelRect(c.x-12,c.y-22,24,10,'#79d0b1')});
+  drawPixelRect(625,345,120,16,'#5b3e4e');
+  drawText('STAGE',685,344,13,'center','#d7bb79');
   drawPixelRect(400,500,160,28,'#5b3e4e'); drawText('漂浮咖啡船甲板',480,520,15);
+}
+
+function drawCello(x,y){
+  drawPixelRect(x+15,y-4,6,52,'#4d2b22');
+  drawPixelRect(x+4,y+10,26,28,'#8b4d2e');
+  drawPixelRect(x+8,y+4,18,14,'#a45f34');
+  drawPixelRect(x+12,y+36,10,18,'#6d3f26');
+  drawPixelRect(x+18,y-18,4,18,'#d7bb79');
+  drawPixelRect(x+38,y+2,4,46,'#fff4d8');
 }
 
 function drawAvatar(a, isPlayer=false){
   const x=Math.round(a.x), y=Math.round(a.y);
-  if(a.barista){
-    drawPixelRect(x-18,y-14,36,40,'#fff4d8');
-    drawPixelRect(x-14,y-10,28,10,'#d7bb79');
+  if(a.role === 'barista'){
+    drawPixelRect(x-19,y-16,38,44,a.apron || '#fff4d8');
+    drawPixelRect(x-15,y-12,30,10,'#f8e9b4');
   }
+  if(a.role === 'cellist') drawCello(x-48,y-10);
   drawPixelRect(x-11,y+16,22,6,'#120b17');
   drawPixelRect(x-10,y-28,20,18,a.skin || '#f0c7a0');
-  drawPixelRect(x-12,y-34,24,12,a.hair); drawPixelRect(x-14,y-28,6,12,a.hair); drawPixelRect(x+8,y-28,6,12,a.hair);
+  drawPixelRect(x-13,y-36,26,12,a.hair); drawPixelRect(x-16,y-28,7,16,a.hair); drawPixelRect(x+9,y-28,7,16,a.hair);
+  if(a.role === 'barista') drawPixelRect(x-10,y-40,20,5,'#ffe5ae');
   drawPixelRect(x-14,y-8,28,28,a.shirt);
   drawPixelRect(x-20,y-4,6,18,a.skin || '#f0c7a0'); drawPixelRect(x+14,y-4,6,18,a.skin || '#f0c7a0');
   drawPixelRect(x-10,y+20,8,16,'#2a2634'); drawPixelRect(x+2,y+20,8,16,'#2a2634');
   drawPixelRect(x-5,y-20,4,4,'#21182a'); drawPixelRect(x+5,y-20,4,4,'#21182a');
   drawPixelRect(x-4,y-12,8,3,'#b86766');
-  if(a.hasCoffee){drawPixelRect(x+17,y+3,10,12,'#fff4d8'); drawPixelRect(x+19,y+5,6,5,'#6d3f26')}
-  if(a.barista){drawPixelRect(x-19,y+2,8,12,'#fff4d8'); drawPixelRect(x-17,y+4,4,5,'#6d3f26');}
-  drawText(a.name, x, y-42, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
-  if(a.emote && (a.emoteTimer === undefined || a.emoteTimer > 0)) drawText(a.emote, x, y-62, 22);
+  if(a.hasCoffee || a.coffee){drawPixelRect(x+17,y+3,10,12,'#fff4d8'); drawPixelRect(x+19,y+5,6,5,'#6d3f26')}
+  drawText(a.name, x, y-44, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
+  if(a.emote && (a.emoteTimer === undefined || a.emoteTimer > 0)) drawText(a.emote, x, y-64, 22);
 }
 
 function drawMessage(){
@@ -158,6 +198,20 @@ function drawMessage(){
   ctx.globalAlpha = 1;
 }
 
+function drawBubbles(){
+  world.bubbles.forEach(b=>{
+    const alpha = Math.min(1, b.life/25);
+    ctx.globalAlpha = alpha;
+    const w = Math.min(260, Math.max(48, b.text.length * 15));
+    drawPixelRect(b.x-w/2,b.y-18,w,32,'#151020');
+    ctx.strokeStyle='#76536a'; ctx.lineWidth=2; ctx.strokeRect(Math.round(b.x-w/2),Math.round(b.y-18),w,32);
+    drawText(b.text,b.x,b.y+4,15,'center','#fff4d8');
+    ctx.globalAlpha = 1;
+    b.y -= .18; b.life--;
+  });
+  world.bubbles = world.bubbles.filter(b=>b.life>0);
+}
+
 function spawnSparkles(){
   for(let i=0;i<18;i++) world.particles.push({x:player.x,y:player.y-28,vx:(Math.random()-.5)*3,vy:-Math.random()*2-1,life:45});
 }
@@ -166,41 +220,94 @@ function drawParticles(){
   world.particles = world.particles.filter(p=>p.life>0);
 }
 
+function playerHitboxAt(x,y){return {x:x-player.radius,y:y-32,w:player.radius*2,h:62};}
+function npcHitbox(n){return {x:n.x-n.radius,y:n.y-34,w:n.radius*2,h:64};}
 function tryMove(dx,dy){
   if(player.sitting && (dx||dy)) player.sitting = false;
-  const next = {x:player.x+dx-13,y:player.y+dy-32,w:26,h:64};
+  const next = playerHitboxAt(player.x+dx, player.y+dy);
   if(next.x<70 || next.x+next.w>890 || next.y<74 || next.y+next.h>545) return;
   for(const b of blocks) if(rectsOverlap(next,b)) return;
+  for(const n of npcs) if(rectsOverlap(next,npcHitbox(n))) return;
   player.x += dx; player.y += dy;
 }
-function updateMomo(){
-  const momo = npcs.find(n=>n.barista);
-  if(!momo) return;
-  const dist = Math.hypot(player.x - momo.x, player.y - momo.y);
-  if(dist < 105){
-    momo.emote = player.hasCoffee ? '歡迎慢用' : '要喝什麼？';
-    momo.emoteTimer = 999999;
-    momo.dir = player.x > momo.x ? 'right' : 'left';
-    if(Math.random() < 0.015) say('Momo 店長：歡迎登船，今天想喝哪一杯？靠近我按 C 看咖啡單。', 160);
+
+function npcCanMove(n, nx, ny){
+  if(nx < n.bounds.x+18 || nx > n.bounds.x+n.bounds.w-18 || ny < n.bounds.y+24 || ny > n.bounds.y+n.bounds.h-16) return false;
+  const box = npcHitbox({...n, x:nx, y:ny});
+  for(const b of blocks) if(rectsOverlap(box,b)) return false;
+  if(rectsOverlap(box, playerHitboxAt(player.x, player.y))) return false;
+  for(const other of npcs){
+    if(other === n) continue;
+    if(rectsOverlap(box, npcHitbox(other))) return false;
+  }
+  return true;
+}
+
+function updateNpc(n){
+  if(n.emoteTimer > 0){ n.emoteTimer--; if(n.emoteTimer === 0) n.emote = null; }
+  const dToPlayer = Math.hypot(player.x - n.x, player.y - n.y);
+  if(n.role === 'barista' && dToPlayer < 112){
+    n.emote = player.hasCoffee ? '☕' : '？'; n.emoteTimer = 60;
+    if(Math.random() < 0.01) pushBubble(n, player.hasCoffee ? '請慢用' : '要喝什麼？', 110);
     return;
   }
-  if(momo.wait > 0){momo.wait--; return;}
-  const dx = momo.targetX - momo.x;
-  const dy = momo.targetY - momo.y;
-  const d = Math.hypot(dx, dy);
-  if(d < 3){
-    momo.wait = 40 + Math.floor(Math.random()*80);
-    momo.targetX = momoZone.x + Math.random()*momoZone.w;
-    momo.targetY = momoZone.y + Math.random()*momoZone.h;
-    momo.emote = Math.random() > .5 ? '☕' : '整理杯子';
+  if(n.wait > 0){ n.wait--; return; }
+  const dx = n.targetX - n.x;
+  const dy = n.targetY - n.y;
+  const dist = Math.hypot(dx, dy);
+  if(dist < 4){
+    n.wait = 55 + Math.floor(Math.random()*115);
+    chooseTarget(n);
+    if(Math.random() < .35){ n.emote = moods[Math.floor(Math.random()*moods.length)]; n.emoteTimer = 90; }
     return;
   }
-  momo.x += dx/d * 0.7;
-  momo.y += dy/d * 0.7;
+  const nx = n.x + dx/dist * n.speed;
+  const ny = n.y + dy/dist * n.speed;
+  if(npcCanMove(n, nx, ny)){ n.x = nx; n.y = ny; }
+  else { n.wait = 25; chooseTarget(n); }
+}
+
+function socialTick(){
+  for(const a of npcs){
+    for(const b of npcs){
+      if(a === b) continue;
+      if(near(a.x,a.y,b.x,b.y,74) && Math.random() < 0.0025){
+        a.emote = a.role === 'cellist' ? '♪' : a.role === 'joker' ? '😆' : '☕'; a.emoteTimer = 95;
+        b.emote = b.role === 'joker' ? '😂' : '✨'; b.emoteTimer = 95;
+        const text = a.role === 'joker' ? '聽我說' : a.role === 'cellist' ? '來一段嗎' : '咖啡好了';
+        pushBubble(a, text, 105);
+      }
+    }
+  }
+}
+
+function getClosestNpc(dist=82){
+  return npcs.find(n => near(player.x, player.y, n.x, n.y, dist));
+}
+
+function interact(){
+  const n = getClosestNpc(96);
+  if(n){
+    if(n.role === 'barista'){ openCoffeeMenu(true); return; }
+    if(n.role === 'cellist'){
+      startAudio(); playCelloPhrase();
+      n.emote = '♪'; n.emoteTimer = 120;
+      say(peakLines[Math.floor(Math.random()*peakLines.length)], 220);
+      return;
+    }
+    if(n.role === 'joker'){
+      n.emote = '😆'; n.emoteTimer = 120;
+      say(beanJokes[Math.floor(Math.random()*beanJokes.length)], 260);
+      return;
+    }
+  }
+  sitDown();
 }
 
 function update(){
-  updateMomo();
+  npcs.forEach(updateNpc);
+  socialTick();
+  if(celloTimer > 0){ celloTimer--; if(celloTimer % 150 === 0 && Math.random() < .65) playCelloPhrase(false); }
   let dx=0, dy=0;
   if(keys.has('ArrowUp')||keys.has('w')||mobile.up) dy-=player.speed;
   if(keys.has('ArrowDown')||keys.has('s')||mobile.down) dy+=player.speed;
@@ -213,19 +320,53 @@ function update(){
 }
 function render(){
   drawFloor(); drawCafe(); drawParticles();
-  npcs.forEach(n=>drawAvatar(n)); drawAvatar(player,true); drawMessage();
+  [...npcs].sort((a,b)=>a.y-b.y).forEach(n=>drawAvatar(n));
+  drawAvatar(player,true); drawBubbles(); drawMessage();
 }
-function loop(){update();render();requestAnimationFrame(loop)}
+function loop(t=0){
+  lastTime = t;
+  update();render();requestAnimationFrame(loop)
+}
+
+function startAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone(freq, start, duration, gain=0.05){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  osc.type = 'sawtooth'; osc2.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, start); osc2.frequency.setValueAtTime(freq/2, start);
+  filter.type = 'lowpass'; filter.frequency.setValueAtTime(620, start);
+  g.gain.setValueAtTime(0.0001, start);
+  g.gain.exponentialRampToValueAtTime(gain, start + .08);
+  g.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  osc.connect(filter); osc2.connect(filter); filter.connect(g); g.connect(audioCtx.destination);
+  osc.start(start); osc2.start(start); osc.stop(start+duration+.05); osc2.stop(start+duration+.05);
+}
+function playCelloPhrase(loud=true){
+  startAudio();
+  const peak = npcs.find(n=>n.role==='cellist');
+  if(peak){ peak.emote='♪'; peak.emoteTimer=130; }
+  const now = audioCtx.currentTime + .03;
+  const notes = [196, 220, 247, 220, 196, 164.8, 174.6, 196];
+  notes.forEach((f,i)=>playTone(f, now + i*.34, .42, loud ? .055 : .028));
+  celloTimer = 520;
+}
 
 function closeCoffeeMenu(){coffeeMenu.classList.add('hidden');}
 function openCoffeeMenu(force=false){
-  const momo = npcs.find(n=>n.barista);
-  const closeToMomo = momo && near(player.x, player.y, momo.x, momo.y, 130);
+  const momo = npcs.find(n=>n.role==='barista');
+  const closeToMomo = momo && near(player.x, player.y, momo.x, momo.y, 135);
   const closeToCounter = near(player.x, player.y, counter.x+counter.w/2, counter.y+counter.h+35, 170);
-  if(!force && !closeToMomo && !closeToCounter){say('要靠近吧台或 Momo 店長，才能點咖啡喔。'); return;}
+  if(!force && !closeToMomo && !closeToCounter){say('要靠近吧台或 Momo，才能點咖啡喔。'); return;}
   renderCoffeeOptions();
   coffeeMenu.classList.remove('hidden');
-  say('Momo 店長把咖啡單遞給你：今天想喝哪一杯？', 220);
+  if(momo){momo.emote='☕'; momo.emoteTimer=120; pushBubble(momo,'想喝什麼？',100);}
+  say('Momo 把咖啡單遞給你。', 180);
 }
 function renderCoffeeOptions(){
   coffeeOptions.innerHTML = coffeeMenuItems.map((item, i)=>`
@@ -242,19 +383,18 @@ function chooseCoffee(item){
   player.emote = item.icon + '✨';
   player.emoteTimer = 110;
   coffeeBadge.textContent = `手上有一杯${item.name}`;
-  const momo = npcs.find(n=>n.barista);
-  if(momo){momo.emote = '請慢用'; momo.emoteTimer = 999999;}
+  const momo = npcs.find(n=>n.role==='barista');
+  if(momo){momo.emote = '☕'; momo.emoteTimer = 120; pushBubble(momo,'請慢用',120);}
   closeCoffeeMenu();
-  say(`Momo 店長為 ${player.name} 做好了一杯「${item.name}」。${item.desc}`, 320);
+  say(`Momo 為 ${player.name} 做好了一杯「${item.name}」。${item.desc}`, 300);
   spawnSparkles();
 }
 function orderCoffee(){openCoffeeMenu();}
 function sitDown(){
   const chair = chairs.find(c=>near(player.x,player.y,c.x,c.y,52));
   if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`)}
-  else say('靠近椅子後按 E 就能坐下。');
+  else say('靠近椅子後按 E 就能坐下。靠近 NPC 按 E 則能互動。');
 }
-
 function emote(){player.emote = player.hasCoffee ? '☕✨' : '✨'; player.emoteTimer=95; say(`${player.name} 發出了一個小小的表情。`); spawnSparkles();}
 
 function getLocalMessages(){
@@ -263,7 +403,7 @@ function getLocalMessages(){
 function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages', JSON.stringify(messages.slice(-50)));}
 function getMessages(){return cloudReady ? cachedMessages : getLocalMessages();}
 function escapeHtml(text=''){
-  return String(text).replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch] || ch));
+  return String(text).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch] || ch));
 }
 function formatTime(value){
   if(!value) return '剛剛';
@@ -308,6 +448,7 @@ function openBoard(force=false){
 function closeBoard(){messageBoard.classList.add('hidden'); canvas.focus && canvas.focus();}
 
 startBtn.addEventListener('click',()=>{
+  startAudio();
   player.name = document.getElementById('playerName').value.trim() || 'Guest';
   player.hair = document.getElementById('hairColor').value;
   player.shirt = document.getElementById('shirtColor').value;
@@ -315,7 +456,7 @@ startBtn.addEventListener('click',()=>{
   localStorage.setItem('coffeeShipAvatar', JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType}));
   creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent = player.name;
   statusText.textContent = cloudReady ? '雲端已連線' : '本機模式'; moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c'; moodDot.style.color = moodDot.style.background;
-  say(`歡迎 ${player.name} 登上 Coffee Ship。找吧台附近的 Momo 店長按 C，可以點不同咖啡。`, 320);
+  say(`歡迎 ${player.name} 登上 Coffee Ship。找 Momo 點咖啡，找 Peak 聽大提琴，找 Bean 聽笑話。`, 340);
 });
 
 const saved = localStorage.getItem('coffeeShipAvatar');
@@ -324,7 +465,7 @@ if(saved){try{const s=JSON.parse(saved); document.getElementById('playerName').v
 window.addEventListener('keydown',e=>{
   const k=e.key.length===1?e.key.toLowerCase():e.key; keys.add(k);
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-  if(k==='c') orderCoffee(); if(k==='e') sitDown(); if(k==='b') openBoard(); if(e.code==='Space') emote();
+  if(k==='c') orderCoffee(); if(k==='e') interact(); if(k==='b') openBoard(); if(e.code==='Space') emote();
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
 
@@ -334,7 +475,7 @@ document.querySelectorAll('[data-move]').forEach(btn=>{
   btn.addEventListener('pointerdown',on); btn.addEventListener('pointerup',off); btn.addEventListener('pointerleave',off);
 });
 document.getElementById('coffeeBtn').onclick=()=>openCoffeeMenu(true);
-document.getElementById('sitBtn').onclick=sitDown;
+document.getElementById('sitBtn').onclick=interact;
 document.getElementById('messageBtn').onclick=()=>openBoard(true);
 document.getElementById('emoteBtn').onclick=emote;
 closeBoardBtn.onclick=closeBoard;

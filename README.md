@@ -1,27 +1,27 @@
 # Coffee Ship
 
-像素風咖啡廳網頁小遊戲。
+像素風咖啡船小遊戲。
 
-## 這一版新增
+## 這版優化內容
 
-- Momo 店長 NPC
-- Momo 會在吧台附近移動，像真的店長一樣巡吧台
-- 玩家靠近吧台或 Momo 後，按 `C` 可以打開咖啡單
-- 可選不同咖啡：船長美式、星光拿鐵、焦糖海鹽拿鐵、深海義式濃縮、漂流手沖、雲朵可可咖啡
-- 保留留言板功能
-- 支援 Firebase 雲端留言板，設定完成後不同裝置可看見同一批留言
+- 以 `coffee_ship_momo_manager` 為基底優化
+- NPC 有碰撞體積，玩家不能穿過 NPC
+- Momo 是金髮店長，會在吧台附近移動並點咖啡
+- Peak 是大提琴 NPC，靠近按 E 會演奏合成大提琴聲
+- Bean 是講笑話 NPC，靠近按 E 會講笑話
+- Peak / Bean 會在各自區域移動
+- NPC 會隨機互動、偶爾出現心情泡泡
+- NPC 畫面只顯示名字
+- 保留留言板與 Firebase 雲端留言功能
 
 ## 操作
 
 - WASD / 方向鍵：移動
-- C：找 Momo 點咖啡
-- E：坐下
+- C：靠近 Momo 點咖啡
+- E：互動或坐下
 - B：打開留言板
 - Space：發表情
 
-## Firebase 設定
+## Firebase
 
-打開 `firebase-config.js`，把 Firebase 專案的設定貼進去。
-完成後，留言板就能跨裝置同步。
-
-如果還沒設定 Firebase，遊戲仍可玩，但留言只會存在同一台裝置的瀏覽器。
+若要跨裝置同步留言，請把 Firebase Realtime Database 設定填入 `firebase-config.js`。
