@@ -97,6 +97,7 @@
     preventCafeMovementBehindDeck();
     addStatusBadge();
     loadScript('role-sprites.js', 'roleSprites');
+    loadScript('role-mobile-ability.js', 'roleAbility');
     loadScript('port.js', 'portScene');
   }
 
