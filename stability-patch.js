@@ -98,6 +98,7 @@
     addStatusBadge();
     loadScript('role-sprites.js', 'roleSprites');
     loadScript('role-mobile-ability.js', 'roleAbility');
+    loadScript('change-character.js', 'changeCharacter');
     loadScript('port.js', 'portScene');
   }
 
