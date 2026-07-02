@@ -38,8 +38,19 @@ let lastSyncedState = '';
 let myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 localStorage.setItem('coffeeShipPlayerId', myPlayerId);
 
+const animalOptions = [
+  {key:'human', label:'人類', emoji:'🙂', body:'#c96a4a', face:'#f0c7a0', accent:'#2b1d16'},
+  {key:'cat', label:'貓咪', emoji:'🐱', body:'#fffdf4', face:'#fffdf4', accent:'#df6d13'},
+  {key:'dog', label:'小狗', emoji:'🐶', body:'#c08a55', face:'#e3b47c', accent:'#5b3928'},
+  {key:'rabbit', label:'兔子', emoji:'🐰', body:'#f4efe4', face:'#fff8ef', accent:'#e9a6b0'},
+  {key:'fox', label:'狐狸', emoji:'🦊', body:'#df6d13', face:'#fff0d7', accent:'#2f1b16'},
+  {key:'bear', label:'小熊', emoji:'🐻', body:'#8a5a3c', face:'#c89162', accent:'#3b241c'},
+  {key:'penguin', label:'企鵝', emoji:'🐧', body:'#1f2430', face:'#f7f3e8', accent:'#e8a23c'}
+];
+let selectedAnimal = localStorage.getItem('coffeeShipAnimal') || 'human';
+
 const world = { tile:48, w:960, h:576, message:'Coffee Ship 已啟動。Mugi 現在是正式店貓 NPC。', messageTimer:300, particles:[], bubbles:[] };
-const player = { name:'Guest', x:480, y:360, speed:2.4, dir:'down', radius:17, hair:'#2b1d16', shirt:'#c96a4a', skin:'#f0c7a0', coffeeType:'美式', hasCoffee:false, sitting:false, emote:null, emoteTimer:0 };
+const player = { name:'Guest', x:480, y:360, speed:2.4, dir:'down', radius:17, hair:'#2b1d16', shirt:'#c96a4a', skin:'#f0c7a0', coffeeType:'美式', animal:selectedAnimal, hasCoffee:false, sitting:false, emote:null, emoteTimer:0 };
 
 const coffeeMenuItems = [
   {name:'船長美式', icon:'☕', desc:'清爽、直接，適合剛登船的客人。', price:'80 beans'},
@@ -50,12 +61,7 @@ const coffeeMenuItems = [
   {name:'雲朵可可咖啡', icon:'☁️', desc:'咖啡加可可，甜一點，心情也軟一點。', price:'130 beans'}
 ];
 
-const npcBounds = {
-  momo: {x:155,y:194,w:298,h:76},
-  peak: {x:600,y:286,w:185,h:92},
-  bean: {x:610,y:150,w:250,h:155},
-  mugi: {x:150,y:230,w:680,h:292}
-};
+const npcBounds = { momo:{x:155,y:194,w:298,h:76}, peak:{x:600,y:286,w:185,h:92}, bean:{x:610,y:150,w:250,h:155}, mugi:{x:150,y:230,w:680,h:292} };
 const npcs = [
   {name:'Momo', role:'barista', x:235, y:214, targetX:330, targetY:214, speed:.72, radius:20, skin:'#f4c7a9', hair:'#f3c85a', shirt:'#78d2bd', apron:'#fff4d8', emote:'☕', emoteTimer:160, wait:0, bounds:npcBounds.momo, coffee:true},
   {name:'Peak', role:'cellist', x:705, y:332, targetX:690, targetY:332, speed:.5, radius:21, skin:'#f0c7a0', hair:'#1f1930', shirt:'#8460c8', emote:'♪', emoteTimer:160, wait:80, bounds:npcBounds.peak, playing:true},
@@ -82,6 +88,7 @@ function drawPixelRect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.roun
 function drawText(text,x,y,size=16,align='center',color='#fff4d8'){ctx.font = `700 ${size}px ui-rounded, system-ui, sans-serif`; ctx.textAlign = align; ctx.fillStyle = '#120b17'; ctx.fillText(text,x+2,y+2); ctx.fillStyle = color; ctx.fillText(text,x,y);}
 function playerHitboxAt(x,y){return {x:x-player.radius,y:y-32,w:player.radius*2,h:62};}
 function npcHitbox(n){return n.role==='cat' ? {x:n.x-13,y:n.y-18,w:30,h:28} : {x:n.x-n.radius,y:n.y-34,w:n.radius*2,h:64};}
+function animalByKey(key){return animalOptions.find(a=>a.key===key) || animalOptions[0];}
 
 function drawFloor(){
   ctx.fillStyle='#28192b'; ctx.fillRect(0,0,world.w,world.h);
@@ -97,21 +104,32 @@ function drawCafe(){
   drawPixelRect(625,345,120,16,'#5b3e4e'); drawText('STAGE',685,344,13,'center','#d7bb79'); drawPixelRect(400,500,160,28,'#5b3e4e'); drawText('漂浮咖啡船甲板',480,520,15);
 }
 function drawCello(x,y){drawPixelRect(x+15,y-4,6,52,'#4d2b22'); drawPixelRect(x+4,y+10,26,28,'#8b4d2e'); drawPixelRect(x+8,y+4,18,14,'#a45f34'); drawPixelRect(x+12,y+36,10,18,'#6d3f26'); drawPixelRect(x+18,y-18,4,18,'#d7bb79'); drawPixelRect(x+38,y+2,4,46,'#fff4d8');}
+function drawAnimalAvatar(a,isPlayer=false){
+  const animal = animalByKey(a.animal); const x=Math.round(a.x), y=Math.round(a.y); const body=animal.body, face=animal.face, accent=animal.accent;
+  drawPixelRect(x-13,y+17,26,5,'#120b17');
+  drawPixelRect(x-15,y-20,30,24,body); drawPixelRect(x-11,y-16,22,17,face);
+  if(animal.key==='rabbit'){drawPixelRect(x-12,y-40,7,22,body);drawPixelRect(x+5,y-40,7,22,body);drawPixelRect(x-10,y-36,3,16,accent);drawPixelRect(x+7,y-36,3,16,accent);} 
+  else if(animal.key==='penguin'){drawPixelRect(x-13,y-28,26,12,body);drawPixelRect(x-8,y-16,16,16,face);drawPixelRect(x-3,y-7,6,4,accent);} 
+  else {drawPixelRect(x-15,y-29,9,11,body);drawPixelRect(x+6,y-29,9,11,body);}
+  if(animal.key==='fox'){drawPixelRect(x-15,y-22,8,10,accent);drawPixelRect(x+7,y-22,8,10,accent);drawPixelRect(x+14,y+2,14,8,accent);}
+  if(animal.key==='dog'){drawPixelRect(x-19,y-18,7,17,accent);drawPixelRect(x+12,y-18,7,17,accent);}
+  if(animal.key==='bear'){drawPixelRect(x-17,y-25,8,8,body);drawPixelRect(x+9,y-25,8,8,body);}
+  if(animal.key==='cat'){drawPixelRect(x-14,y-26,8,8,accent);drawPixelRect(x+6,y-26,8,8,'#8b9a86');drawPixelRect(x+13,y+2,12,6,accent);}
+  drawPixelRect(x-6,y-10,4,4,'#21182a'); drawPixelRect(x+4,y-10,4,4,'#21182a'); drawPixelRect(x-3,y-3,6,3,'#b86766');
+  drawPixelRect(x-13,y+2,26,24,body); drawPixelRect(x-8,y+5,16,16,face); drawPixelRect(x-12,y+24,7,12,'#2a2634'); drawPixelRect(x+5,y+24,7,12,'#2a2634');
+  if(a.hasCoffee){drawPixelRect(x+15,y+8,10,12,'#fff4d8'); drawPixelRect(x+17,y+10,6,5,'#6d3f26');}
+  drawText(`${animal.emoji} ${a.name||'Guest'}`, x, y-47, 12, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
+  if(a.emote && (a.emoteTimer===undefined || a.emoteTimer>0)) drawText(a.emote, x, y-67, 20);
+}
 function drawCat(n){
   const x=Math.round(n.x), y=Math.round(n.y); const s = n.petTimer>0 ? 1 : 0;
-  drawPixelRect(x-14,y+7,28,5,'#120b17');
-  drawPixelRect(x-15,y-8-s,26,15,'#111'); drawPixelRect(x-11,y-12-s,7,6,'#111'); drawPixelRect(x+4,y-12-s,7,6,'#111');
-  drawPixelRect(x-13,y-6-s,22,11,'#fffdf4'); drawPixelRect(x-12,y-10-s,7,7,'#8b9a86'); drawPixelRect(x+3,y-10-s,8,8,'#df6d13');
-  drawPixelRect(x-10,y-3-s,3,3,'#30384d'); drawPixelRect(x+4,y-3-s,3,3,'#30384d'); drawPixelRect(x-3,y+2-s,4,2,'#b86766');
-  drawPixelRect(x+4,y+4-s,24,11,'#fffdf4'); drawPixelRect(x+13,y+4-s,7,7,'#df6d13'); drawPixelRect(x+21,y+7-s,8,8,'#8b9a86');
-  const tailUp = Math.floor(Date.now()/420)%2===0;
-  drawPixelRect(x+27,y+(tailUp?-1:3)-s,5,14,'#111'); drawPixelRect(x+28,y+(tailUp?0:4)-s,3,10,'#df6d13');
-  drawPixelRect(x+5,y+14-s,5,5,'#111'); drawPixelRect(x+20,y+14-s,5,5,'#111');
-  drawText(n.name, x+5, y-28, 11, 'center', '#fff4d8');
-  if(n.emote && n.emoteTimer>0) drawText(n.emote, x+6, y-44, 18);
+  drawPixelRect(x-14,y+7,28,5,'#120b17'); drawPixelRect(x-15,y-8-s,26,15,'#111'); drawPixelRect(x-11,y-12-s,7,6,'#111'); drawPixelRect(x+4,y-12-s,7,6,'#111');
+  drawPixelRect(x-13,y-6-s,22,11,'#fffdf4'); drawPixelRect(x-12,y-10-s,7,7,'#8b9a86'); drawPixelRect(x+3,y-10-s,8,8,'#df6d13'); drawPixelRect(x-10,y-3-s,3,3,'#30384d'); drawPixelRect(x+4,y-3-s,3,3,'#30384d'); drawPixelRect(x-3,y+2-s,4,2,'#b86766');
+  drawPixelRect(x+4,y+4-s,24,11,'#fffdf4'); drawPixelRect(x+13,y+4-s,7,7,'#df6d13'); drawPixelRect(x+21,y+7-s,8,8,'#8b9a86'); const tailUp=Math.floor(Date.now()/420)%2===0; drawPixelRect(x+27,y+(tailUp?-1:3)-s,5,14,'#111'); drawPixelRect(x+28,y+(tailUp?0:4)-s,3,10,'#df6d13'); drawPixelRect(x+5,y+14-s,5,5,'#111'); drawPixelRect(x+20,y+14-s,5,5,'#111');
+  drawText(n.name, x+5, y-28, 11, 'center', '#fff4d8'); if(n.emote && n.emoteTimer>0) drawText(n.emote, x+6, y-44, 18);
 }
 function drawAvatar(a, isPlayer=false){
-  if(a.role==='cat'){drawCat(a); return;}
+  if(a.role==='cat'){drawCat(a); return;} if(a.animal && a.animal !== 'human'){drawAnimalAvatar(a,isPlayer); return;}
   const x=Math.round(a.x), y=Math.round(a.y);
   if(a.role==='barista'){drawPixelRect(x-19,y-16,38,44,a.apron||'#fff4d8'); drawPixelRect(x-15,y-12,30,10,'#f8e9b4');}
   if(a.role==='cellist') drawCello(x-48,y-10);
@@ -174,7 +192,7 @@ function openBoard(force=false){const closeEnough=near(player.x,player.y,board.x
 function closeBoard(){messageBoard.classList.add('hidden'); canvas.focus&&canvas.focus();}
 
 function updateOnlineStatus(){if(!statusText) return; statusText.textContent=cloudReady?`雲端已連線 · ${1+Object.keys(remotePlayers).length} 人在線`:(firebaseLoading?'Firebase 背景連線中':'本機模式'); if(moodDot) moodDot.style.background=cloudReady?'#79d0b1':'#f0a75c';}
-function currentPlayerState(){return {name:player.name||'Guest',x:Math.round(player.x),y:Math.round(player.y),hair:player.hair,shirt:player.shirt,skin:player.skin,coffeeType:player.coffeeType||'',hasCoffee:!!player.hasCoffee,sitting:!!player.sitting,emote:player.emote||'',clientUpdatedAt:Date.now(),updatedAt:firebaseApi?firebaseApi.serverTimestamp():Date.now()};}
+function currentPlayerState(){return {name:player.name||'Guest',x:Math.round(player.x),y:Math.round(player.y),hair:player.hair,shirt:player.shirt,skin:player.skin,animal:player.animal||'human',coffeeType:player.coffeeType||'',hasCoffee:!!player.hasCoffee,sitting:!!player.sitting,emote:player.emote||'',clientUpdatedAt:Date.now(),updatedAt:firebaseApi?firebaseApi.serverTimestamp():Date.now()};}
 async function syncPlayer(force=false){if(!cloudReady||!myPlayerRef||!firebaseApi) return; const state=currentPlayerState(); const stateKey=JSON.stringify({...state,updatedAt:0,clientUpdatedAt:0}); const now=Date.now(); if(!force&&stateKey===lastSyncedState&&now-lastPlayerSync<1200) return; if(!force&&now-lastPlayerSync<180) return; lastSyncedState=stateKey; lastPlayerSync=now; try{await firebaseApi.set(myPlayerRef,state);}catch(err){console.warn('player sync failed',err);}}
 function setupCloudPlayer(){if(!cloudReady||!playersRef||!db||!firebaseApi) return; myPlayerRef=firebaseApi.ref(db,`coffeeShip/players/${myPlayerId}`); try{firebaseApi.onDisconnect(myPlayerRef).remove();}catch(e){} syncPlayer(true); updateOnlineStatus();}
 function isFirebaseConfigured(){const cfg=window.COFFEE_SHIP_FIREBASE_CONFIG; return cfg&&cfg.apiKey&&cfg.databaseURL&&!cfg.apiKey.includes('PASTE_')&&!cfg.databaseURL.includes('PASTE_');}
@@ -184,8 +202,17 @@ function update(){window.COFFEE_SHIP_PLAYER_POS={x:player.x,y:player.y}; npcs.fo
 function render(){drawFloor(); drawCafe(); drawParticles(); const actors=[...npcs,...Object.values(remotePlayers),player].sort((a,b)=>(a.y||0)-(b.y||0)); actors.forEach(a=>drawAvatar(a,a===player)); drawBubbles(); drawMessage();}
 function loop(){update(); render(); requestAnimationFrame(loop);}
 
-startBtn.addEventListener('click',()=>{startAudio(); player.name=document.getElementById('playerName').value.trim()||'Guest'; player.hair=document.getElementById('hairColor').value; player.shirt=document.getElementById('shirtColor').value; player.coffeeType=document.getElementById('coffeeType').value; localStorage.setItem('coffeeShipAvatar',JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType})); creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent=player.name; updateOnlineStatus(); setupCloudPlayer(); say(`歡迎 ${player.name} 登上 Coffee Ship。靠近 Mugi 按 E 可以摸摸店貓。`,340);});
-const saved=localStorage.getItem('coffeeShipAvatar'); if(saved){try{const s=JSON.parse(saved); document.getElementById('playerName').value=s.name||''; document.getElementById('hairColor').value=s.hair||'#2b1d16'; document.getElementById('shirtColor').value=s.shirt||'#c96a4a'; document.getElementById('coffeeType').value=s.coffeeType||'美式';}catch(e){}}
+function setupRandomAnimalButton(){
+  const btn = document.createElement('button'); btn.type='button'; btn.id='randomAnimalBtn'; btn.textContent='🎲 隨機變身'; btn.style.marginLeft='10px';
+  const hint = document.createElement('p'); hint.id='animalHint'; hint.className='hint'; hint.style.marginTop='8px';
+  function updateHint(){const a=animalByKey(selectedAnimal); hint.textContent=`目前分身：${a.emoji} ${a.label}`;}
+  btn.addEventListener('click',()=>{const pick=animalOptions[Math.floor(Math.random()*animalOptions.length)]; selectedAnimal=pick.key; player.animal=pick.key; localStorage.setItem('coffeeShipAnimal',pick.key); updateHint();});
+  startBtn.insertAdjacentElement('afterend', btn); btn.insertAdjacentElement('afterend', hint); updateHint();
+}
+setupRandomAnimalButton();
+
+startBtn.addEventListener('click',()=>{startAudio(); player.name=document.getElementById('playerName').value.trim()||'Guest'; player.hair=document.getElementById('hairColor').value; player.shirt=document.getElementById('shirtColor').value; player.coffeeType=document.getElementById('coffeeType').value; player.animal=selectedAnimal; localStorage.setItem('coffeeShipAvatar',JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType,animal:player.animal})); localStorage.setItem('coffeeShipAnimal',player.animal); creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent=player.name; updateOnlineStatus(); setupCloudPlayer(); const a=animalByKey(player.animal); say(`歡迎 ${player.name} 以 ${a.emoji} ${a.label} 分身登上 Coffee Ship。靠近 Mugi 按 E 可以摸摸店貓。`,340);});
+const saved=localStorage.getItem('coffeeShipAvatar'); if(saved){try{const s=JSON.parse(saved); document.getElementById('playerName').value=s.name||''; document.getElementById('hairColor').value=s.hair||'#2b1d16'; document.getElementById('shirtColor').value=s.shirt||'#c96a4a'; document.getElementById('coffeeType').value=s.coffeeType||'美式'; selectedAnimal=s.animal||selectedAnimal; player.animal=selectedAnimal; localStorage.setItem('coffeeShipAnimal',selectedAnimal);}catch(e){}}
 window.addEventListener('keydown',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key; keys.add(k); if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault(); if(k==='c') orderCoffee(); if(k==='e') interact(); if(k==='b') openBoard(); if(e.code==='Space') emote();});
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
 document.querySelectorAll('[data-move]').forEach(btn=>{const d=btn.dataset.move; const on=()=>mobile[d]=true, off=()=>mobile[d]=false; btn.addEventListener('pointerdown',on); btn.addEventListener('pointerup',off); btn.addEventListener('pointerleave',off); btn.addEventListener('pointercancel',off);});
