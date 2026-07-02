@@ -1,16 +1,20 @@
 (() => {
+  'use strict';
+
   const roles = {
     VIOLIN2026: { role: '小提琴手', icon: '🎻', names: ['星光小提琴手', '船上琴師', '弦月旅人'], power: '演奏一段旋律', color: '#d7bb79', notes: [659, 784, 880, 784, 659, 587, 659] },
     SINGER2026: { role: '歌手', icon: '🎤', names: ['咖啡歌手', '甲板主唱', '午夜聲線'], power: '唱出咖啡船之歌', color: '#e9a6b0', notes: [523, 587, 659, 698, 659, 587, 523] },
     PIRATE2026: { role: '海盜', icon: '🏴‍☠️', names: ['咖啡海盜', '黑帆船長', '焦糖船員'], power: '召喚金色光點', color: '#f0a75c', notes: [196, 196, 247, 294, 392, 294] },
-    MAID2026: { role: '女僕服務生', icon: '❤️', names: ['愛心女僕', '微笑服務生', '甜心店員'], power: '發射愛心，讓附近玩家開心', color: '#ff8fb3', notes: [523, 659, 784, 1046, 784, 659, 523], heart:true }
+    MAID2026: { role: '女僕服務生', icon: '❤️', names: ['愛心女僕', '微笑服務生', '甜心店員'], power: '發射愛心，讓附近玩家開心', color: '#ff8fb3', notes: [523, 659, 784, 1046, 784, 659, 523], heart: true }
   };
 
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const suffix = () => Math.floor(Math.random() * 90 + 10);
 
   function addStyle() {
+    if (document.getElementById('roleSystemStyle')) return;
     const style = document.createElement('style');
+    style.id = 'roleSystemStyle';
     style.textContent = `
       .role-code-box{margin-top:14px;padding:14px;border:1px solid rgba(255,244,216,.18);border-radius:16px;background:rgba(18,11,23,.32)}
       .role-code-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.role-code-row input{min-width:180px;flex:1}.role-code-note{margin:8px 0 0;opacity:.86;font-size:14px}
@@ -23,84 +27,103 @@
   }
 
   function play(notes) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    const audio = new AC();
-    const now = audio.currentTime + 0.03;
-    notes.forEach((freq, i) => {
-      const osc = audio.createOscillator();
-      const gain = audio.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.22);
-      gain.gain.setValueAtTime(0.0001, now + i * 0.22);
-      gain.gain.exponentialRampToValueAtTime(0.08, now + i * 0.22 + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.22 + 0.2);
-      osc.connect(gain); gain.connect(audio.destination);
-      osc.start(now + i * 0.22); osc.stop(now + i * 0.22 + 0.24);
-    });
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const audio = new AC();
+      const now = audio.currentTime + 0.03;
+      notes.forEach((freq, i) => {
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.22);
+        gain.gain.setValueAtTime(0.0001, now + i * 0.22);
+        gain.gain.exponentialRampToValueAtTime(0.08, now + i * 0.22 + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.22 + 0.2);
+        osc.connect(gain);
+        gain.connect(audio.destination);
+        osc.start(now + i * 0.22);
+        osc.stop(now + i * 0.22 + 0.24);
+      });
+    } catch (error) {
+      console.warn('role audio failed', error);
+    }
   }
 
   function fx(role) {
-    for (let i = 0; i < 12; i++) {
+    const count = role.heart ? 28 : 12;
+    for (let i = 0; i < count; i++) {
       const el = document.createElement('div');
-      el.className = 'role-fx';
-      el.textContent = i % 3 === 0 ? '♪' : role.icon;
+      el.className = role.heart ? 'heart-shot' : 'role-fx';
+      el.textContent = role.heart ? (i % 4 === 0 ? '開心+20' : '❤️') : (i % 3 === 0 ? '♪' : role.icon);
       el.style.left = `${20 + Math.random() * 60}vw`;
       el.style.top = `${45 + Math.random() * 35}vh`;
       el.style.color = role.color;
+      if (role.heart) {
+        const angle = (Math.PI * 2 * i / count) + Math.random() * 0.25;
+        const dist = 90 + Math.random() * 170;
+        el.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+        el.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+      }
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 1600);
+      setTimeout(() => el.remove(), 1700);
     }
-  }
-
-  function heartFx(role) {
-    for (let i = 0; i < 28; i++) {
-      const el = document.createElement('div');
-      el.className = 'heart-shot';
-      el.textContent = i % 4 === 0 ? '開心+20' : '❤️';
-      const angle = (Math.PI * 2 * i / 28) + Math.random() * 0.25;
-      const dist = 90 + Math.random() * 170;
-      el.style.left = `${50 + (Math.random() - .5) * 8}vw`;
-      el.style.top = `${54 + (Math.random() - .5) * 8}vh`;
-      el.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
-      el.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
-      el.style.color = role.color;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 1500);
+    if (role.heart) {
+      const toast = document.createElement('div');
+      toast.className = 'happy-toast';
+      toast.textContent = '❤️ 女僕服務讓大家都開心起來了！';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2200);
     }
-    const toast = document.createElement('div');
-    toast.className = 'happy-toast';
-    toast.textContent = '❤️ 女僕服務讓大家都開心起來了！';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2200);
   }
 
   function showPanel(role, name) {
     const gamePanel = document.getElementById('gamePanel');
-    if (!gamePanel || document.querySelector('.role-panel')) return;
+    if (!gamePanel) return;
+    const old = document.querySelector('.role-panel');
+    if (old) old.remove();
     const panel = document.createElement('div');
     panel.className = 'role-panel';
-    panel.innerHTML = `<div class="role-title">${role.icon} ${name}｜${role.role}</div><div class="role-power">能力：${role.power}</div><button class="role-power-btn">使用能力</button>`;
+    panel.innerHTML = `<div class="role-title">${role.icon} ${name}｜${role.role}</div><div class="role-power">能力：${role.power}</div><button class="role-power-btn" type="button">使用能力</button>`;
     const btn = panel.querySelector('button');
     btn.style.background = role.color;
-    btn.addEventListener('click', () => { play(role.notes); role.heart ? heartFx(role) : fx(role); });
+    btn.addEventListener('click', () => { play(role.notes); fx(role); });
     gamePanel.appendChild(panel);
   }
 
-  function enterRole(code) {
-    const role = roles[String(code).trim().toUpperCase()];
-    const note = document.getElementById('roleCodeNote');
-    if (!role) { if (note) note.textContent = '找不到這個編號。可試：VIOLIN2026、SINGER2026、PIRATE2026、MAID2026'; return; }
-    const name = `${pick(role.names)}${suffix()}`;
-    const input = document.getElementById('playerName');
-    if (input) input.value = name;
-    localStorage.setItem('coffeeShipRole', JSON.stringify({ code, role: role.role, icon: role.icon, name }));
-    document.getElementById('startBtn')?.click();
+  function safeEnterGame(role, name) {
+    const startBtn = document.getElementById('startBtn');
+    const playerNameInput = document.getElementById('playerName');
+    if (playerNameInput) playerNameInput.value = name;
+
+    localStorage.setItem('coffeeShipRole', JSON.stringify({ role: role.role, icon: role.icon, name }));
+    window.COFFEE_SHIP_PENDING_ROLE = { role: role.role, icon: role.icon, name };
+
+    if (startBtn) startBtn.click();
+
     setTimeout(() => {
-      const label = document.getElementById('avatarName');
-      if (label) label.textContent = `${role.icon} ${name}｜${role.role}`;
+      const creator = document.getElementById('creator');
+      const gamePanel = document.getElementById('gamePanel');
+      const avatarName = document.getElementById('avatarName');
+      if (creator && gamePanel && gamePanel.classList.contains('hidden')) {
+        creator.classList.add('hidden');
+        gamePanel.classList.remove('hidden');
+      }
+      if (avatarName) avatarName.textContent = `${role.icon} ${name}｜${role.role}`;
       showPanel(role, name);
-    }, 120);
+    }, 180);
+  }
+
+  function enterRole(code) {
+    const role = roles[String(code || '').trim().toUpperCase()];
+    const note = document.getElementById('roleCodeNote');
+    if (!role) {
+      if (note) note.textContent = '找不到這個編號。可試：VIOLIN2026、SINGER2026、PIRATE2026、MAID2026';
+      return;
+    }
+    const name = `${pick(role.names)}${suffix()}`;
+    if (note) note.textContent = `已啟用：${role.icon} ${role.role}，正在進入 Coffee Ship…`;
+    safeEnterGame(role, name);
   }
 
   function mount() {
@@ -109,11 +132,16 @@
     const box = document.createElement('div');
     box.className = 'role-code-box';
     box.innerHTML = `<div class="role-code-row"><input id="roleCode" maxlength="20" placeholder="輸入角色編號，例如 MAID2026"><button id="roleEnterBtn" type="button">角色進入</button></div><p id="roleCodeNote" class="role-code-note">角色編號：VIOLIN2026 小提琴手、SINGER2026 歌手、PIRATE2026 海盜、MAID2026 女僕服務生</p>`;
-    startBtn.parentElement?.appendChild(box);
-    document.getElementById('roleEnterBtn')?.addEventListener('click', () => enterRole(document.getElementById('roleCode')?.value || ''));
-    document.getElementById('roleCode')?.addEventListener('keydown', e => { if (e.key === 'Enter') enterRole(e.target.value); });
+    startBtn.parentElement.appendChild(box);
+    document.getElementById('roleEnterBtn').addEventListener('click', () => enterRole(document.getElementById('roleCode').value));
+    document.getElementById('roleCode').addEventListener('keydown', e => { if (e.key === 'Enter') enterRole(e.target.value); });
   }
 
-  addStyle();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+  try {
+    addStyle();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
+    else mount();
+  } catch (error) {
+    console.error('role system failed', error);
+  }
 })();
