@@ -1,6 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getDatabase, ref, push, onValue, query, limitToLast, orderByChild, serverTimestamp, set, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -23,80 +20,29 @@ const closeCoffeeMenuBtn = document.getElementById('closeCoffeeMenuBtn');
 
 const keys = new Set();
 const mobile = { up:false, down:false, left:false, right:false };
-let lastTime = 0;
 let audioCtx = null;
 let celloTimer = 0;
+let firebaseConnected = false;
+let firebaseLoading = false;
 let cloudReady = false;
+let boardStatusText = '遊戲已啟動，留言板正在背景連線…';
+let cachedMessages = [];
+let remotePlayers = {};
+let firebaseApi = null;
 let db = null;
 let messagesRef = null;
 let playersRef = null;
-let firebaseConnected = false;
-let boardStatusText = '正在準備留言板…';
 let myPlayerRef = null;
-let myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-localStorage.setItem('coffeeShipPlayerId', myPlayerId);
-let remotePlayers = {};
-let cachedMessages = [];
 let lastPlayerSync = 0;
 let lastSyncedState = '';
-
-function isFirebaseConfigured(){
-  const cfg = window.COFFEE_SHIP_FIREBASE_CONFIG;
-  return cfg && cfg.apiKey && !cfg.apiKey.includes('PASTE_') && cfg.databaseURL && !cfg.databaseURL.includes('PASTE_');
-}
-
-try{
-  if(isFirebaseConfigured()){
-    const app = initializeApp(window.COFFEE_SHIP_FIREBASE_CONFIG);
-    db = getDatabase(app);
-    messagesRef = ref(db, 'coffeeShip/messages');
-    playersRef = ref(db, 'coffeeShip/players');
-    cloudReady = true;
-    boardStatusText = '正在連線 Firebase 留言板…';
-
-    onValue(ref(db, '.info/connected'), snapshot => {
-      firebaseConnected = snapshot.val() === true;
-      boardStatusText = firebaseConnected
-        ? '雲端留言板已連線：不同裝置會即時看到同一批留言。'
-        : '正在重新連線 Firebase…若太久沒成功，請檢查 Realtime Database Rules。';
-      renderMessages();
-      updateOnlineStatus();
-    });
-
-    onValue(query(messagesRef, orderByChild('clientCreatedAt'), limitToLast(80)), snapshot => {
-      const data = snapshot.val() || {};
-      cachedMessages = Object.entries(data).map(([id, m]) => ({ id, ...m }))
-        .filter(m => typeof m.text === 'string' && m.text.trim())
-        .sort((a,b) => getMessageTime(a) - getMessageTime(b));
-      renderMessages();
-    }, error => {
-      console.error('message listener failed', error);
-      boardStatusText = '留言板讀取失敗：請確認 Realtime Database Rules 允許 read。';
-      renderMessages();
-    });
-
-    onValue(playersRef, snapshot => {
-      const data = snapshot.val() || {};
-      const now = Date.now();
-      remotePlayers = Object.fromEntries(
-        Object.entries(data)
-          .filter(([id, p]) => id !== myPlayerId && p && (now - (p.clientUpdatedAt || now)) < 30000)
-          .map(([id, p]) => [id, {...p, radius: 17, skin: p.skin || '#f0c7a0'}])
-      );
-      updateOnlineStatus();
-    });
-  }
-}catch(error){
-  console.warn('Firebase init failed, fallback to localStorage:', error);
-  boardStatusText = 'Firebase 初始化失敗：目前改用本機留言板。';
-  cloudReady = false;
-}
+let myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+localStorage.setItem('coffeeShipPlayerId', myPlayerId);
 
 const world = {
   tile: 48,
   w: 960,
   h: 576,
-  message: cloudReady ? 'Firebase 已連線：留言板與玩家位置會跨裝置同步。' : '留言板目前使用本機模式；填好 Firebase 設定後就能跨裝置同步。',
+  message: 'Coffee Ship 已啟動。留言板會在背景連線，不會再卡住整個網頁。',
   messageTimer: 300,
   particles: [],
   bubbles: []
@@ -122,7 +68,6 @@ const npcBounds = {
   peak: {x:600,y:286,w:185,h:92},
   bean: {x:610,y:150,w:250,h:155}
 };
-
 const npcs = [
   {name:'Momo', role:'barista', x:235, y:214, targetX:330, targetY:214, speed:.72, radius:20, skin:'#f4c7a9', hair:'#f3c85a', shirt:'#78d2bd', apron:'#fff4d8', emote:'☕', emoteTimer:160, wait:0, bounds:npcBounds.momo, coffee:true},
   {name:'Peak', role:'cellist', x:705, y:332, targetX:690, targetY:332, speed:.5, radius:21, skin:'#f0c7a0', hair:'#1f1930', shirt:'#8460c8', emote:'♪', emoteTimer:160, wait:80, bounds:npcBounds.peak, playing:true},
@@ -141,471 +86,173 @@ const peakLines = [
   'Peak 的大提琴聲在船艙裡慢慢散開。',
   'Peak 點頭示意，音符像熱咖啡一樣冒出來。'
 ];
-
-const chairs = [
-  {x:260,y:360},{x:324,y:360},{x:650,y:360},{x:714,y:360},{x:745,y:236},{x:210,y:236}
-];
+const chairs = [{x:260,y:360},{x:324,y:360},{x:650,y:360},{x:714,y:360},{x:745,y:236},{x:210,y:236}];
 const tables = [{x:290,y:400},{x:680,y:400},{x:730,y:276},{x:195,y:276}];
 const counter = {x:120,y:96,w:360,h:88};
 const board = {x:560,y:104,w:210,h:72};
 const blocks = [counter, {x:98,y:96,w:28,h:300}, {x:834,y:96,w:28,h:300}];
 
-function rectsOverlap(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y}
-function near(px,py,ox,oy,dist=70){return Math.hypot(px-ox, py-oy) < dist}
+function rectsOverlap(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;}
+function near(px,py,ox,oy,dist=70){return Math.hypot(px-ox, py-oy) < dist;}
 function say(text, time=240){world.message = text; world.messageTimer = time;}
-function clamp(v,min,max){return Math.max(min, Math.min(max, v));}
-function chooseTarget(n){
-  n.targetX = n.bounds.x + 30 + Math.random() * Math.max(10, n.bounds.w - 60);
-  n.targetY = n.bounds.y + 26 + Math.random() * Math.max(10, n.bounds.h - 52);
-}
-function pushBubble(n, text, life=140){
-  world.bubbles.push({x:n.x, y:n.y-64, text, life, maxLife:life});
-}
-
-function drawPixelRect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function chooseTarget(n){n.targetX = n.bounds.x + 30 + Math.random() * Math.max(10, n.bounds.w - 60); n.targetY = n.bounds.y + 26 + Math.random() * Math.max(10, n.bounds.h - 52);}
+function pushBubble(n, text, life=140){world.bubbles.push({x:n.x, y:n.y-64, text, life});}
+function drawPixelRect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h);}
 function drawText(text,x,y,size=16,align='center',color='#fff4d8'){
   ctx.font = `700 ${size}px ui-rounded, system-ui, sans-serif`;
   ctx.textAlign = align; ctx.fillStyle = '#120b17'; ctx.fillText(text,x+2,y+2); ctx.fillStyle = color; ctx.fillText(text,x,y);
 }
+function playerHitboxAt(x,y){return {x:x-player.radius,y:y-32,w:player.radius*2,h:62};}
+function npcHitbox(n){return {x:n.x-n.radius,y:n.y-34,w:n.radius*2,h:64};}
 
 function drawFloor(){
   ctx.fillStyle = '#28192b'; ctx.fillRect(0,0,world.w,world.h);
-  for(let y=0;y<world.h;y+=world.tile){
-    for(let x=0;x<world.w;x+=world.tile){
-      ctx.fillStyle = ((x/world.tile+y/world.tile)%2===0)?'#302137':'#2a1c31';
-      ctx.fillRect(x,y,world.tile,world.tile);
-      ctx.strokeStyle = '#3b2941'; ctx.strokeRect(x,y,world.tile,world.tile);
-    }
-  }
+  for(let y=0;y<world.h;y+=world.tile){for(let x=0;x<world.w;x+=world.tile){ctx.fillStyle=((x/world.tile+y/world.tile)%2===0)?'#302137':'#2a1c31'; ctx.fillRect(x,y,world.tile,world.tile); ctx.strokeStyle='#3b2941'; ctx.strokeRect(x,y,world.tile,world.tile);}}
   ctx.fillStyle = '#151020'; ctx.fillRect(0,0,world.w,66);
-  for(let i=0;i<18;i++){drawPixelRect(i*56+12,22,4,4,'#fff4d8')}
-  drawText('COFFEE SHIP', 480, 42, 26);
+  for(let i=0;i<18;i++) drawPixelRect(i*56+12,22,4,4,'#fff4d8');
+  drawText('COFFEE SHIP',480,42,26);
 }
-
 function drawCafe(){
-  drawPixelRect(counter.x,counter.y,counter.w,counter.h,'#76503e');
-  drawPixelRect(counter.x,counter.y,counter.w,18,'#a56b45');
-  drawPixelRect(180,122,42,34,'#21182a'); drawPixelRect(190,112,22,14,'#d7bb79');
-  drawText('BAR', counter.x+counter.w/2, counter.y+58, 18, 'center', '#ffe5ae');
-  drawPixelRect(board.x,board.y,board.w,board.h,'#3a293d');
-  drawPixelRect(board.x+10,board.y+10,board.w-20,board.h-20,'#21182a');
-  drawText(cloudReady ? '雲端留言  B' : '留言板  B', board.x+board.w/2, board.y+44, 18, 'center', cloudReady ? '#79d0b1' : '#f0a75c');
+  drawPixelRect(counter.x,counter.y,counter.w,counter.h,'#76503e'); drawPixelRect(counter.x,counter.y,counter.w,18,'#a56b45');
+  drawPixelRect(180,122,42,34,'#21182a'); drawPixelRect(190,112,22,14,'#d7bb79'); drawText('BAR', counter.x+counter.w/2, counter.y+58, 18, 'center', '#ffe5ae');
+  drawPixelRect(board.x,board.y,board.w,board.h,'#3a293d'); drawPixelRect(board.x+10,board.y+10,board.w-20,board.h-20,'#21182a'); drawText(cloudReady ? '雲端留言  B' : '留言板  B', board.x+board.w/2, board.y+44, 18, 'center', cloudReady ? '#79d0b1' : '#f0a75c');
   drawPixelRect(116,190,40,130,'#3d2a32'); drawPixelRect(804,190,40,130,'#3d2a32');
-  tables.forEach(t=>{drawPixelRect(t.x-40,t.y-22,80,44,'#694638');drawPixelRect(t.x-28,t.y-12,56,24,'#9b6844');drawPixelRect(t.x-7,t.y-8,14,16,'#fff4d8')});
-  chairs.forEach(c=>{drawPixelRect(c.x-16,c.y-14,32,28,'#4f8f73');drawPixelRect(c.x-12,c.y-22,24,10,'#79d0b1')});
-  drawPixelRect(625,345,120,16,'#5b3e4e');
-  drawText('STAGE',685,344,13,'center','#d7bb79');
+  tables.forEach(t=>{drawPixelRect(t.x-40,t.y-22,80,44,'#694638');drawPixelRect(t.x-28,t.y-12,56,24,'#9b6844');drawPixelRect(t.x-7,t.y-8,14,16,'#fff4d8');});
+  chairs.forEach(c=>{drawPixelRect(c.x-16,c.y-14,32,28,'#4f8f73');drawPixelRect(c.x-12,c.y-22,24,10,'#79d0b1');});
+  drawPixelRect(625,345,120,16,'#5b3e4e'); drawText('STAGE',685,344,13,'center','#d7bb79');
   drawPixelRect(400,500,160,28,'#5b3e4e'); drawText('漂浮咖啡船甲板',480,520,15);
 }
-
-function drawCello(x,y){
-  drawPixelRect(x+15,y-4,6,52,'#4d2b22');
-  drawPixelRect(x+4,y+10,26,28,'#8b4d2e');
-  drawPixelRect(x+8,y+4,18,14,'#a45f34');
-  drawPixelRect(x+12,y+36,10,18,'#6d3f26');
-  drawPixelRect(x+18,y-18,4,18,'#d7bb79');
-  drawPixelRect(x+38,y+2,4,46,'#fff4d8');
-}
-
+function drawCello(x,y){drawPixelRect(x+15,y-4,6,52,'#4d2b22'); drawPixelRect(x+4,y+10,26,28,'#8b4d2e'); drawPixelRect(x+8,y+4,18,14,'#a45f34'); drawPixelRect(x+12,y+36,10,18,'#6d3f26'); drawPixelRect(x+18,y-18,4,18,'#d7bb79'); drawPixelRect(x+38,y+2,4,46,'#fff4d8');}
 function drawAvatar(a, isPlayer=false){
   const x=Math.round(a.x), y=Math.round(a.y);
-  if(a.role === 'barista'){
-    drawPixelRect(x-19,y-16,38,44,a.apron || '#fff4d8');
-    drawPixelRect(x-15,y-12,30,10,'#f8e9b4');
-  }
+  if(a.role === 'barista'){drawPixelRect(x-19,y-16,38,44,a.apron || '#fff4d8'); drawPixelRect(x-15,y-12,30,10,'#f8e9b4');}
   if(a.role === 'cellist') drawCello(x-48,y-10);
-  drawPixelRect(x-11,y+16,22,6,'#120b17');
-  drawPixelRect(x-10,y-28,20,18,a.skin || '#f0c7a0');
-  drawPixelRect(x-13,y-36,26,12,a.hair); drawPixelRect(x-16,y-28,7,16,a.hair); drawPixelRect(x+9,y-28,7,16,a.hair);
+  drawPixelRect(x-11,y+16,22,6,'#120b17'); drawPixelRect(x-10,y-28,20,18,a.skin || '#f0c7a0');
+  drawPixelRect(x-13,y-36,26,12,a.hair || '#2b1d16'); drawPixelRect(x-16,y-28,7,16,a.hair || '#2b1d16'); drawPixelRect(x+9,y-28,7,16,a.hair || '#2b1d16');
   if(a.role === 'barista') drawPixelRect(x-10,y-40,20,5,'#ffe5ae');
-  drawPixelRect(x-14,y-8,28,28,a.shirt);
-  drawPixelRect(x-20,y-4,6,18,a.skin || '#f0c7a0'); drawPixelRect(x+14,y-4,6,18,a.skin || '#f0c7a0');
-  drawPixelRect(x-10,y+20,8,16,'#2a2634'); drawPixelRect(x+2,y+20,8,16,'#2a2634');
-  drawPixelRect(x-5,y-20,4,4,'#21182a'); drawPixelRect(x+5,y-20,4,4,'#21182a');
-  drawPixelRect(x-4,y-12,8,3,'#b86766');
-  if(a.hasCoffee || a.coffee){drawPixelRect(x+17,y+3,10,12,'#fff4d8'); drawPixelRect(x+19,y+5,6,5,'#6d3f26')}
-  drawText(a.name, x, y-44, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
+  drawPixelRect(x-14,y-8,28,28,a.shirt || '#c96a4a'); drawPixelRect(x-20,y-4,6,18,a.skin || '#f0c7a0'); drawPixelRect(x+14,y-4,6,18,a.skin || '#f0c7a0');
+  drawPixelRect(x-10,y+20,8,16,'#2a2634'); drawPixelRect(x+2,y+20,8,16,'#2a2634'); drawPixelRect(x-5,y-20,4,4,'#21182a'); drawPixelRect(x+5,y-20,4,4,'#21182a'); drawPixelRect(x-4,y-12,8,3,'#b86766');
+  if(a.hasCoffee || a.coffee){drawPixelRect(x+17,y+3,10,12,'#fff4d8'); drawPixelRect(x+19,y+5,6,5,'#6d3f26');}
+  drawText(a.name || 'Guest', x, y-44, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
   if(a.emote && (a.emoteTimer === undefined || a.emoteTimer > 0)) drawText(a.emote, x, y-64, 22);
 }
+function drawMessage(){if(world.messageTimer<=0) return; ctx.globalAlpha=Math.min(1,world.messageTimer/30); drawPixelRect(90,455,780,76,'#151020'); ctx.strokeStyle='#76536a'; ctx.lineWidth=3; ctx.strokeRect(90,455,780,76); drawText(world.message,480,500,18); ctx.globalAlpha=1;}
+function drawBubbles(){world.bubbles.forEach(b=>{ctx.globalAlpha=Math.min(1,b.life/25); const w=Math.min(260,Math.max(48,String(b.text).length*15)); drawPixelRect(b.x-w/2,b.y-18,w,32,'#151020'); ctx.strokeStyle='#76536a'; ctx.lineWidth=2; ctx.strokeRect(Math.round(b.x-w/2),Math.round(b.y-18),w,32); drawText(b.text,b.x,b.y+4,15,'center','#fff4d8'); ctx.globalAlpha=1; b.y-=.18; b.life--;}); world.bubbles=world.bubbles.filter(b=>b.life>0);}
+function spawnSparkles(){for(let i=0;i<18;i++) world.particles.push({x:player.x,y:player.y-28,vx:(Math.random()-.5)*3,vy:-Math.random()*2-1,life:45});}
+function drawParticles(){world.particles.forEach(p=>{drawPixelRect(p.x,p.y,4,4,'#ffe5ae');p.x+=p.vx;p.y+=p.vy;p.life--;}); world.particles=world.particles.filter(p=>p.life>0);}
 
-function drawMessage(){
-  if(world.messageTimer<=0) return;
-  ctx.globalAlpha = Math.min(1, world.messageTimer/30);
-  drawPixelRect(90,455,780,76,'#151020');
-  ctx.strokeStyle='#76536a';ctx.lineWidth=3;ctx.strokeRect(90,455,780,76);
-  drawText(world.message,480,500,18);
-  ctx.globalAlpha = 1;
-}
-
-function drawBubbles(){
-  world.bubbles.forEach(b=>{
-    const alpha = Math.min(1, b.life/25);
-    ctx.globalAlpha = alpha;
-    const w = Math.min(260, Math.max(48, b.text.length * 15));
-    drawPixelRect(b.x-w/2,b.y-18,w,32,'#151020');
-    ctx.strokeStyle='#76536a'; ctx.lineWidth=2; ctx.strokeRect(Math.round(b.x-w/2),Math.round(b.y-18),w,32);
-    drawText(b.text,b.x,b.y+4,15,'center','#fff4d8');
-    ctx.globalAlpha = 1;
-    b.y -= .18; b.life--;
-  });
-  world.bubbles = world.bubbles.filter(b=>b.life>0);
-}
-
-function spawnSparkles(){
-  for(let i=0;i<18;i++) world.particles.push({x:player.x,y:player.y-28,vx:(Math.random()-.5)*3,vy:-Math.random()*2-1,life:45});
-}
-function drawParticles(){
-  world.particles.forEach(p=>{drawPixelRect(p.x,p.y,4,4,'#ffe5ae');p.x+=p.vx;p.y+=p.vy;p.life--});
-  world.particles = world.particles.filter(p=>p.life>0);
-}
-
-function playerHitboxAt(x,y){return {x:x-player.radius,y:y-32,w:player.radius*2,h:62};}
-function npcHitbox(n){return {x:n.x-n.radius,y:n.y-34,w:n.radius*2,h:64};}
 function tryMove(dx,dy){
-  if(player.sitting && (dx||dy)) player.sitting = false;
-  const next = playerHitboxAt(player.x+dx, player.y+dy);
+  if(player.sitting && (dx||dy)) player.sitting=false;
+  const next=playerHitboxAt(player.x+dx,player.y+dy);
   if(next.x<70 || next.x+next.w>890 || next.y<74 || next.y+next.h>545) return;
   for(const b of blocks) if(rectsOverlap(next,b)) return;
   for(const n of npcs) if(rectsOverlap(next,npcHitbox(n))) return;
-  for(const r of Object.values(remotePlayers)) if(rectsOverlap(next, playerHitboxAt(r.x || 0, r.y || 0))) return;
-  player.x += dx; player.y += dy;
+  for(const r of Object.values(remotePlayers)) if(r && rectsOverlap(next, playerHitboxAt(r.x || 0, r.y || 0))) return;
+  player.x+=dx; player.y+=dy;
 }
-
-function npcCanMove(n, nx, ny){
-  if(nx < n.bounds.x+18 || nx > n.bounds.x+n.bounds.w-18 || ny < n.bounds.y+24 || ny > n.bounds.y+n.bounds.h-16) return false;
-  const box = npcHitbox({...n, x:nx, y:ny});
+function npcCanMove(n,nx,ny){
+  if(nx<n.bounds.x+18 || nx>n.bounds.x+n.bounds.w-18 || ny<n.bounds.y+24 || ny>n.bounds.y+n.bounds.h-16) return false;
+  const box=npcHitbox({...n,x:nx,y:ny});
   for(const b of blocks) if(rectsOverlap(box,b)) return false;
-  if(rectsOverlap(box, playerHitboxAt(player.x, player.y))) return false;
-  for(const other of npcs){
-    if(other === n) continue;
-    if(rectsOverlap(box, npcHitbox(other))) return false;
-  }
+  if(rectsOverlap(box,playerHitboxAt(player.x,player.y))) return false;
+  for(const other of npcs){if(other!==n && rectsOverlap(box,npcHitbox(other))) return false;}
   return true;
 }
-
 function updateNpc(n){
-  if(n.emoteTimer > 0){ n.emoteTimer--; if(n.emoteTimer === 0) n.emote = null; }
-  const dToPlayer = Math.hypot(player.x - n.x, player.y - n.y);
-  if(n.role === 'barista' && dToPlayer < 112){
-    n.emote = player.hasCoffee ? '☕' : '？'; n.emoteTimer = 60;
-    if(Math.random() < 0.01) pushBubble(n, player.hasCoffee ? '請慢用' : '要喝什麼？', 110);
-    return;
-  }
-  if(n.wait > 0){ n.wait--; return; }
-  const dx = n.targetX - n.x;
-  const dy = n.targetY - n.y;
-  const dist = Math.hypot(dx, dy);
-  if(dist < 4){
-    n.wait = 55 + Math.floor(Math.random()*115);
-    chooseTarget(n);
-    if(Math.random() < .35){ n.emote = moods[Math.floor(Math.random()*moods.length)]; n.emoteTimer = 90; }
-    return;
-  }
-  const nx = n.x + dx/dist * n.speed;
-  const ny = n.y + dy/dist * n.speed;
-  if(npcCanMove(n, nx, ny)){ n.x = nx; n.y = ny; }
-  else { n.wait = 25; chooseTarget(n); }
+  if(n.emoteTimer>0){n.emoteTimer--; if(n.emoteTimer===0) n.emote=null;}
+  const dToPlayer=Math.hypot(player.x-n.x,player.y-n.y);
+  if(n.role==='barista' && dToPlayer<112){n.emote=player.hasCoffee?'☕':'？'; n.emoteTimer=60; if(Math.random()<0.008) pushBubble(n,player.hasCoffee?'請慢用':'要喝什麼？',110); return;}
+  if(n.wait>0){n.wait--; return;}
+  const dx=n.targetX-n.x, dy=n.targetY-n.y, dist=Math.hypot(dx,dy);
+  if(dist<4){n.wait=55+Math.floor(Math.random()*115); chooseTarget(n); if(Math.random()<.35){n.emote=moods[Math.floor(Math.random()*moods.length)]; n.emoteTimer=90;} return;}
+  const nx=n.x+dx/dist*n.speed, ny=n.y+dy/dist*n.speed;
+  if(npcCanMove(n,nx,ny)){n.x=nx;n.y=ny;} else {n.wait=25; chooseTarget(n);}
 }
+function socialTick(){for(const a of npcs){for(const b of npcs){if(a!==b && near(a.x,a.y,b.x,b.y,74) && Math.random()<0.002){a.emote=a.role==='cellist'?'♪':a.role==='joker'?'😆':'☕'; b.emote=b.role==='joker'?'😂':'✨'; a.emoteTimer=b.emoteTimer=95; pushBubble(a,a.role==='joker'?'聽我說':a.role==='cellist'?'來一段嗎':'咖啡好了',105);}}}}
+function getClosestNpc(dist=82){return npcs.find(n=>near(player.x,player.y,n.x,n.y,dist));}
 
-function socialTick(){
-  for(const a of npcs){
-    for(const b of npcs){
-      if(a === b) continue;
-      if(near(a.x,a.y,b.x,b.y,74) && Math.random() < 0.0025){
-        a.emote = a.role === 'cellist' ? '♪' : a.role === 'joker' ? '😆' : '☕'; a.emoteTimer = 95;
-        b.emote = b.role === 'joker' ? '😂' : '✨'; b.emoteTimer = 95;
-        const text = a.role === 'joker' ? '聽我說' : a.role === 'cellist' ? '來一段嗎' : '咖啡好了';
-        pushBubble(a, text, 105);
-      }
-    }
-  }
-}
-
-function getClosestNpc(dist=82){
-  return npcs.find(n => near(player.x, player.y, n.x, n.y, dist));
-}
-
-function interact(){
-  const n = getClosestNpc(96);
-  if(n){
-    if(n.role === 'barista'){ openCoffeeMenu(true); return; }
-    if(n.role === 'cellist'){
-      startAudio(); playCelloPhrase();
-      n.emote = '♪'; n.emoteTimer = 120;
-      say(peakLines[Math.floor(Math.random()*peakLines.length)], 220);
-      return;
-    }
-    if(n.role === 'joker'){
-      n.emote = '😆'; n.emoteTimer = 120;
-      say(beanJokes[Math.floor(Math.random()*beanJokes.length)], 260);
-      return;
-    }
-  }
-  sitDown();
-}
-
-function onlineCount(){return 1 + Object.keys(remotePlayers).length;}
-function updateOnlineStatus(){
-  if(!statusText) return;
-  statusText.textContent = cloudReady ? `雲端已連線 · ${onlineCount()} 人在線` : '本機模式';
-}
-function currentPlayerState(){
-  return {
-    name: player.name || 'Guest', x: Math.round(player.x), y: Math.round(player.y),
-    hair: player.hair, shirt: player.shirt, skin: player.skin,
-    coffeeType: player.coffeeType || '', hasCoffee: !!player.hasCoffee,
-    sitting: !!player.sitting, emote: player.emote || '', clientUpdatedAt: Date.now(), updatedAt: serverTimestamp()
-  };
-}
-async function syncPlayer(force=false){
-  if(!cloudReady || !myPlayerRef) return;
-  const state = currentPlayerState();
-  const stateKey = JSON.stringify({...state, updatedAt: 0, clientUpdatedAt: 0});
-  const now = Date.now();
-  if(!force && stateKey === lastSyncedState && now - lastPlayerSync < 1200) return;
-  if(!force && now - lastPlayerSync < 140) return;
-  lastSyncedState = stateKey;
-  lastPlayerSync = now;
-  try{ await set(myPlayerRef, state); }catch(err){ console.warn('player sync failed', err); }
-}
-function setupCloudPlayer(){
-  if(!cloudReady || !playersRef || !db) return;
-  myPlayerRef = ref(db, `coffeeShip/players/${myPlayerId}`);
-  onDisconnect(myPlayerRef).remove();
-  syncPlayer(true);
-  updateOnlineStatus();
-}
-
-function update(){
-  npcs.forEach(updateNpc);
-  socialTick();
-  if(celloTimer > 0){ celloTimer--; if(celloTimer % 150 === 0 && Math.random() < .65) playCelloPhrase(false); }
-  let dx=0, dy=0;
-  if(keys.has('ArrowUp')||keys.has('w')||mobile.up) dy-=player.speed;
-  if(keys.has('ArrowDown')||keys.has('s')||mobile.down) dy+=player.speed;
-  if(keys.has('ArrowLeft')||keys.has('a')||mobile.left) dx-=player.speed;
-  if(keys.has('ArrowRight')||keys.has('d')||mobile.right) dx+=player.speed;
-  if(dx&&dy){dx*=.707;dy*=.707}
-  tryMove(dx,dy);
-  syncPlayer(false);
-  if(world.messageTimer>0) world.messageTimer--;
-  if(player.emoteTimer>0){player.emoteTimer--; if(player.emoteTimer===0) player.emote=null;}
-}
-function render(){
-  drawFloor(); drawCafe(); drawParticles();
-  const actors = [...npcs, ...Object.values(remotePlayers), player].sort((a,b)=>(a.y||0)-(b.y||0));
-  actors.forEach(a => drawAvatar(a, a === player));
-  drawBubbles(); drawMessage();
-}
-function loop(t=0){
-  lastTime = t;
-  update();render();requestAnimationFrame(loop)
-}
-
-function startAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-}
-function playTone(freq, start, duration, gain=0.05){
-  if(!audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const osc2 = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  const filter = audioCtx.createBiquadFilter();
-  osc.type = 'sawtooth'; osc2.type = 'triangle';
-  osc.frequency.setValueAtTime(freq, start); osc2.frequency.setValueAtTime(freq/2, start);
-  filter.type = 'lowpass'; filter.frequency.setValueAtTime(620, start);
-  g.gain.setValueAtTime(0.0001, start);
-  g.gain.exponentialRampToValueAtTime(gain, start + .08);
-  g.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  osc.connect(filter); osc2.connect(filter); filter.connect(g); g.connect(audioCtx.destination);
-  osc.start(start); osc2.start(start); osc.stop(start+duration+.05); osc2.stop(start+duration+.05);
-}
-function playCelloPhrase(loud=true){
-  startAudio();
-  const peak = npcs.find(n=>n.role==='cellist');
-  if(peak){ peak.emote='♪'; peak.emoteTimer=130; }
-  const now = audioCtx.currentTime + .03;
-  const notes = [196, 220, 247, 220, 196, 164.8, 174.6, 196];
-  notes.forEach((f,i)=>playTone(f, now + i*.34, .42, loud ? .055 : .028));
-  celloTimer = 520;
-}
+function startAudio(){if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume();}
+function playTone(freq,start,duration,gain=0.05){if(!audioCtx) return; const osc=audioCtx.createOscillator(), osc2=audioCtx.createOscillator(), g=audioCtx.createGain(), filter=audioCtx.createBiquadFilter(); osc.type='sawtooth'; osc2.type='triangle'; osc.frequency.setValueAtTime(freq,start); osc2.frequency.setValueAtTime(freq/2,start); filter.type='lowpass'; filter.frequency.setValueAtTime(620,start); g.gain.setValueAtTime(0.0001,start); g.gain.exponentialRampToValueAtTime(gain,start+.08); g.gain.exponentialRampToValueAtTime(0.0001,start+duration); osc.connect(filter); osc2.connect(filter); filter.connect(g); g.connect(audioCtx.destination); osc.start(start); osc2.start(start); osc.stop(start+duration+.05); osc2.stop(start+duration+.05);}
+function playCelloPhrase(loud=true){startAudio(); const peak=npcs.find(n=>n.role==='cellist'); if(peak){peak.emote='♪'; peak.emoteTimer=130;} const now=audioCtx.currentTime+.03; [196,220,247,220,196,164.8,174.6,196].forEach((f,i)=>playTone(f,now+i*.34,.42,loud?.055:.028)); celloTimer=520;}
 
 function closeCoffeeMenu(){coffeeMenu.classList.add('hidden');}
-function openCoffeeMenu(force=false){
-  const momo = npcs.find(n=>n.role==='barista');
-  const closeToMomo = momo && near(player.x, player.y, momo.x, momo.y, 135);
-  const closeToCounter = near(player.x, player.y, counter.x+counter.w/2, counter.y+counter.h+35, 170);
-  if(!force && !closeToMomo && !closeToCounter){say('要靠近吧台或 Momo，才能點咖啡喔。'); return;}
-  renderCoffeeOptions();
-  coffeeMenu.classList.remove('hidden');
-  if(momo){momo.emote='☕'; momo.emoteTimer=120; pushBubble(momo,'想喝什麼？',100);}
-  say('Momo 把咖啡單遞給你。', 180);
-}
-function renderCoffeeOptions(){
-  coffeeOptions.innerHTML = coffeeMenuItems.map((item, i)=>`
-    <button class="coffee-option" data-coffee-index="${i}">
-      <strong>${item.icon} ${item.name}</strong>
-      <span>${item.desc}</span>
-      <small>${item.price}</small>
-    </button>
-  `).join('');
-}
-function chooseCoffee(item){
-  player.coffeeType = item.name;
-  player.hasCoffee = true;
-  player.emote = item.icon + '✨';
-  player.emoteTimer = 110;
-  coffeeBadge.textContent = `手上有一杯${item.name}`;
-  const momo = npcs.find(n=>n.role==='barista');
-  if(momo){momo.emote = '☕'; momo.emoteTimer = 120; pushBubble(momo,'請慢用',120);}
-  closeCoffeeMenu();
-  say(`Momo 為 ${player.name} 做好了一杯「${item.name}」。${item.desc}`, 300);
-  spawnSparkles();
-  syncPlayer(true);
-}
+function openCoffeeMenu(force=false){const momo=npcs.find(n=>n.role==='barista'); const closeToMomo=momo&&near(player.x,player.y,momo.x,momo.y,135); const closeToCounter=near(player.x,player.y,counter.x+counter.w/2,counter.y+counter.h+35,170); if(!force && !closeToMomo && !closeToCounter){say('要靠近吧台或 Momo，才能點咖啡喔。');return;} renderCoffeeOptions(); coffeeMenu.classList.remove('hidden'); if(momo){momo.emote='☕';momo.emoteTimer=120;pushBubble(momo,'想喝什麼？',100);} say('Momo 把咖啡單遞給你。',180);}
+function renderCoffeeOptions(){coffeeOptions.innerHTML=coffeeMenuItems.map((item,i)=>`<button class="coffee-option" data-coffee-index="${i}"><strong>${item.icon} ${item.name}</strong><span>${item.desc}</span><small>${item.price}</small></button>`).join('');}
+function chooseCoffee(item){player.coffeeType=item.name; player.hasCoffee=true; player.emote=item.icon+'✨'; player.emoteTimer=110; coffeeBadge.textContent=`手上有一杯${item.name}`; const momo=npcs.find(n=>n.role==='barista'); if(momo){momo.emote='☕';momo.emoteTimer=120;pushBubble(momo,'請慢用',120);} closeCoffeeMenu(); say(`Momo 為 ${player.name} 做好了一杯「${item.name}」。${item.desc}`,300); spawnSparkles(); syncPlayer(true);}
 function orderCoffee(){openCoffeeMenu();}
-function sitDown(){
-  const chair = chairs.find(c=>near(player.x,player.y,c.x,c.y,52));
-  if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`)}
-  else say('靠近椅子後按 E 就能坐下。靠近 NPC 按 E 則能互動。');
-}
-function emote(){player.emote = player.hasCoffee ? '☕✨' : '✨'; player.emoteTimer=95; say(`${player.name} 發出了一個小小的表情。`); spawnSparkles(); syncPlayer(true);}
+function sitDown(){const chair=chairs.find(c=>near(player.x,player.y,c.x,c.y,52)); if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`); syncPlayer(true);} else say('靠近椅子後按 E 就能坐下。靠近 NPC 按 E 則能互動。');}
+function emote(){player.emote=player.hasCoffee?'☕✨':'✨'; player.emoteTimer=95; say(`${player.name} 發出了一個小小的表情。`); spawnSparkles(); syncPlayer(true);}
+function interact(){const n=getClosestNpc(96); if(n){if(n.role==='barista'){openCoffeeMenu(true);return;} if(n.role==='cellist'){startAudio();playCelloPhrase();n.emote='♪';n.emoteTimer=120;say(peakLines[Math.floor(Math.random()*peakLines.length)],220);return;} if(n.role==='joker'){n.emote='😆';n.emoteTimer=120;say(beanJokes[Math.floor(Math.random()*beanJokes.length)],260);return;}} sitDown();}
 
-function getLocalMessages(){
-  try{return JSON.parse(localStorage.getItem('coffeeShipMessages') || '[]')}catch(e){return []}
-}
-function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages', JSON.stringify(messages.slice(-80)));}
+function getLocalMessages(){try{return JSON.parse(localStorage.getItem('coffeeShipMessages')||'[]');}catch(e){return [];}}
+function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages',JSON.stringify(messages.slice(-80)));}
 function getMessages(){return cloudReady ? cachedMessages : getLocalMessages();}
-function getMessageTime(m){
-  return Number(m.clientCreatedAt || m.createdAt || m.timeRaw || 0);
-}
-function cleanMessageText(text){
-  return String(text || '')
-    .replace(/[\u0000-\u001F\u007F]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 120);
-}
-function cleanName(name){
-  return cleanMessageText(name || 'Guest').slice(0, 16) || 'Guest';
-}
-function escapeHtml(text=''){
-  return String(text).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch] || ch));
-}
-function formatTime(value){
-  if(!value || value === '剛剛') return '剛剛';
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
-}
-function renderMessages(){
-  if(!messagesList) return;
-  const statusClass = cloudReady && firebaseConnected ? 'online' : (cloudReady ? 'connecting' : 'offline');
-  const messages = getMessages().slice().sort((a,b) => getMessageTime(b) - getMessageTime(a));
-  const statusHtml = `<div class="board-status ${statusClass}">${escapeHtml(boardStatusText)}</div>`;
-  if(!messages.length){
-    messagesList.innerHTML = statusHtml + `<div class="empty-board">${cloudReady ? '雲端留言板已開啟，但目前還沒有留言。' : '目前是本機留言板；Firebase 連線成功後即可跨裝置同步。'}</div>`;
-    return;
-  }
-  messagesList.innerHTML = statusHtml + messages.map(m=>`
-    <article class="message-card">
-      <div class="message-meta"><strong>${escapeHtml(m.name || 'Guest')}</strong><span>${escapeHtml(formatTime(getMessageTime(m)))}</span></div>
-      <div class="message-text">${escapeHtml(m.text || '')}</div>
-    </article>
-  `).join('');
-}
-async function addMessage(text){
-  const safeText = cleanMessageText(text);
-  if(!safeText) throw new Error('empty message');
-  const now = Date.now();
-  const msg = {
-    name: cleanName(player.name),
-    text: safeText,
-    clientCreatedAt: now,
-    createdAt: now,
-    source: 'coffee-ship-web'
-  };
-  if(cloudReady && messagesRef){
-    await push(messagesRef, {...msg, createdAt: serverTimestamp()});
-  }else{
-    const messages = getLocalMessages();
-    messages.push({...msg, timeRaw: now});
-    saveLocalMessages(messages);
-    renderMessages();
+function getMessageTime(m){return Number(m.clientCreatedAt || m.createdAt || m.timeRaw || 0);}
+function cleanMessageText(text){return String(text||'').replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim().slice(0,120);}
+function cleanName(name){return cleanMessageText(name||'Guest').slice(0,16)||'Guest';}
+function escapeHtml(text=''){return String(text).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]||ch));}
+function formatTime(value){if(!value) return '剛剛'; const d=new Date(value); if(Number.isNaN(d.getTime())) return '剛剛'; return d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
+function renderMessages(){if(!messagesList) return; const statusClass=cloudReady&&firebaseConnected?'online':(firebaseLoading?'connecting':'offline'); const messages=getMessages().slice().sort((a,b)=>getMessageTime(b)-getMessageTime(a)); const statusHtml=`<div class="board-status ${statusClass}">${escapeHtml(boardStatusText)}</div>`; if(!messages.length){messagesList.innerHTML=statusHtml+`<div class="empty-board">目前還沒有留言。Firebase 成功連線後，不同裝置會同步看到。</div>`; return;} messagesList.innerHTML=statusHtml+messages.map(m=>`<article class="message-card"><div class="message-meta"><strong>${escapeHtml(m.name||'Guest')}</strong><span>${escapeHtml(formatTime(getMessageTime(m)))}</span></div><div class="message-text">${escapeHtml(m.text||'')}</div></article>`).join('');}
+async function addMessage(text){const safeText=cleanMessageText(text); if(!safeText) throw new Error('empty message'); const now=Date.now(); const msg={name:cleanName(player.name),text:safeText,clientCreatedAt:now,createdAt:now,source:'coffee-ship-web'}; if(cloudReady && messagesRef && firebaseApi){await firebaseApi.push(messagesRef,{...msg,createdAt:firebaseApi.serverTimestamp()});} else {const messages=getLocalMessages(); messages.push({...msg,timeRaw:now}); saveLocalMessages(messages); renderMessages();}}
+function openBoard(force=false){const closeEnough=near(player.x,player.y,board.x+board.w/2,board.y+board.h+36,170); if(!force&&!closeEnough){say('要靠近牆上的留言板，才能留下訊息喔。');return;} renderMessages(); messageBoard.classList.remove('hidden'); say(cloudReady?(firebaseConnected?'你打開了 Coffee Ship 的雲端留言板。':'留言板正在背景連線中。'):'目前先用本機留言板，Firebase 連線成功後會自動同步。'); setTimeout(()=>messageInput.focus(),30);}
+function closeBoard(){messageBoard.classList.add('hidden'); canvas.focus&&canvas.focus();}
+
+function updateOnlineStatus(){if(!statusText) return; statusText.textContent = cloudReady ? `雲端已連線 · ${1+Object.keys(remotePlayers).length} 人在線` : (firebaseLoading ? 'Firebase 背景連線中' : '本機模式'); if(moodDot){moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c';}}
+function currentPlayerState(){return {name:player.name||'Guest',x:Math.round(player.x),y:Math.round(player.y),hair:player.hair,shirt:player.shirt,skin:player.skin,coffeeType:player.coffeeType||'',hasCoffee:!!player.hasCoffee,sitting:!!player.sitting,emote:player.emote||'',clientUpdatedAt:Date.now(),updatedAt:firebaseApi?firebaseApi.serverTimestamp():Date.now()};}
+async function syncPlayer(force=false){if(!cloudReady || !myPlayerRef || !firebaseApi) return; const state=currentPlayerState(); const stateKey=JSON.stringify({...state,updatedAt:0,clientUpdatedAt:0}); const now=Date.now(); if(!force && stateKey===lastSyncedState && now-lastPlayerSync<1200) return; if(!force && now-lastPlayerSync<180) return; lastSyncedState=stateKey; lastPlayerSync=now; try{await firebaseApi.set(myPlayerRef,state);}catch(err){console.warn('player sync failed',err);}}
+function setupCloudPlayer(){if(!cloudReady || !playersRef || !db || !firebaseApi) return; myPlayerRef=firebaseApi.ref(db,`coffeeShip/players/${myPlayerId}`); try{firebaseApi.onDisconnect(myPlayerRef).remove();}catch(e){} syncPlayer(true); updateOnlineStatus();}
+function isFirebaseConfigured(){const cfg=window.COFFEE_SHIP_FIREBASE_CONFIG; return cfg && cfg.apiKey && cfg.databaseURL && !cfg.apiKey.includes('PASTE_') && !cfg.databaseURL.includes('PASTE_');}
+async function initFirebaseInBackground(){
+  if(firebaseLoading || cloudReady || !isFirebaseConfigured()) {renderMessages(); return;}
+  firebaseLoading = true; boardStatusText = 'Firebase 背景連線中；遊戲可正常遊玩。'; renderMessages(); updateOnlineStatus();
+  const timeout = new Promise((_,reject)=>setTimeout(()=>reject(new Error('Firebase 載入逾時')),8000));
+  try{
+    const [appMod, dbMod] = await Promise.race([
+      Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js')
+      ]),
+      timeout
+    ]);
+    const app = appMod.initializeApp(window.COFFEE_SHIP_FIREBASE_CONFIG);
+    db = dbMod.getDatabase(app);
+    firebaseApi = dbMod;
+    messagesRef = dbMod.ref(db,'coffeeShip/messages');
+    playersRef = dbMod.ref(db,'coffeeShip/players');
+    cloudReady = true; firebaseLoading = false; boardStatusText = 'Firebase 已載入，正在確認資料庫連線…';
+    dbMod.onValue(dbMod.ref(db,'.info/connected'), snap=>{firebaseConnected = snap.val() === true; boardStatusText = firebaseConnected ? '雲端留言板已連線：不同裝置會即時看到同一批留言。' : '正在重新連線 Firebase…請確認 Realtime Database Rules。'; renderMessages(); updateOnlineStatus();});
+    dbMod.onValue(dbMod.query(messagesRef, dbMod.orderByChild('clientCreatedAt'), dbMod.limitToLast(80)), snap=>{const data=snap.val()||{}; cachedMessages=Object.entries(data).map(([id,m])=>({id,...m})).filter(m=>typeof m.text==='string'&&m.text.trim()).sort((a,b)=>getMessageTime(a)-getMessageTime(b)); renderMessages();}, err=>{console.error(err); boardStatusText='留言板讀取失敗：請確認 Realtime Database Rules 允許 read。'; renderMessages();});
+    dbMod.onValue(playersRef, snap=>{const data=snap.val()||{}; const now=Date.now(); remotePlayers=Object.fromEntries(Object.entries(data).filter(([id,p])=>id!==myPlayerId&&p&&(now-(p.clientUpdatedAt||now))<30000).map(([id,p])=>[id,{...p,radius:17,skin:p.skin||'#f0c7a0'}])); updateOnlineStatus();});
+    if(!creator.classList.contains('hidden')) updateOnlineStatus(); else setupCloudPlayer();
+    say('Firebase 留言板已在背景連線完成。',180);
+  }catch(error){
+    console.warn('Firebase background init failed:', error);
+    firebaseLoading = false; cloudReady = false; firebaseConnected = false;
+    boardStatusText = 'Firebase 暫時無法載入，已切回本機留言板；遊戲不會卡住。';
+    renderMessages(); updateOnlineStatus();
   }
 }
-function openBoard(force=false){
-  const closeEnough = near(player.x, player.y, board.x+board.w/2, board.y+board.h+36, 170);
-  if(!force && !closeEnough){say('要靠近牆上的留言板，才能留下訊息喔。'); return;}
-  renderMessages();
-  messageBoard.classList.remove('hidden');
-  say(cloudReady ? (firebaseConnected ? '你打開了 Coffee Ship 的雲端留言板。' : '留言板正在連線中，稍等一下或檢查資料庫規則。') : '目前是本機留言板；Firebase 設定完成後就會跨裝置同步。');
-  setTimeout(()=>messageInput.focus(), 30);
-}
-function closeBoard(){messageBoard.classList.add('hidden'); canvas.focus && canvas.focus();}
 
-startBtn.addEventListener('click',()=>{
-  startAudio();
-  player.name = document.getElementById('playerName').value.trim() || 'Guest';
-  player.hair = document.getElementById('hairColor').value;
-  player.shirt = document.getElementById('shirtColor').value;
-  player.coffeeType = document.getElementById('coffeeType').value;
-  localStorage.setItem('coffeeShipAvatar', JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType}));
-  creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent = player.name;
-  statusText.textContent = cloudReady ? '雲端已連線' : '本機模式'; moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c'; moodDot.style.color = moodDot.style.background;
-  setupCloudPlayer();
-  say(`歡迎 ${player.name} 登上 Coffee Ship。找 Momo 點咖啡，找 Peak 聽大提琴，找 Bean 聽笑話。`, 340);
-});
+function update(){npcs.forEach(updateNpc); socialTick(); if(celloTimer>0){celloTimer--; if(celloTimer%150===0 && Math.random()<.65) playCelloPhrase(false);} let dx=0,dy=0; if(keys.has('ArrowUp')||keys.has('w')||mobile.up) dy-=player.speed; if(keys.has('ArrowDown')||keys.has('s')||mobile.down) dy+=player.speed; if(keys.has('ArrowLeft')||keys.has('a')||mobile.left) dx-=player.speed; if(keys.has('ArrowRight')||keys.has('d')||mobile.right) dx+=player.speed; if(dx&&dy){dx*=.707;dy*=.707;} tryMove(dx,dy); syncPlayer(false); if(world.messageTimer>0) world.messageTimer--; if(player.emoteTimer>0){player.emoteTimer--; if(player.emoteTimer===0) player.emote=null;}}
+function render(){drawFloor(); drawCafe(); drawParticles(); const actors=[...npcs,...Object.values(remotePlayers),player].sort((a,b)=>(a.y||0)-(b.y||0)); actors.forEach(a=>drawAvatar(a,a===player)); drawBubbles(); drawMessage();}
+function loop(){update(); render(); requestAnimationFrame(loop);}
 
-const saved = localStorage.getItem('coffeeShipAvatar');
-if(saved){try{const s=JSON.parse(saved); document.getElementById('playerName').value=s.name||''; document.getElementById('hairColor').value=s.hair||'#2b1d16'; document.getElementById('shirtColor').value=s.shirt||'#c96a4a'; document.getElementById('coffeeType').value=s.coffeeType||'美式';}catch(e){}}
-
-window.addEventListener('keydown',e=>{
-  const k=e.key.length===1?e.key.toLowerCase():e.key; keys.add(k);
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-  if(k==='c') orderCoffee(); if(k==='e') interact(); if(k==='b') openBoard(); if(e.code==='Space') emote();
-});
+startBtn.addEventListener('click',()=>{startAudio(); player.name=document.getElementById('playerName').value.trim()||'Guest'; player.hair=document.getElementById('hairColor').value; player.shirt=document.getElementById('shirtColor').value; player.coffeeType=document.getElementById('coffeeType').value; localStorage.setItem('coffeeShipAvatar',JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType})); creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent=player.name; updateOnlineStatus(); setupCloudPlayer(); say(`歡迎 ${player.name} 登上 Coffee Ship。找 Momo 點咖啡，找 Peak 聽大提琴，找 Bean 聽笑話。`,340);});
+const saved=localStorage.getItem('coffeeShipAvatar'); if(saved){try{const s=JSON.parse(saved); document.getElementById('playerName').value=s.name||''; document.getElementById('hairColor').value=s.hair||'#2b1d16'; document.getElementById('shirtColor').value=s.shirt||'#c96a4a'; document.getElementById('coffeeType').value=s.coffeeType||'美式';}catch(e){}}
+window.addEventListener('keydown',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key; keys.add(k); if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault(); if(k==='c') orderCoffee(); if(k==='e') interact(); if(k==='b') openBoard(); if(e.code==='Space') emote();});
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
-
-document.querySelectorAll('[data-move]').forEach(btn=>{
-  const d=btn.dataset.move;
-  const on=()=>mobile[d]=true, off=()=>mobile[d]=false;
-  btn.addEventListener('pointerdown',on); btn.addEventListener('pointerup',off); btn.addEventListener('pointerleave',off);
-});
+document.querySelectorAll('[data-move]').forEach(btn=>{const d=btn.dataset.move; const on=()=>mobile[d]=true, off=()=>mobile[d]=false; btn.addEventListener('pointerdown',on); btn.addEventListener('pointerup',off); btn.addEventListener('pointerleave',off); btn.addEventListener('pointercancel',off);});
 document.getElementById('coffeeBtn').onclick=()=>openCoffeeMenu(true);
 document.getElementById('sitBtn').onclick=interact;
 document.getElementById('messageBtn').onclick=()=>openBoard(true);
 document.getElementById('emoteBtn').onclick=emote;
 closeBoardBtn.onclick=closeBoard;
 closeCoffeeMenuBtn.onclick=closeCoffeeMenu;
-coffeeOptions.addEventListener('click', e=>{
-  const btn = e.target.closest('[data-coffee-index]');
-  if(!btn) return;
-  chooseCoffee(coffeeMenuItems[Number(btn.dataset.coffeeIndex)]);
-});
-window.addEventListener('beforeunload', () => { if(cloudReady && myPlayerRef) remove(myPlayerRef); });
-
-messageForm.addEventListener('submit', async e=>{
-  e.preventDefault();
-  const text = cleanMessageText(messageInput.value);
-  if(!text){say('留言不能是空白喔。'); return;}
-  const submitBtn = messageForm.querySelector('button[type="submit"]');
-  if(submitBtn){submitBtn.disabled = true; submitBtn.textContent = '送出中…';}
-  try{
-    await addMessage(text);
-    messageInput.value = '';
-    player.emote = '✍️'; player.emoteTimer = 100;
-    say(cloudReady ? `${player.name} 把留言貼到雲端留言板了。下一個人會看見。` : `${player.name} 留言成功，但目前只存在這台裝置。`);
-    spawnSparkles();
-  }catch(error){
-    console.error(error);
-    say('留言送出失敗。請檢查 Firebase 設定或 Realtime Database Rules。', 360);
-  }finally{
-    const submitBtn = messageForm.querySelector('button[type="submit"]');
-    if(submitBtn){submitBtn.disabled = false; submitBtn.textContent = '貼到留言板';}
-  }
-});
+coffeeOptions.addEventListener('click',e=>{const btn=e.target.closest('[data-coffee-index]'); if(!btn) return; chooseCoffee(coffeeMenuItems[Number(btn.dataset.coffeeIndex)]);});
+window.addEventListener('beforeunload',()=>{if(cloudReady && myPlayerRef && firebaseApi) firebaseApi.remove(myPlayerRef);});
+messageForm.addEventListener('submit',async e=>{e.preventDefault(); const text=cleanMessageText(messageInput.value); if(!text){say('留言不能是空白喔。');return;} const submitBtn=messageForm.querySelector('button[type="submit"]'); if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='送出中…';} try{await addMessage(text); messageInput.value=''; player.emote='✍️'; player.emoteTimer=100; say(cloudReady?`${player.name} 把留言貼到雲端留言板了。下一個人會看見。`:`${player.name} 留言成功，但目前只存在這台裝置。`); spawnSparkles();}catch(error){console.error(error); say('留言送出失敗。請檢查 Firebase 設定或 Realtime Database Rules。',360);}finally{const btn=messageForm.querySelector('button[type="submit"]'); if(btn){btn.disabled=false;btn.textContent='貼到留言板';}}});
 
 renderMessages();
+updateOnlineStatus();
 loop();
+setTimeout(initFirebaseInBackground, 350);
