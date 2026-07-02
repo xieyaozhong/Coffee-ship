@@ -1,3 +1,6 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getDatabase, ref, push, onValue, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -9,16 +12,48 @@ const statusText = document.getElementById('statusText');
 const moodDot = document.getElementById('moodDot');
 const avatarName = document.getElementById('avatarName');
 const coffeeBadge = document.getElementById('coffeeBadge');
+const messageBoard = document.getElementById('messageBoard');
+const messagesList = document.getElementById('messagesList');
+const messageForm = document.getElementById('messageForm');
+const messageInput = document.getElementById('messageInput');
+const closeBoardBtn = document.getElementById('closeBoardBtn');
 
 const keys = new Set();
 const mobile = { up:false, down:false, left:false, right:false };
+
+let cloudReady = false;
+let messagesRef = null;
+let cachedMessages = [];
+
+function isFirebaseConfigured(){
+  const cfg = window.COFFEE_SHIP_FIREBASE_CONFIG;
+  return cfg && cfg.apiKey && !cfg.apiKey.includes('PASTE_') && cfg.databaseURL && !cfg.databaseURL.includes('PASTE_');
+}
+
+try{
+  if(isFirebaseConfigured()){
+    const app = initializeApp(window.COFFEE_SHIP_FIREBASE_CONFIG);
+    const db = getDatabase(app);
+    messagesRef = ref(db, 'coffeeShip/messages');
+    cloudReady = true;
+    onValue(query(messagesRef, limitToLast(50)), snapshot => {
+      const data = snapshot.val() || {};
+      cachedMessages = Object.entries(data).map(([id, m]) => ({ id, ...m }))
+        .sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+      renderMessages();
+    });
+  }
+}catch(error){
+  console.warn('Firebase init failed, fallback to localStorage:', error);
+  cloudReady = false;
+}
 
 const world = {
   tile: 48,
   w: 960,
   h: 576,
-  message: '歡迎來到 Coffee Ship。靠近吧台按 C 點咖啡。',
-  messageTimer: 260,
+  message: cloudReady ? '雲端留言板已連線。歡迎來到 Coffee Ship。' : '留言板目前使用本機模式；填好 Firebase 設定後就能跨裝置同步。',
+  messageTimer: 320,
   particles: []
 };
 
@@ -39,6 +74,7 @@ const chairs = [
 ];
 const tables = [{x:290,y:400},{x:680,y:400},{x:730,y:276},{x:195,y:276}];
 const counter = {x:120,y:96,w:360,h:88};
+const board = {x:560,y:104,w:210,h:72};
 const blocks = [counter, {x:98,y:96,w:28,h:300}, {x:834,y:96,w:28,h:300}];
 
 function rectsOverlap(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y}
@@ -70,6 +106,9 @@ function drawCafe(){
   drawPixelRect(counter.x,counter.y,counter.w,18,'#a56b45');
   drawPixelRect(180,122,42,34,'#21182a'); drawPixelRect(190,112,22,14,'#d7bb79');
   drawText('BAR', counter.x+counter.w/2, counter.y+58, 18, 'center', '#ffe5ae');
+  drawPixelRect(board.x,board.y,board.w,board.h,'#3a293d');
+  drawPixelRect(board.x+10,board.y+10,board.w-20,board.h-20,'#21182a');
+  drawText(cloudReady ? '雲端留言  B' : '留言板  B', board.x+board.w/2, board.y+44, 18, 'center', cloudReady ? '#79d0b1' : '#f0a75c');
   drawPixelRect(116,190,40,130,'#3d2a32'); drawPixelRect(804,190,40,130,'#3d2a32');
   tables.forEach(t=>{drawPixelRect(t.x-40,t.y-22,80,44,'#694638');drawPixelRect(t.x-28,t.y-12,56,24,'#9b6844');drawPixelRect(t.x-7,t.y-8,14,16,'#fff4d8')});
   chairs.forEach(c=>{drawPixelRect(c.x-16,c.y-14,32,28,'#4f8f73');drawPixelRect(c.x-12,c.y-22,24,10,'#79d0b1')});
@@ -142,7 +181,58 @@ function sitDown(){
   if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`)}
   else say('靠近椅子後按 E 就能坐下。');
 }
+
 function emote(){player.emote = player.hasCoffee ? '☕✨' : '✨'; player.emoteTimer=95; say(`${player.name} 發出了一個小小的表情。`); spawnSparkles();}
+
+function getLocalMessages(){
+  try{return JSON.parse(localStorage.getItem('coffeeShipMessages') || '[]')}catch(e){return []}
+}
+function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages', JSON.stringify(messages.slice(-50)));}
+function getMessages(){return cloudReady ? cachedMessages : getLocalMessages();}
+function escapeHtml(text=''){
+  return String(text).replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch] || ch));
+}
+function formatTime(value){
+  if(!value) return '剛剛';
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+}
+function renderMessages(){
+  if(!messagesList) return;
+  const messages = getMessages().slice().reverse();
+  if(!messages.length){
+    messagesList.innerHTML = `<div class="empty-board">${cloudReady ? '雲端留言板已開啟，但還沒有留言。' : '尚未連上雲端。你仍可在這台裝置測試留言。'}</div>`;
+    return;
+  }
+  messagesList.innerHTML = messages.map(m=>`
+    <article class="message-card">
+      <div class="message-meta"><strong>${escapeHtml(m.name || 'Guest')}</strong><span>${escapeHtml(formatTime(m.createdAt || m.time))}</span></div>
+      <div class="message-text">${escapeHtml(m.text || '')}</div>
+    </article>
+  `).join('');
+}
+async function addMessage(text){
+  const safeText = text.slice(0, 120);
+  const msg = {name: player.name || 'Guest', text: safeText, createdAt: Date.now()};
+  if(cloudReady && messagesRef){
+    await push(messagesRef, {...msg, createdAt: serverTimestamp()});
+  }else{
+    const messages = getLocalMessages();
+    messages.push({...msg, time: formatTime(Date.now())});
+    saveLocalMessages(messages);
+    renderMessages();
+  }
+}
+function openBoard(force=false){
+  const closeEnough = near(player.x, player.y, board.x+board.w/2, board.y+board.h+36, 170);
+  if(!force && !closeEnough){say('要靠近牆上的留言板，才能留下訊息喔。'); return;}
+  renderMessages();
+  messageBoard.classList.remove('hidden');
+  say(cloudReady ? '你打開了 Coffee Ship 的雲端留言板。' : '目前是本機留言板；填入 Firebase 設定後就會跨裝置同步。');
+  setTimeout(()=>messageInput.focus(), 30);
+}
+function closeBoard(){messageBoard.classList.add('hidden'); canvas.focus && canvas.focus();}
 
 startBtn.addEventListener('click',()=>{
   player.name = document.getElementById('playerName').value.trim() || 'Guest';
@@ -151,8 +241,8 @@ startBtn.addEventListener('click',()=>{
   player.coffeeType = document.getElementById('coffeeType').value;
   localStorage.setItem('coffeeShipAvatar', JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType}));
   creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent = player.name;
-  statusText.textContent = '已登船'; moodDot.style.background = '#79d0b1'; moodDot.style.color = '#79d0b1';
-  say(`歡迎 ${player.name} 登上 Coffee Ship。先去吧台按 C 點一杯咖啡吧。`, 300);
+  statusText.textContent = cloudReady ? '雲端已連線' : '本機模式'; moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c'; moodDot.style.color = moodDot.style.background;
+  say(`歡迎 ${player.name} 登上 Coffee Ship。靠近留言板按 B，可以留下給下一個人的話。`, 320);
 });
 
 const saved = localStorage.getItem('coffeeShipAvatar');
@@ -161,7 +251,7 @@ if(saved){try{const s=JSON.parse(saved); document.getElementById('playerName').v
 window.addEventListener('keydown',e=>{
   const k=e.key.length===1?e.key.toLowerCase():e.key; keys.add(k);
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-  if(k==='c') orderCoffee(); if(k==='e') sitDown(); if(e.code==='Space') emote();
+  if(k==='c') orderCoffee(); if(k==='e') sitDown(); if(k==='b') openBoard(); if(e.code==='Space') emote();
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
 
@@ -172,6 +262,24 @@ document.querySelectorAll('[data-move]').forEach(btn=>{
 });
 document.getElementById('coffeeBtn').onclick=orderCoffee;
 document.getElementById('sitBtn').onclick=sitDown;
+document.getElementById('messageBtn').onclick=()=>openBoard(true);
 document.getElementById('emoteBtn').onclick=emote;
+closeBoardBtn.onclick=closeBoard;
+messageForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  const text = messageInput.value.trim();
+  if(!text){say('留言不能是空白喔。'); return;}
+  try{
+    await addMessage(text);
+    messageInput.value = '';
+    player.emote = '✍️'; player.emoteTimer = 100;
+    say(cloudReady ? `${player.name} 把留言貼到雲端留言板了。下一個人會看見。` : `${player.name} 留言成功，但目前只存在這台裝置。`);
+    spawnSparkles();
+  }catch(error){
+    console.error(error);
+    say('留言送出失敗。請檢查 Firebase 設定或資料庫規則。', 360);
+  }
+});
 
+renderMessages();
 loop();

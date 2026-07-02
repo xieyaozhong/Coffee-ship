@@ -52,7 +52,7 @@
         </label>
       </div>
       <button id="startBtn">登上 Coffee Ship</button>
-      <p class="hint">方向鍵 / WASD 移動。靠近吧台按 C 拿咖啡，靠近椅子按 E 坐下，按 Space 發送表情。</p>
+      <p class="hint">方向鍵 / WASD 移動。靠近吧台按 C 拿咖啡，靠近椅子按 E 坐下，靠近留言板按 B 留言，按 Space 發送表情。</p>
     </section>
 
     <section id="gamePanel" class="panel game-panel hidden">
@@ -61,7 +61,7 @@
           <strong id="avatarName">Guest</strong>
           <span id="coffeeBadge">還沒點咖啡</span>
         </div>
-        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 坐下 · Space 表情</div>
+        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 坐下 · B 留言 · Space 表情</div>
       </div>
       <canvas id="game" width="960" height="576"></canvas>
       <div class="mobile-controls">
@@ -73,10 +73,28 @@
         </div>
         <button id="coffeeBtn">☕</button>
         <button id="sitBtn">坐</button>
+        <button id="messageBtn">留言</button>
         <button id="emoteBtn">✨</button>
       </div>
+
+      <aside id="messageBoard" class="message-board hidden" aria-live="polite">
+        <div class="board-head">
+          <div>
+            <p class="eyebrow">SHIP MESSAGE BOARD</p>
+            <h2>船上留言板</h2>
+          </div>
+          <button id="closeBoardBtn" class="ghost-btn">關閉</button>
+        </div>
+        <p class="board-note">這版支援 Firebase 雲端留言板；設定完成後，不同裝置打開同一個網站都能看到留言。</p>
+        <div id="messagesList" class="messages-list"></div>
+        <form id="messageForm" class="message-form">
+          <textarea id="messageInput" maxlength="80" placeholder="寫一句留在 Coffee Ship 的話……"></textarea>
+          <button type="submit">貼到留言板</button>
+        </form>
+      </aside>
     </section>
   </main>
-  <script src="game.js"></script>
+  <script src="firebase-config.js"></script>
+  <script type="module" src="game.js"></script>
 </body>
 </html>
