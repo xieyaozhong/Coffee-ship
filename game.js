@@ -45,8 +45,10 @@ const animalOptions = [
   {key:'rabbit', label:'兔子', emoji:'🐰', body:'#f4efe4', face:'#fff8ef', accent:'#e9a6b0'},
   {key:'fox', label:'狐狸', emoji:'🦊', body:'#df6d13', face:'#fff0d7', accent:'#2f1b16'},
   {key:'bear', label:'小熊', emoji:'🐻', body:'#8a5a3c', face:'#c89162', accent:'#3b241c'},
-  {key:'penguin', label:'企鵝', emoji:'🐧', body:'#1f2430', face:'#f7f3e8', accent:'#e8a23c'}
+  {key:'penguin', label:'企鵝', emoji:'🐧', body:'#1f2430', face:'#f7f3e8', accent:'#e8a23c'},
+  {key:'pig', label:'小豬', emoji:'🐷', body:'#f4a8bb', face:'#ffc4d0', accent:'#d96f8d'}
 ];
+const randomNames = ['拿鐵旅人','漂流豆豆','星光客人','小小船員','焦糖小豬','雲朵咖啡','午夜兔兔','微笑熊熊','企鵝店客','狐狸旅伴','奶泡小狗','三花朋友'];
 let selectedAnimal = localStorage.getItem('coffeeShipAnimal') || 'human';
 
 const world = { tile:48, w:960, h:576, message:'Coffee Ship 已啟動。Mugi 現在是正式店貓 NPC。', messageTimer:300, particles:[], bubbles:[] };
@@ -110,6 +112,7 @@ function drawAnimalAvatar(a,isPlayer=false){
   drawPixelRect(x-15,y-20,30,24,body); drawPixelRect(x-11,y-16,22,17,face);
   if(animal.key==='rabbit'){drawPixelRect(x-12,y-40,7,22,body);drawPixelRect(x+5,y-40,7,22,body);drawPixelRect(x-10,y-36,3,16,accent);drawPixelRect(x+7,y-36,3,16,accent);} 
   else if(animal.key==='penguin'){drawPixelRect(x-13,y-28,26,12,body);drawPixelRect(x-8,y-16,16,16,face);drawPixelRect(x-3,y-7,6,4,accent);} 
+  else if(animal.key==='pig'){drawPixelRect(x-16,y-26,9,9,body);drawPixelRect(x+7,y-26,9,9,body);drawPixelRect(x-6,y-6,12,7,accent);drawPixelRect(x-3,y-4,2,2,'#7a4050');drawPixelRect(x+3,y-4,2,2,'#7a4050');}
   else {drawPixelRect(x-15,y-29,9,11,body);drawPixelRect(x+6,y-29,9,11,body);}
   if(animal.key==='fox'){drawPixelRect(x-15,y-22,8,10,accent);drawPixelRect(x+7,y-22,8,10,accent);drawPixelRect(x+14,y+2,14,8,accent);}
   if(animal.key==='dog'){drawPixelRect(x-19,y-18,7,17,accent);drawPixelRect(x+12,y-18,7,17,accent);}
@@ -203,10 +206,10 @@ function render(){drawFloor(); drawCafe(); drawParticles(); const actors=[...npc
 function loop(){update(); render(); requestAnimationFrame(loop);}
 
 function setupRandomAnimalButton(){
-  const btn = document.createElement('button'); btn.type='button'; btn.id='randomAnimalBtn'; btn.textContent='🎲 隨機變身'; btn.style.marginLeft='10px';
+  const btn = document.createElement('button'); btn.type='button'; btn.id='randomAnimalBtn'; btn.textContent='🎲 隨機進入'; btn.style.marginLeft='10px';
   const hint = document.createElement('p'); hint.id='animalHint'; hint.className='hint'; hint.style.marginTop='8px';
-  function updateHint(){const a=animalByKey(selectedAnimal); hint.textContent=`目前分身：${a.emoji} ${a.label}`;}
-  btn.addEventListener('click',()=>{const pick=animalOptions[Math.floor(Math.random()*animalOptions.length)]; selectedAnimal=pick.key; player.animal=pick.key; localStorage.setItem('coffeeShipAnimal',pick.key); updateHint();});
+  function updateHint(){const a=animalByKey(selectedAnimal); hint.textContent=`目前分身：${a.emoji} ${a.label}。按「隨機進入」會自動取名並登船。`;}
+  btn.addEventListener('click',()=>{const pick=animalOptions[Math.floor(Math.random()*animalOptions.length)]; const name=randomNames[Math.floor(Math.random()*randomNames.length)] + Math.floor(Math.random()*90+10); selectedAnimal=pick.key; player.animal=pick.key; const nameInput=document.getElementById('playerName'); if(nameInput) nameInput.value=name; localStorage.setItem('coffeeShipAnimal',pick.key); updateHint(); startBtn.click();});
   startBtn.insertAdjacentElement('afterend', btn); btn.insertAdjacentElement('afterend', hint); updateHint();
 }
 setupRandomAnimalButton();
