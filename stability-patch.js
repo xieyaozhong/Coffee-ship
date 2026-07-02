@@ -4,6 +4,11 @@
     return !!deck && !deck.classList.contains('hidden');
   }
 
+  function isPortOpen() {
+    const port = document.getElementById('portOverlay');
+    return !!port && !port.classList.contains('hidden');
+  }
+
   function keyEvent(type, key) {
     window.dispatchEvent(new KeyboardEvent(type, { key, code: key, bubbles: true, cancelable: true }));
   }
@@ -11,7 +16,7 @@
   function holdKey(button, key) {
     let down = false;
     const start = (event) => {
-      if (!isDeckOpen()) return;
+      if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
       if (!down) {
@@ -38,7 +43,7 @@
     });
 
     document.getElementById('sitBtn')?.addEventListener('click', (event) => {
-      if (!isDeckOpen()) return;
+      if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
       keyEvent('keydown', 'e');
@@ -46,7 +51,7 @@
     }, true);
 
     document.getElementById('emoteBtn')?.addEventListener('click', (event) => {
-      if (!isDeckOpen()) return;
+      if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
       keyEvent('keydown', ' ');
@@ -56,7 +61,7 @@
 
   function preventCafeMovementBehindDeck() {
     window.addEventListener('keydown', (event) => {
-      if (!isDeckOpen()) return;
+      if (!isDeckOpen() && !isPortOpen()) return;
       const k = event.key.length === 1 ? event.key.toLowerCase() : event.key;
       const blocked = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', 'e', ' '];
       if (blocked.includes(k)) {
@@ -73,15 +78,17 @@
     badge.style.cssText = 'position:absolute;left:18px;bottom:18px;z-index:11;padding:6px 10px;border-radius:10px;background:rgba(21,16,32,.86);border:2px solid #76536a;color:#fff4d8;font-weight:900;font-size:13px;pointer-events:none';
     badge.textContent = '☕ Cafe';
     panel.appendChild(badge);
-    setInterval(() => { badge.textContent = isDeckOpen() ? '🌊 Deck' : '☕ Cafe'; }, 350);
+    setInterval(() => {
+      badge.textContent = isPortOpen() ? '⚓ Port' : (isDeckOpen() ? '🌊 Deck' : '☕ Cafe');
+    }, 350);
   }
 
-  function loadRoleSprites() {
-    if (document.querySelector('script[data-role-sprites="true"]')) return;
+  function loadScript(src, flag) {
+    if (document.querySelector(`script[data-${flag}="true"]`)) return;
     const script = document.createElement('script');
-    script.src = 'role-sprites.js';
+    script.src = src;
     script.defer = true;
-    script.dataset.roleSprites = 'true';
+    script.dataset[flag] = 'true';
     document.body.appendChild(script);
   }
 
@@ -89,7 +96,8 @@
     bindMobileDeckControls();
     preventCafeMovementBehindDeck();
     addStatusBadge();
-    loadRoleSprites();
+    loadScript('role-sprites.js', 'roleSprites');
+    loadScript('port.js', 'portScene');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
