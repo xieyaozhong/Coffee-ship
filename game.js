@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getDatabase, ref, push, onValue, query, limitToLast, serverTimestamp, set, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, push, onValue, query, limitToLast, orderByChild, serverTimestamp, set, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -27,8 +27,11 @@ let lastTime = 0;
 let audioCtx = null;
 let celloTimer = 0;
 let cloudReady = false;
+let db = null;
 let messagesRef = null;
 let playersRef = null;
+let firebaseConnected = false;
+let boardStatusText = '正在準備留言板…';
 let myPlayerRef = null;
 let myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 localStorage.setItem('coffeeShipPlayerId', myPlayerId);
@@ -45,16 +48,33 @@ function isFirebaseConfigured(){
 try{
   if(isFirebaseConfigured()){
     const app = initializeApp(window.COFFEE_SHIP_FIREBASE_CONFIG);
-    const db = getDatabase(app);
+    db = getDatabase(app);
     messagesRef = ref(db, 'coffeeShip/messages');
     playersRef = ref(db, 'coffeeShip/players');
     cloudReady = true;
-    onValue(query(messagesRef, limitToLast(50)), snapshot => {
+    boardStatusText = '正在連線 Firebase 留言板…';
+
+    onValue(ref(db, '.info/connected'), snapshot => {
+      firebaseConnected = snapshot.val() === true;
+      boardStatusText = firebaseConnected
+        ? '雲端留言板已連線：不同裝置會即時看到同一批留言。'
+        : '正在重新連線 Firebase…若太久沒成功，請檢查 Realtime Database Rules。';
+      renderMessages();
+      updateOnlineStatus();
+    });
+
+    onValue(query(messagesRef, orderByChild('clientCreatedAt'), limitToLast(80)), snapshot => {
       const data = snapshot.val() || {};
       cachedMessages = Object.entries(data).map(([id, m]) => ({ id, ...m }))
-        .sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+        .filter(m => typeof m.text === 'string' && m.text.trim())
+        .sort((a,b) => getMessageTime(a) - getMessageTime(b));
+      renderMessages();
+    }, error => {
+      console.error('message listener failed', error);
+      boardStatusText = '留言板讀取失敗：請確認 Realtime Database Rules 允許 read。';
       renderMessages();
     });
+
     onValue(playersRef, snapshot => {
       const data = snapshot.val() || {};
       const now = Date.now();
@@ -68,6 +88,7 @@ try{
   }
 }catch(error){
   console.warn('Firebase init failed, fallback to localStorage:', error);
+  boardStatusText = 'Firebase 初始化失敗：目前改用本機留言板。';
   cloudReady = false;
 }
 
@@ -348,8 +369,8 @@ async function syncPlayer(force=false){
   try{ await set(myPlayerRef, state); }catch(err){ console.warn('player sync failed', err); }
 }
 function setupCloudPlayer(){
-  if(!cloudReady || !playersRef) return;
-  myPlayerRef = ref(getDatabase(), `coffeeShip/players/${myPlayerId}`);
+  if(!cloudReady || !playersRef || !db) return;
+  myPlayerRef = ref(db, `coffeeShip/players/${myPlayerId}`);
   onDisconnect(myPlayerRef).remove();
   syncPlayer(true);
   updateOnlineStatus();
@@ -454,39 +475,62 @@ function emote(){player.emote = player.hasCoffee ? '☕✨' : '✨'; player.emot
 function getLocalMessages(){
   try{return JSON.parse(localStorage.getItem('coffeeShipMessages') || '[]')}catch(e){return []}
 }
-function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages', JSON.stringify(messages.slice(-50)));}
+function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages', JSON.stringify(messages.slice(-80)));}
 function getMessages(){return cloudReady ? cachedMessages : getLocalMessages();}
+function getMessageTime(m){
+  return Number(m.clientCreatedAt || m.createdAt || m.timeRaw || 0);
+}
+function cleanMessageText(text){
+  return String(text || '')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+}
+function cleanName(name){
+  return cleanMessageText(name || 'Guest').slice(0, 16) || 'Guest';
+}
 function escapeHtml(text=''){
   return String(text).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch] || ch));
 }
 function formatTime(value){
-  if(!value) return '剛剛';
+  if(!value || value === '剛剛') return '剛剛';
   const d = new Date(value);
   if(Number.isNaN(d.getTime())) return String(value);
   return d.toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
 }
 function renderMessages(){
   if(!messagesList) return;
-  const messages = getMessages().slice().reverse();
+  const statusClass = cloudReady && firebaseConnected ? 'online' : (cloudReady ? 'connecting' : 'offline');
+  const messages = getMessages().slice().sort((a,b) => getMessageTime(b) - getMessageTime(a));
+  const statusHtml = `<div class="board-status ${statusClass}">${escapeHtml(boardStatusText)}</div>`;
   if(!messages.length){
-    messagesList.innerHTML = `<div class="empty-board">${cloudReady ? '雲端留言板已開啟，但還沒有留言。' : '尚未連上雲端。你仍可在這台裝置測試留言。'}</div>`;
+    messagesList.innerHTML = statusHtml + `<div class="empty-board">${cloudReady ? '雲端留言板已開啟，但目前還沒有留言。' : '目前是本機留言板；Firebase 連線成功後即可跨裝置同步。'}</div>`;
     return;
   }
-  messagesList.innerHTML = messages.map(m=>`
+  messagesList.innerHTML = statusHtml + messages.map(m=>`
     <article class="message-card">
-      <div class="message-meta"><strong>${escapeHtml(m.name || 'Guest')}</strong><span>${escapeHtml(formatTime(m.createdAt || m.time))}</span></div>
+      <div class="message-meta"><strong>${escapeHtml(m.name || 'Guest')}</strong><span>${escapeHtml(formatTime(getMessageTime(m)))}</span></div>
       <div class="message-text">${escapeHtml(m.text || '')}</div>
     </article>
   `).join('');
 }
 async function addMessage(text){
-  const safeText = text.slice(0, 120);
-  const msg = {name: player.name || 'Guest', text: safeText, createdAt: Date.now()};
+  const safeText = cleanMessageText(text);
+  if(!safeText) throw new Error('empty message');
+  const now = Date.now();
+  const msg = {
+    name: cleanName(player.name),
+    text: safeText,
+    clientCreatedAt: now,
+    createdAt: now,
+    source: 'coffee-ship-web'
+  };
   if(cloudReady && messagesRef){
     await push(messagesRef, {...msg, createdAt: serverTimestamp()});
   }else{
     const messages = getLocalMessages();
-    messages.push({...msg, time: formatTime(Date.now())});
+    messages.push({...msg, timeRaw: now});
     saveLocalMessages(messages);
     renderMessages();
   }
@@ -496,7 +540,7 @@ function openBoard(force=false){
   if(!force && !closeEnough){say('要靠近牆上的留言板，才能留下訊息喔。'); return;}
   renderMessages();
   messageBoard.classList.remove('hidden');
-  say(cloudReady ? '你打開了 Coffee Ship 的雲端留言板。' : '目前是本機留言板；填入 Firebase 設定後就會跨裝置同步。');
+  say(cloudReady ? (firebaseConnected ? '你打開了 Coffee Ship 的雲端留言板。' : '留言板正在連線中，稍等一下或檢查資料庫規則。') : '目前是本機留言板；Firebase 設定完成後就會跨裝置同步。');
   setTimeout(()=>messageInput.focus(), 30);
 }
 function closeBoard(){messageBoard.classList.add('hidden'); canvas.focus && canvas.focus();}
@@ -544,8 +588,10 @@ window.addEventListener('beforeunload', () => { if(cloudReady && myPlayerRef) re
 
 messageForm.addEventListener('submit', async e=>{
   e.preventDefault();
-  const text = messageInput.value.trim();
+  const text = cleanMessageText(messageInput.value);
   if(!text){say('留言不能是空白喔。'); return;}
+  const submitBtn = messageForm.querySelector('button[type="submit"]');
+  if(submitBtn){submitBtn.disabled = true; submitBtn.textContent = '送出中…';}
   try{
     await addMessage(text);
     messageInput.value = '';
@@ -554,7 +600,10 @@ messageForm.addEventListener('submit', async e=>{
     spawnSparkles();
   }catch(error){
     console.error(error);
-    say('留言送出失敗。請檢查 Firebase 設定或資料庫規則。', 360);
+    say('留言送出失敗。請檢查 Firebase 設定或 Realtime Database Rules。', 360);
+  }finally{
+    const submitBtn = messageForm.querySelector('button[type="submit"]');
+    if(submitBtn){submitBtn.disabled = false; submitBtn.textContent = '貼到留言板';}
   }
 });
 

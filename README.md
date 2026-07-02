@@ -47,3 +47,24 @@ https://xieyaozhong.github.io/Coffee-ship/
 ```
 
 正式公開前建議改成需要登入或加上寫入限制，避免任何人亂寫資料。
+
+
+## Firebase 留言板
+
+這版已把 Coffee Ship 的留言板改成 Firebase Realtime Database：
+
+- 路徑：`coffeeShip/messages`
+- 每則留言包含：`name`、`text`、`clientCreatedAt`、`createdAt`
+- 不同裝置開同一個 GitHub Pages 網址會即時同步留言
+- 若送出失敗，請到 Firebase Realtime Database → Rules 暫時使用：
+
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+```
+
+公開測試完建議再改成需要登入或更嚴格的規則。

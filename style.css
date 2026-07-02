@@ -62,3 +62,5 @@ canvas{display:block;width:100%;image-rendering:pixelated;border-radius:18px;bor
 .coffee-option{background:#2f2136;border:2px solid #76536a;border-radius:16px;padding:14px;text-align:left;color:var(--ink);box-shadow:0 6px 0 #120b17}
 .coffee-option strong{display:block;font-size:18px;color:#ffe5ae;margin-bottom:6px}.coffee-option span{display:block;color:var(--muted);font-size:14px;line-height:1.45}.coffee-option small{display:inline-block;margin-top:8px;color:var(--accent2);font-weight:900}
 @media(max-width:760px){.coffee-options{grid-template-columns:1fr}}
+
+.board-status{border:2px solid #5b3e4e;border-radius:12px;padding:10px 12px;margin-bottom:10px;color:var(--muted);background:#1a1220;font-size:14px;line-height:1.45}.board-status.online{border-color:#4f8f73;color:#9ff0cf}.board-status.connecting{border-color:#a56b45;color:#ffe5ae}.board-status.offline{border-color:#8b4d5c;color:#f3b4ba}button:disabled{opacity:.58;cursor:not-allowed;transform:none;box-shadow:0 6px 0 #9b5d31}
