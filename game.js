@@ -76,9 +76,19 @@ const coffeeMenuItems = [
 ];
 
 const npcs = [
-  {name:'Momo', x:235, y:214, hair:'#5b2b1e', shirt:'#79d0b1', emote:'☕', barista:true, homeX:235, homeY:214, targetX:330, targetY:214, wait:0, dir:'right', emoteTimer:999999},
-  {name:'Peak', x:705, y:332, hair:'#1f1930', shirt:'#8460c8', emote:'♪'},
-  {name:'Bean', x:755, y:180, hair:'#e0b45d', shirt:'#d7bb79', emote:'...'}
+  {
+    name:'Momo', title:'金髮店長', x:235, y:214, hair:'#f4d47a', shirt:'#1f1a23', apron:'#ffffff', skin:'#f5cda7',
+    emote:'☕', role:'manager', barista:true, homeX:235, homeY:214, targetX:330, targetY:214, wait:0, dir:'right', emoteTimer:999999,
+    talk:['歡迎光臨 Coffee Ship，我是店長 Momo。','想喝什麼呢？靠近我按 C，我會替你推薦咖啡。','今天的推薦是焦糖海鹽拿鐵，像海風一樣溫柔。']
+  },
+  {
+    name:'Peak', title:'大提琴手', x:705, y:332, hair:'#17151f', shirt:'#2e2638', skin:'#efc39d', emote:'🎻', role:'cellist', emoteTimer:999999,
+    talk:['Peak 拉起低沉的大提琴，整艘船都安靜了下來。','這首曲子像深夜的海，也像一杯慢慢冷掉的咖啡。','你可以坐下來聽，我會一直演奏。']
+  },
+  {
+    name:'Bean', title:'喜劇 NPC', x:755, y:180, hair:'#8a5a31', shirt:'#d7bb79', skin:'#f0c7a0', emote:'😂', role:'joker', emoteTimer:999999,
+    jokes:['Bean：為什麼咖啡每天都很準時？因為它會「準時萃取」！','Bean：拿鐵為什麼不迷路？因為它有拉花導航！','Bean：咖啡豆最怕什麼？最怕被磨到沒脾氣！','Bean：美式咖啡說它很自由，因為它沒有奶的束縛。']
+  }
 ];
 
 const chairs = [
@@ -131,13 +141,19 @@ function drawCafe(){
 
 function drawAvatar(a, isPlayer=false){
   const x=Math.round(a.x), y=Math.round(a.y);
+  if(!isPlayer){
+    ctx.strokeStyle = a.role === 'manager' ? '#f4d47a' : (a.role === 'cellist' ? '#8460c8' : '#f0a75c');
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x-18, y-36, 36, 76);
+  }
   if(a.barista){
-    drawPixelRect(x-18,y-14,36,40,'#fff4d8');
-    drawPixelRect(x-14,y-10,28,10,'#d7bb79');
+    drawPixelRect(x-20,y-18,40,44,a.apron || '#fff4d8');
+    drawPixelRect(x-14,y-10,28,10,'#fff4d8');
   }
   drawPixelRect(x-11,y+16,22,6,'#120b17');
   drawPixelRect(x-10,y-28,20,18,a.skin || '#f0c7a0');
-  drawPixelRect(x-12,y-34,24,12,a.hair); drawPixelRect(x-14,y-28,6,12,a.hair); drawPixelRect(x+8,y-28,6,12,a.hair);
+  drawPixelRect(x-12,y-34,24,12,a.hair); drawPixelRect(x-16,y-30,8,18,a.hair); drawPixelRect(x+8,y-30,8,18,a.hair);
+  if(a.role === 'manager'){ drawPixelRect(x-18,y-27,5,28,a.hair); drawPixelRect(x+13,y-27,5,28,a.hair); }
   drawPixelRect(x-14,y-8,28,28,a.shirt);
   drawPixelRect(x-20,y-4,6,18,a.skin || '#f0c7a0'); drawPixelRect(x+14,y-4,6,18,a.skin || '#f0c7a0');
   drawPixelRect(x-10,y+20,8,16,'#2a2634'); drawPixelRect(x+2,y+20,8,16,'#2a2634');
@@ -145,8 +161,25 @@ function drawAvatar(a, isPlayer=false){
   drawPixelRect(x-4,y-12,8,3,'#b86766');
   if(a.hasCoffee){drawPixelRect(x+17,y+3,10,12,'#fff4d8'); drawPixelRect(x+19,y+5,6,5,'#6d3f26')}
   if(a.barista){drawPixelRect(x-19,y+2,8,12,'#fff4d8'); drawPixelRect(x-17,y+4,4,5,'#6d3f26');}
-  drawText(a.name, x, y-42, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
+  if(a.role === 'cellist') drawCello(x, y);
+  if(a.role === 'joker') drawBeanMascot(x, y);
+  drawText(a.title ? `${a.name}・${a.title}` : a.name, x, y-42, 13, 'center', isPlayer ? '#79d0b1' : '#fff4d8');
   if(a.emote && (a.emoteTimer === undefined || a.emoteTimer > 0)) drawText(a.emote, x, y-62, 22);
+}
+
+function drawCello(x, y){
+  drawPixelRect(x+19,y-7,9,34,'#8a4a2a');
+  drawPixelRect(x+16,y+2,15,22,'#a85f34');
+  drawPixelRect(x+22,y-28,3,32,'#3a231a');
+  drawPixelRect(x+12,y+2,3,33,'#fff4d8');
+}
+
+function drawBeanMascot(x, y){
+  drawPixelRect(x-17,y-18,34,42,'#b98952');
+  drawPixelRect(x-13,y-14,26,34,'#d7bb79');
+  drawPixelRect(x-8,y-2,4,4,'#21182a');
+  drawPixelRect(x+6,y-2,4,4,'#21182a');
+  drawPixelRect(x-5,y+8,14,4,'#21182a');
 }
 
 function drawMessage(){
@@ -171,6 +204,10 @@ function tryMove(dx,dy){
   const next = {x:player.x+dx-13,y:player.y+dy-32,w:26,h:64};
   if(next.x<70 || next.x+next.w>890 || next.y<74 || next.y+next.h>545) return;
   for(const b of blocks) if(rectsOverlap(next,b)) return;
+  for(const npc of npcs){
+    const npcBody = {x:npc.x-18, y:npc.y-36, w:36, h:76};
+    if(rectsOverlap(next, npcBody)) return;
+  }
   player.x += dx; player.y += dy;
 }
 function updateMomo(){
@@ -249,7 +286,32 @@ function chooseCoffee(item){
   spawnSparkles();
 }
 function orderCoffee(){openCoffeeMenu();}
+function interactNPC(){
+  const npc = npcs.find(n=>near(player.x, player.y, n.x, n.y, 82));
+  if(!npc) return false;
+  if(npc.role === 'manager'){
+    say('Momo 店長：我是 Coffee Ship 的金髮店長。想點咖啡的話按 C，我幫你做。', 260);
+    npc.emote = '☕'; npc.emoteTimer = 999999;
+    return true;
+  }
+  if(npc.role === 'cellist'){
+    const line = npc.talk[Math.floor(Math.random()*npc.talk.length)];
+    npc.emote = '🎼'; npc.emoteTimer = 180;
+    say(line, 300);
+    spawnSparkles();
+    return true;
+  }
+  if(npc.role === 'joker'){
+    const joke = npc.jokes[Math.floor(Math.random()*npc.jokes.length)];
+    npc.emote = '😂'; npc.emoteTimer = 180;
+    say(joke, 320);
+    return true;
+  }
+  return false;
+}
+
 function sitDown(){
+  if(interactNPC()) return;
   const chair = chairs.find(c=>near(player.x,player.y,c.x,c.y,52));
   if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`)}
   else say('靠近椅子後按 E 就能坐下。');
@@ -315,7 +377,7 @@ startBtn.addEventListener('click',()=>{
   localStorage.setItem('coffeeShipAvatar', JSON.stringify({name:player.name,hair:player.hair,shirt:player.shirt,coffeeType:player.coffeeType}));
   creator.classList.add('hidden'); gamePanel.classList.remove('hidden'); avatarName.textContent = player.name;
   statusText.textContent = cloudReady ? '雲端已連線' : '本機模式'; moodDot.style.background = cloudReady ? '#79d0b1' : '#f0a75c'; moodDot.style.color = moodDot.style.background;
-  say(`歡迎 ${player.name} 登上 Coffee Ship。找吧台附近的 Momo 店長按 C，可以點不同咖啡。`, 320);
+  say(`歡迎 ${player.name} 登上 Coffee Ship。Momo 是金髮店長；Peak 會演奏大提琴；Bean 會講笑話。靠近 NPC 按 E 可互動。`, 360);
 });
 
 const saved = localStorage.getItem('coffeeShipAvatar');
