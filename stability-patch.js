@@ -102,6 +102,7 @@
     loadScript('mobile-home-safe.js', 'mobileHomeSafe');
     loadScript('mobile-game-layout.js', 'mobileGameLayout');
     loadScript('mobile-deck-fix.js', 'mobileDeckFix');
+    loadScript('deck-role-fix.js', 'deckRoleFix');
     loadScript('port.js', 'portScene');
   }
 
