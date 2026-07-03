@@ -107,6 +107,7 @@
     loadScript('deck-fishing.js', 'deckFishing');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('deck-shark-event.js', 'deckSharkEvent');
+    loadScript('mutant-creatures.js', 'mutantCreatures');
     loadScript('lanar-bottle-letters.js', 'lanarBottleLetters');
     loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
     loadScript('island-triangle-letters.js', 'islandTriangleLetters');
