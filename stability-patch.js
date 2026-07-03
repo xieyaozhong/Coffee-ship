@@ -107,6 +107,8 @@
     loadScript('deck-fishing.js', 'deckFishing');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('deck-shark-event.js', 'deckSharkEvent');
+    loadScript('lanar-bottle-letters.js', 'lanarBottleLetters');
+    loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
     loadScript('mobile-modal-fix.js', 'mobileModalFix');
     loadScript('mobile-shark-modal-fix.js', 'mobileSharkModalFix');
     loadScript('port.js', 'portScene');
