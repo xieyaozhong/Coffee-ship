@@ -19,7 +19,8 @@
     const base = read('coffeeShipBottleLetters').map(x => ({ source: '🍾', title: x.title, text: x.text, at: x.at || 0 }));
     const lanar = read('coffeeShipLanarLetters').map(x => ({ source: '🌊', title: x.title, text: x.text, at: x.at || 0 }));
     const ariel = read('coffeeShipArielLetters').map(x => ({ source: '🧜‍♀️', title: x.title, text: x.text, at: x.at || 0 }));
-    return uniqueByTitle(base.concat(lanar, ariel).sort((a, b) => b.at - a.at));
+    const island = read('coffeeShipIslandLetters').map(x => ({ source: '🏝️', title: x.title, text: x.text, at: x.at || 0 }));
+    return uniqueByTitle(base.concat(lanar, ariel, island).sort((a, b) => b.at - a.at));
   }
 
   function enhanceFishDex() {
@@ -34,7 +35,7 @@
       h.remove();
       if (next && next.classList.contains('fish-grid')) next.remove();
     });
-    const html = `<h3>最近瓶中信 / 漂流瓶</h3><div class="fish-grid">${letters.length ? letters.slice(0, 20).map(l => `<div class="fish-entry"><strong>${l.source} ${l.title}</strong><small>${l.text}</small></div>`).join('') : '<div class="fish-entry">還沒有讀過瓶中信。</div>'}</div>`;
+    const html = `<h3>最近瓶中信 / 漂流瓶</h3><div class="fish-grid">${letters.length ? letters.slice(0, 30).map(l => `<div class="fish-entry"><strong>${l.source} ${l.title}</strong><small>${l.text}</small></div>`).join('') : '<div class="fish-entry">還沒有讀過瓶中信。</div>'}</div>`;
     panel.insertAdjacentHTML('beforeend', html);
   }
 
