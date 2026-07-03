@@ -103,6 +103,7 @@
     loadScript('mobile-game-layout.js', 'mobileGameLayout');
     loadScript('mobile-deck-fix.js', 'mobileDeckFix');
     loadScript('deck-role-fix.js', 'deckRoleFix');
+    loadScript('deck-fishing.js', 'deckFishing');
     loadScript('port.js', 'portScene');
   }
 
