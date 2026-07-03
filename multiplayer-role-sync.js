@@ -3,13 +3,16 @@
 
   let firebaseApi = null;
   let db = null;
-  let playersRef = null;
-  let myPlayerRef = null;
+  let rolePlayersRef = null;
+  let roleSkillsRef = null;
+  let myRoleRef = null;
   let ready = false;
-  let remotePlayers = {};
+  let remoteRoles = {};
+  let remoteSkills = {};
   let lastSync = 0;
   let lastSkillSeen = {};
-  const myPlayerId = localStorage.getItem('coffeeShipPlayerId');
+  const myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  localStorage.setItem('coffeeShipPlayerId', myPlayerId);
 
   const roleColors = {
     '小提琴手': '#d7bb79',
@@ -27,13 +30,23 @@
     }
   }
 
+  function getPos() {
+    return window.COFFEE_SHIP_PLAYER_POS || { x: 480, y: 360 };
+  }
+
+  function getName(role) {
+    if (role && role.name) return role.name;
+    const el = document.getElementById('avatarName');
+    return el ? el.textContent.replace(/^[^\s]+\s*/, '').split('｜')[0].trim() : 'Guest';
+  }
+
   function isConfigured() {
     const cfg = window.COFFEE_SHIP_FIREBASE_CONFIG;
     return cfg && cfg.apiKey && cfg.databaseURL && !String(cfg.apiKey).includes('PASTE_');
   }
 
   async function initFirebase() {
-    if (ready || !isConfigured() || !myPlayerId) return;
+    if (ready || !isConfigured()) return;
     try {
       const [appMod, dbMod] = await Promise.all([
         import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
@@ -42,15 +55,28 @@
       const app = appMod.getApps && appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(window.COFFEE_SHIP_FIREBASE_CONFIG);
       db = dbMod.getDatabase(app);
       firebaseApi = dbMod;
-      playersRef = dbMod.ref(db, 'coffeeShip/players');
-      myPlayerRef = dbMod.ref(db, `coffeeShip/players/${myPlayerId}`);
-      dbMod.onValue(playersRef, snap => {
+      rolePlayersRef = dbMod.ref(db, 'coffeeShip/rolePlayers');
+      roleSkillsRef = dbMod.ref(db, 'coffeeShip/roleSkills');
+      myRoleRef = dbMod.ref(db, `coffeeShip/rolePlayers/${myPlayerId}`);
+
+      try { dbMod.onDisconnect(myRoleRef).remove(); } catch (error) {}
+
+      dbMod.onValue(rolePlayersRef, snap => {
         const data = snap.val() || {};
         const now = Date.now();
-        remotePlayers = Object.fromEntries(Object.entries(data).filter(([id, p]) => {
-          return id !== myPlayerId && p && p.specialHuman && p.role && (now - (p.clientUpdatedAt || now)) < 30000;
+        remoteRoles = Object.fromEntries(Object.entries(data).filter(([id, p]) => {
+          return id !== myPlayerId && p && p.role && (now - (p.clientUpdatedAt || now)) < 30000;
         }));
       });
+
+      dbMod.onValue(roleSkillsRef, snap => {
+        const data = snap.val() || {};
+        const now = Date.now();
+        remoteSkills = Object.fromEntries(Object.entries(data).filter(([id, s]) => {
+          return s && s.role && s.createdAt && (now - s.createdAt) < 12000;
+        }));
+      });
+
       ready = true;
       syncRole(true);
     } catch (error) {
@@ -59,28 +85,27 @@
   }
 
   async function syncRole(force = false) {
-    if (!ready || !firebaseApi || !myPlayerRef) return;
+    if (!ready || !firebaseApi || !myRoleRef) return;
     const role = getRole();
     const now = Date.now();
-    if (!force && now - lastSync < 650) return;
+    if (!force && now - lastSync < 500) return;
     lastSync = now;
     try {
       if (role && role.role) {
-        await firebaseApi.update(myPlayerRef, {
+        const pos = getPos();
+        await firebaseApi.set(myRoleRef, {
+          id: myPlayerId,
+          name: getName(role),
+          x: Math.round(pos.x),
+          y: Math.round(pos.y),
           role: role.role,
           roleIcon: role.icon || '',
           specialHuman: true,
-          animal: 'human',
           clientUpdatedAt: now,
-          roleUpdatedAt: now
+          updatedAt: firebaseApi.serverTimestamp()
         });
       } else {
-        await firebaseApi.update(myPlayerRef, {
-          role: null,
-          roleIcon: null,
-          specialHuman: false,
-          roleUpdatedAt: now
-        });
+        await firebaseApi.remove(myRoleRef);
       }
     } catch (error) {
       console.warn('role state sync failed', error);
@@ -88,22 +113,25 @@
   }
 
   async function syncSkill(role) {
-    if (!ready || !firebaseApi || !myPlayerRef || !role || !role.role) return;
+    await initFirebase();
+    if (!ready || !firebaseApi || !roleSkillsRef || !role || !role.role) return;
     const now = Date.now();
+    const pos = getPos();
+    const skillRef = firebaseApi.ref(db, `coffeeShip/roleSkills/${myPlayerId}_${now}`);
+    const payload = {
+      id: `${myPlayerId}_${now}`,
+      playerId: myPlayerId,
+      name: getName(role),
+      x: Math.round(pos.x),
+      y: Math.round(pos.y),
+      role: role.role,
+      icon: role.icon || '✨',
+      createdAt: now,
+      serverCreatedAt: firebaseApi.serverTimestamp()
+    };
     try {
-      await firebaseApi.update(myPlayerRef, {
-        role: role.role,
-        roleIcon: role.icon || '',
-        specialHuman: true,
-        animal: 'human',
-        skillEffect: {
-          id: `${myPlayerId}_${now}`,
-          role: role.role,
-          icon: role.icon || '✨',
-          createdAt: now
-        },
-        clientUpdatedAt: now
-      });
+      await firebaseApi.set(skillRef, payload);
+      setTimeout(() => firebaseApi.remove(skillRef).catch(() => {}), 9000);
     } catch (error) {
       console.warn('skill sync failed', error);
     }
@@ -183,9 +211,10 @@
     if (!canvas || !panel || panel.classList.contains('hidden')) return;
     if (deck && !deck.classList.contains('hidden')) return;
     if (port && !port.classList.contains('hidden')) return;
-    const ctx = canvas.getContext('2d');
     const x = Number(p.x || 0);
     const y = Number(p.y || 0);
+    if (!x || !y) return;
+    const ctx = canvas.getContext('2d');
     const role = String(p.role || '');
     if (role.includes('女僕')) drawMaid(ctx, x, y);
     else if (role.includes('海盜')) drawPirate(ctx, x, y);
@@ -194,16 +223,15 @@
     label(ctx, `${p.roleIcon || ''} ${p.name || 'Guest'}`, x, y - 96, '#79d0b1');
   }
 
-  function spawnSkillFx(p) {
-    const effect = p.skillEffect;
-    if (!effect || !effect.id || lastSkillSeen[effect.id]) return;
-    lastSkillSeen[effect.id] = true;
-    const icon = effect.icon || p.roleIcon || '✨';
-    const role = String(effect.role || p.role || '');
+  function spawnSkillFx(s) {
+    if (!s || !s.id || lastSkillSeen[s.id]) return;
+    lastSkillSeen[s.id] = true;
+    const icon = s.icon || '✨';
+    const role = String(s.role || '');
     const color = roleColors[role] || '#fff4d8';
     const count = role.includes('女僕') ? 26 : 14;
-    const baseX = 50 + ((Number(p.x || 480) - 480) / 960) * 70;
-    const baseY = 52 + ((Number(p.y || 320) - 320) / 576) * 45;
+    const baseX = 50 + ((Number(s.x || 480) - 480) / 960) * 70;
+    const baseY = 52 + ((Number(s.y || 320) - 320) / 576) * 45;
     for (let i = 0; i < count; i++) {
       const el = document.createElement('div');
       el.className = 'role-skill-fx';
@@ -222,22 +250,18 @@
 
   function drawLoop() {
     requestAnimationFrame(drawLoop);
-    Object.values(remotePlayers).forEach(p => {
-      drawRole(p);
-      spawnSkillFx(p);
-    });
+    Object.values(remoteRoles).forEach(drawRole);
+    Object.values(remoteSkills).forEach(spawnSkillFx);
   }
 
-  window.addEventListener('coffeeShipRoleSkill', event => {
-    syncSkill(event.detail);
-  });
+  window.addEventListener('coffeeShipRoleSkill', event => syncSkill(event.detail));
 
   function init() {
     initFirebase();
     setInterval(() => {
       initFirebase();
       syncRole(false);
-    }, 700);
+    }, 500);
     drawLoop();
   }
 
