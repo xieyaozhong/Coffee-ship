@@ -121,6 +121,7 @@
     if (!role || !role.role) return;
     play(roleNotes[role.role]);
     spawnFx(role);
+    window.dispatchEvent(new CustomEvent('coffeeShipRoleSkill', { detail: role }));
   }
 
   function syncButton() {
