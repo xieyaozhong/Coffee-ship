@@ -1,115 +1,140 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Coffee Ship</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="shell">
-    <section class="hero">
-      <div>
-        <p class="eyebrow">PIXEL CAFÉ SOCIAL GAME</p>
-        <h1>Coffee Ship</h1>
-        <p class="tagline">創造你的像素分身，登上漂浮咖啡船，喝咖啡、坐下、發呆一下。</p>
-      </div>
-      <div class="status-card">
-        <span id="moodDot"></span>
-        <p id="statusText">等待登船</p>
-      </div>
-    </section>
+(() => {
+  'use strict';
 
-    <section id="creator" class="panel creator">
-      <h2>建立你的虛擬分身</h2>
-      <div class="form-grid">
-        <label>名字
-          <input id="playerName" maxlength="12" placeholder="例如：L&J" />
-        </label>
-        <label>頭髮
-          <select id="hairColor">
-            <option value="#2b1d16">咖啡黑</option>
-            <option value="#6d3f26">焦糖棕</option>
-            <option value="#e0b45d">拿鐵金</option>
-            <option value="#7e8ee8">星夜藍</option>
-          </select>
-        </label>
-        <label>衣服
-          <select id="shirtColor">
-            <option value="#c96a4a">夕陽橘</option>
-            <option value="#4f8f73">森林綠</option>
-            <option value="#8460c8">薰衣草紫</option>
-            <option value="#d7bb79">奶泡米</option>
-          </select>
-        </label>
-        <label>咖啡
-          <select id="coffeeType">
-            <option>美式</option>
-            <option>拿鐵</option>
-            <option>義式濃縮</option>
-            <option>手沖</option>
-          </select>
-        </label>
-      </div>
-      <button id="startBtn">登上 Coffee Ship</button>
-      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近右側門按 E 前往甲板；靠近 Peak、Bean 或 Mugi 按 E 互動；靠近留言板按 B 留言。</p>
-    </section>
+  const canvasId = 'game';
+  let lastRoleText = '';
+  let tick = 0;
 
-    <section id="gamePanel" class="panel game-panel hidden">
-      <div class="game-topbar">
-        <div>
-          <strong id="avatarName">Guest</strong>
-          <span id="coffeeBadge">還沒點咖啡</span>
-        </div>
-        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動/門/摸貓 · B 留言 · Space 表情</div>
-      </div>
-      <canvas id="game" width="960" height="576"></canvas>
-      <div class="mobile-controls">
-        <button data-move="up">▲</button>
-        <div>
-          <button data-move="left">◀</button>
-          <button data-move="down">▼</button>
-          <button data-move="right">▶</button>
-        </div>
-        <button id="coffeeBtn">☕</button>
-        <button id="sitBtn">摸/坐</button>
-        <button id="messageBtn">留言</button>
-        <button id="emoteBtn">✨</button>
-      </div>
+  function getRole() {
+    try {
+      const raw = localStorage.getItem('coffeeShipRole');
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  }
 
-      <aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite">
-        <div class="board-head">
-          <div>
-            <p class="eyebrow">MOMO'S BAR COUNTER</p>
-            <h2>Momo</h2>
-          </div>
-          <button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button>
-        </div>
-        <p class="board-note">靠近 Momo，選一杯今天想喝的咖啡。</p>
-        <div id="coffeeOptions" class="coffee-options"></div>
-      </aside>
+  function isPlaying() {
+    const panel = document.getElementById('gamePanel');
+    return panel && !panel.classList.contains('hidden');
+  }
 
-      <aside id="messageBoard" class="message-board hidden" aria-live="polite">
-        <div class="board-head">
-          <div>
-            <p class="eyebrow">SHIP MESSAGE BOARD</p>
-            <h2>船上留言板</h2>
-          </div>
-          <button id="closeBoardBtn" class="ghost-btn">關閉</button>
-        </div>
-        <p class="board-note">已完善 Firebase 即時留言板：不同裝置打開同一個 GitHub Pages 網址，就會同步看到留言。</p>
-        <div id="messagesList" class="messages-list"></div>
-        <form id="messageForm" class="message-form">
-          <textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea>
-          <button type="submit">貼到留言板</button>
-        </form>
-      </aside>
-    </section>
-  </main>
-  <script src="firebase-config.js"></script>
-  <script type="module" src="game.js"></script>
-  <script src="roles.js"></script>
-  <script src="deck.js"></script>
-  <script src="stability-patch.js"></script>
-</body>
-</html>
+  function isDeckOpen() {
+    const deck = document.getElementById('deckOverlay');
+    return deck && !deck.classList.contains('hidden');
+  }
+
+  function px(ctx, x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(Math.round(x), Math.round(y), w, h);
+  }
+
+  function label(ctx, text, x, y, color = '#fff4d8') {
+    ctx.font = '900 12px ui-rounded, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#120b17';
+    ctx.fillText(text, x + 2, y + 2);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+  }
+
+  function baseHuman(ctx, x, y, cfg) {
+    const bob = Math.floor(tick / 24) % 2;
+    px(ctx, x - 18, y + 22, 36, 6, 'rgba(18,11,23,.85)');
+    px(ctx, x - 15, y - 35 - bob, 30, 26, cfg.hair || '#2b1d16');
+    px(ctx, x - 11, y - 29 - bob, 22, 20, cfg.skin || '#f0c7a0');
+    px(ctx, x - 17, y - 14 - bob, 34, 42, cfg.main || '#3b2b44');
+    px(ctx, x - 22, y - 8 - bob, 8, 27, cfg.sleeve || cfg.main || '#3b2b44');
+    px(ctx, x + 14, y - 8 - bob, 8, 27, cfg.sleeve || cfg.main || '#3b2b44');
+    px(ctx, x - 11, y + 25 - bob, 8, 18, cfg.leg || '#22202d');
+    px(ctx, x + 3, y + 25 - bob, 8, 18, cfg.leg || '#22202d');
+    px(ctx, x - 6, y - 21 - bob, 4, 4, '#21182a');
+    px(ctx, x + 4, y - 21 - bob, 4, 4, '#21182a');
+    px(ctx, x - 4, y - 13 - bob, 8, 3, '#b86766');
+    return bob;
+  }
+
+  function drawMaid(ctx, x, y) {
+    const bob = baseHuman(ctx, x, y, { hair:'#5a3526', main:'#151019', sleeve:'#fff4d8', leg:'#19151d' });
+    px(ctx, x - 20, y - 45 - bob, 40, 7, '#fff4d8');
+    px(ctx, x - 15, y - 51 - bob, 9, 9, '#fff4d8');
+    px(ctx, x + 6, y - 51 - bob, 9, 9, '#fff4d8');
+    px(ctx, x - 12, y - 10 - bob, 24, 34, '#fff4d8');
+    px(ctx, x - 16, y + 17 - bob, 32, 8, '#fff4d8');
+    px(ctx, x - 8, y - 7 - bob, 16, 7, '#ffb6cc');
+    px(ctx, x + 23, y + 1 - bob, 20, 5, '#d7bb79');
+    px(ctx, x + 28, y - 8 - bob, 8, 9, '#fff4d8');
+    px(ctx, x + 31, y - 13 - bob, 2, 5, '#6d3f26');
+    label(ctx, 'Maid', x, y - 79, '#ffb6cc');
+    if (tick % 50 < 25) label(ctx, '❤️', x + 33, y - 36, '#ff8fb3');
+  }
+
+  function drawPirate(ctx, x, y) {
+    const bob = baseHuman(ctx, x, y, { hair:'#3a241c', main:'#3a1f1d', sleeve:'#5a2b26', leg:'#19151d' });
+    px(ctx, x - 25, y - 48 - bob, 50, 9, '#111018');
+    px(ctx, x - 16, y - 61 - bob, 32, 16, '#111018');
+    px(ctx, x - 10, y - 56 - bob, 20, 4, '#f0a75c');
+    px(ctx, x - 5, y - 53 - bob, 10, 7, '#fff4d8');
+    px(ctx, x - 12, y - 22 - bob, 10, 7, '#111018');
+    px(ctx, x - 13, y - 20 - bob, 30, 3, '#111018');
+    px(ctx, x - 18, y - 7 - bob, 36, 7, '#f0a75c');
+    px(ctx, x - 4, y - 9 - bob, 8, 36, '#f0a75c');
+    px(ctx, x + 23, y - 4 - bob, 4, 36, '#d7bb79');
+    px(ctx, x + 18, y + 25 - bob, 12, 4, '#d7bb79');
+    label(ctx, 'Pirate', x, y - 79, '#f0a75c');
+  }
+
+  function drawViolinist(ctx, x, y) {
+    const bob = baseHuman(ctx, x, y, { hair:'#1f1930', main:'#2a2032', sleeve:'#19151d', leg:'#111018' });
+    px(ctx, x - 12, y - 10 - bob, 24, 34, '#2a2032');
+    px(ctx, x - 7, y - 8 - bob, 14, 30, '#fff4d8');
+    px(ctx, x - 4, y - 4 - bob, 8, 26, '#d7bb79');
+    px(ctx, x + 20, y - 23 - bob, 9, 45, '#7b4a2e');
+    px(ctx, x + 14, y - 11 - bob, 22, 16, '#a45f34');
+    px(ctx, x + 24, y - 31 - bob, 4, 8, '#d7bb79');
+    px(ctx, x - 32, y - 19 - bob, 47, 4, '#fff4d8');
+    label(ctx, 'Violin', x, y - 79, '#d7bb79');
+    if (tick % 60 < 30) label(ctx, '♪', x + 36, y - 50, '#fff4d8');
+  }
+
+  function drawSinger(ctx, x, y) {
+    const bob = baseHuman(ctx, x, y, { hair:'#2b1d16', main:'#5a386a', sleeve:'#e9a6b0', leg:'#21182a' });
+    px(ctx, x - 17, y - 11 - bob, 34, 13, '#e9a6b0');
+    px(ctx, x - 11, y + 2 - bob, 22, 24, '#5a386a');
+    px(ctx, x - 18, y + 17 - bob, 36, 7, '#e9a6b0');
+    px(ctx, x + 24, y - 20 - bob, 9, 9, '#22202d');
+    px(ctx, x + 27, y - 11 - bob, 4, 31, '#d7bb79');
+    px(ctx, x - 25, y - 4 - bob, 7, 21, '#e9a6b0');
+    label(ctx, 'Singer', x, y - 79, '#e9a6b0');
+    if (tick % 48 < 24) label(ctx, '♫', x - 35, y - 46, '#e9a6b0');
+  }
+
+  function drawRole(ctx, role, x, y) {
+    const roleName = String(role.role || '');
+    if (roleName.includes('女僕')) drawMaid(ctx, x, y);
+    else if (roleName.includes('海盜')) drawPirate(ctx, x, y);
+    else if (roleName.includes('小提琴')) drawViolinist(ctx, x, y);
+    else if (roleName.includes('歌手')) drawSinger(ctx, x, y);
+  }
+
+  function draw() {
+    requestAnimationFrame(draw);
+    tick++;
+    if (!isPlaying() || isDeckOpen()) return;
+    const role = getRole();
+    if (!role || !role.role) return;
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const pos = window.COFFEE_SHIP_PLAYER_POS || { x: 480, y: 360 };
+    drawRole(ctx, role, pos.x, pos.y);
+    if (lastRoleText !== role.role) {
+      lastRoleText = role.role;
+      const avatarName = document.getElementById('avatarName');
+      if (avatarName && role.name) avatarName.textContent = `${role.icon || ''} ${role.name}｜${role.role}`;
+    }
+  }
+
+  requestAnimationFrame(draw);
+})();

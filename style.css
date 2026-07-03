@@ -1,140 +1,88 @@
-(() => {
-  'use strict';
+:root{
+  --bg:#1a1220;
+  --panel:#2b1f2f;
+  --ink:#fff4d8;
+  --muted:#d0bfa8;
+  --accent:#f0a75c;
+  --accent2:#79d0b1;
+  --line:#5b3e4e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family: ui-rounded, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 20% 10%, #5b304b 0 0, transparent 24%),
+    radial-gradient(circle at 80% 0%, #30405f 0 0, transparent 22%),
+    linear-gradient(180deg,#120d1b,#251527 70%,#18101d);
+}
+.shell{width:min(1080px,94vw);margin:0 auto;padding:28px 0 50px}
+.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px}
+.eyebrow{letter-spacing:.16em;color:var(--accent2);font-size:12px;margin:0 0 8px}
+h1{font-size:clamp(42px,7vw,86px);line-height:.9;margin:0;text-shadow:0 5px 0 #533148,0 0 22px #e5a45a44}
+.tagline{color:var(--muted);font-size:18px;margin:16px 0 0}
+.status-card{min-width:180px;background:#21182a;border:2px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 12px 0 #120b17;display:flex;align-items:center;gap:10px}
+#moodDot{width:14px;height:14px;background:#8b7388;border-radius:50%;box-shadow:0 0 16px currentColor}
+.status-card p{margin:0;color:var(--muted)}
+.panel{background:linear-gradient(180deg,#33253a,#241928);border:3px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 18px 0 #120b17, inset 0 0 0 2px #ffffff10}
+.creator h2{margin:0 0 18px;font-size:26px}
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+label{font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+input,select{border:2px solid #76536a;background:#1a1220;color:var(--ink);border-radius:12px;padding:12px;font-size:16px;outline:none}
+button{border:0;background:var(--accent);color:#2b1713;font-weight:900;border-radius:14px;padding:13px 18px;font-size:16px;box-shadow:0 6px 0 #9b5d31;cursor:pointer}
+button:active{transform:translateY(4px);box-shadow:0 2px 0 #9b5d31}
+.hint{color:var(--muted);margin:14px 0 0}.hidden{display:none}.game-panel{padding:14px}.game-topbar{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:0 0 12px;color:var(--muted)}
+#avatarName{color:var(--ink);font-size:20px;margin-right:10px}#coffeeBadge{background:#1a1220;border:1px solid #76536a;border-radius:999px;padding:6px 10px}.controls{font-size:14px}
+canvas{display:block;width:100%;image-rendering:pixelated;border-radius:18px;border:3px solid #76536a;background:#151020}
+.mobile-controls{display:none;gap:8px;flex-wrap:wrap;margin-top:12px}.mobile-controls button{min-width:54px;padding:12px}
+@media(max-width:760px){
+  body{background:#120d1b}
+  .shell{width:min(100%,430px);padding:12px 12px 28px}
+  .hero{display:block;text-align:center;margin-bottom:10px}
+  .hero .eyebrow,.hero .tagline,.status-card{display:none!important}
+  h1{font-size:30px;line-height:1.05;text-shadow:none;margin:0 auto 8px}
+  .panel{border-radius:18px;padding:16px;box-shadow:0 10px 0 #120b17,inset 0 0 0 2px #ffffff10}
+  .creator h2{display:none}
+  .form-grid{grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+  label{gap:6px;font-size:17px}
+  input,select{padding:10px 12px;border-radius:14px;font-size:16px}
+  #startBtn,#randomAnimalBtn{width:calc(50% - 6px);min-height:50px;padding:10px 8px;font-size:17px;border-radius:15px;margin:6px 0 0!important;vertical-align:top}
+  #randomAnimalBtn{margin-left:8px!important;font-size:0}
+  #randomAnimalBtn::after{content:'🎲 隨機冒險';font-size:17px}
+  #animalHint{margin:8px 0 0!important;font-size:14px;line-height:1.45}
+  .creator>.hint{display:none!important}
+  .role-code-box{margin-top:12px!important;padding:12px!important;border-radius:16px!important}
+  .role-code-row{display:grid!important;grid-template-columns:1fr auto;gap:8px!important}
+  .role-code-row input{min-width:0!important;padding:10px 12px!important}
+  .role-code-row button{padding:10px 14px!important;white-space:nowrap!important}
+  .role-code-note{font-size:13px!important;line-height:1.45!important;margin-top:8px!important}
+  .game-topbar{align-items:flex-start;flex-direction:column}.controls{display:none}.mobile-controls{display:flex}
+}
+.message-board{
+  margin-top:16px;
+  background:linear-gradient(180deg,#21182a,#19111f);
+  border:3px solid #76536a;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:inset 0 0 0 2px #ffffff10;
+}
+.board-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+.board-head h2{margin:0;font-size:24px}.board-note{margin:8px 0 14px;color:var(--muted);line-height:1.6}.ghost-btn{background:#3a293d;color:var(--ink);box-shadow:0 6px 0 #1a1220}.messages-list{display:grid;gap:10px;max-height:260px;overflow:auto;padding-right:4px}.message-card{background:#2f2136;border:2px solid #5b3e4e;border-radius:14px;padding:12px}.message-meta{display:flex;justify-content:space-between;gap:10px;color:var(--accent2);font-size:13px;margin-bottom:6px}.message-text{white-space:pre-wrap;line-height:1.55;color:var(--ink)}.empty-board{color:var(--muted);border:2px dashed #5b3e4e;border-radius:14px;padding:18px;text-align:center}.message-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:14px}.message-form textarea{min-height:64px;resize:vertical;border:2px solid #76536a;background:#1a1220;color:var(--ink);border-radius:12px;padding:12px;font-size:16px;outline:none;font-family:inherit}
+@media(max-width:760px){.message-form{grid-template-columns:1fr}.board-head{align-items:stretch}.ghost-btn{padding:10px 12px}}
 
-  const canvasId = 'game';
-  let lastRoleText = '';
-  let tick = 0;
+.coffee-menu{
+  margin-top:16px;
+  background:linear-gradient(180deg,#2b1b24,#19111f);
+  border:3px solid #a56b45;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:inset 0 0 0 2px #ffffff10;
+}
+.coffee-options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.coffee-option{background:#2f2136;border:2px solid #76536a;border-radius:16px;padding:14px;text-align:left;color:var(--ink);box-shadow:0 6px 0 #120b17}
+.coffee-option strong{display:block;font-size:18px;color:#ffe5ae;margin-bottom:6px}.coffee-option span{display:block;color:var(--muted);font-size:14px;line-height:1.45}.coffee-option small{display:inline-block;margin-top:8px;color:var(--accent2);font-weight:900}
+@media(max-width:760px){.coffee-options{grid-template-columns:1fr}}
 
-  function getRole() {
-    try {
-      const raw = localStorage.getItem('coffeeShipRole');
-      return raw ? JSON.parse(raw) : null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  function isPlaying() {
-    const panel = document.getElementById('gamePanel');
-    return panel && !panel.classList.contains('hidden');
-  }
-
-  function isDeckOpen() {
-    const deck = document.getElementById('deckOverlay');
-    return deck && !deck.classList.contains('hidden');
-  }
-
-  function px(ctx, x, y, w, h, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(Math.round(x), Math.round(y), w, h);
-  }
-
-  function label(ctx, text, x, y, color = '#fff4d8') {
-    ctx.font = '900 12px ui-rounded, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#120b17';
-    ctx.fillText(text, x + 2, y + 2);
-    ctx.fillStyle = color;
-    ctx.fillText(text, x, y);
-  }
-
-  function baseHuman(ctx, x, y, cfg) {
-    const bob = Math.floor(tick / 24) % 2;
-    px(ctx, x - 18, y + 22, 36, 6, 'rgba(18,11,23,.85)');
-    px(ctx, x - 15, y - 35 - bob, 30, 26, cfg.hair || '#2b1d16');
-    px(ctx, x - 11, y - 29 - bob, 22, 20, cfg.skin || '#f0c7a0');
-    px(ctx, x - 17, y - 14 - bob, 34, 42, cfg.main || '#3b2b44');
-    px(ctx, x - 22, y - 8 - bob, 8, 27, cfg.sleeve || cfg.main || '#3b2b44');
-    px(ctx, x + 14, y - 8 - bob, 8, 27, cfg.sleeve || cfg.main || '#3b2b44');
-    px(ctx, x - 11, y + 25 - bob, 8, 18, cfg.leg || '#22202d');
-    px(ctx, x + 3, y + 25 - bob, 8, 18, cfg.leg || '#22202d');
-    px(ctx, x - 6, y - 21 - bob, 4, 4, '#21182a');
-    px(ctx, x + 4, y - 21 - bob, 4, 4, '#21182a');
-    px(ctx, x - 4, y - 13 - bob, 8, 3, '#b86766');
-    return bob;
-  }
-
-  function drawMaid(ctx, x, y) {
-    const bob = baseHuman(ctx, x, y, { hair:'#5a3526', main:'#151019', sleeve:'#fff4d8', leg:'#19151d' });
-    px(ctx, x - 20, y - 45 - bob, 40, 7, '#fff4d8');
-    px(ctx, x - 15, y - 51 - bob, 9, 9, '#fff4d8');
-    px(ctx, x + 6, y - 51 - bob, 9, 9, '#fff4d8');
-    px(ctx, x - 12, y - 10 - bob, 24, 34, '#fff4d8');
-    px(ctx, x - 16, y + 17 - bob, 32, 8, '#fff4d8');
-    px(ctx, x - 8, y - 7 - bob, 16, 7, '#ffb6cc');
-    px(ctx, x + 23, y + 1 - bob, 20, 5, '#d7bb79');
-    px(ctx, x + 28, y - 8 - bob, 8, 9, '#fff4d8');
-    px(ctx, x + 31, y - 13 - bob, 2, 5, '#6d3f26');
-    label(ctx, 'Maid', x, y - 79, '#ffb6cc');
-    if (tick % 50 < 25) label(ctx, '❤️', x + 33, y - 36, '#ff8fb3');
-  }
-
-  function drawPirate(ctx, x, y) {
-    const bob = baseHuman(ctx, x, y, { hair:'#3a241c', main:'#3a1f1d', sleeve:'#5a2b26', leg:'#19151d' });
-    px(ctx, x - 25, y - 48 - bob, 50, 9, '#111018');
-    px(ctx, x - 16, y - 61 - bob, 32, 16, '#111018');
-    px(ctx, x - 10, y - 56 - bob, 20, 4, '#f0a75c');
-    px(ctx, x - 5, y - 53 - bob, 10, 7, '#fff4d8');
-    px(ctx, x - 12, y - 22 - bob, 10, 7, '#111018');
-    px(ctx, x - 13, y - 20 - bob, 30, 3, '#111018');
-    px(ctx, x - 18, y - 7 - bob, 36, 7, '#f0a75c');
-    px(ctx, x - 4, y - 9 - bob, 8, 36, '#f0a75c');
-    px(ctx, x + 23, y - 4 - bob, 4, 36, '#d7bb79');
-    px(ctx, x + 18, y + 25 - bob, 12, 4, '#d7bb79');
-    label(ctx, 'Pirate', x, y - 79, '#f0a75c');
-  }
-
-  function drawViolinist(ctx, x, y) {
-    const bob = baseHuman(ctx, x, y, { hair:'#1f1930', main:'#2a2032', sleeve:'#19151d', leg:'#111018' });
-    px(ctx, x - 12, y - 10 - bob, 24, 34, '#2a2032');
-    px(ctx, x - 7, y - 8 - bob, 14, 30, '#fff4d8');
-    px(ctx, x - 4, y - 4 - bob, 8, 26, '#d7bb79');
-    px(ctx, x + 20, y - 23 - bob, 9, 45, '#7b4a2e');
-    px(ctx, x + 14, y - 11 - bob, 22, 16, '#a45f34');
-    px(ctx, x + 24, y - 31 - bob, 4, 8, '#d7bb79');
-    px(ctx, x - 32, y - 19 - bob, 47, 4, '#fff4d8');
-    label(ctx, 'Violin', x, y - 79, '#d7bb79');
-    if (tick % 60 < 30) label(ctx, '♪', x + 36, y - 50, '#fff4d8');
-  }
-
-  function drawSinger(ctx, x, y) {
-    const bob = baseHuman(ctx, x, y, { hair:'#2b1d16', main:'#5a386a', sleeve:'#e9a6b0', leg:'#21182a' });
-    px(ctx, x - 17, y - 11 - bob, 34, 13, '#e9a6b0');
-    px(ctx, x - 11, y + 2 - bob, 22, 24, '#5a386a');
-    px(ctx, x - 18, y + 17 - bob, 36, 7, '#e9a6b0');
-    px(ctx, x + 24, y - 20 - bob, 9, 9, '#22202d');
-    px(ctx, x + 27, y - 11 - bob, 4, 31, '#d7bb79');
-    px(ctx, x - 25, y - 4 - bob, 7, 21, '#e9a6b0');
-    label(ctx, 'Singer', x, y - 79, '#e9a6b0');
-    if (tick % 48 < 24) label(ctx, '♫', x - 35, y - 46, '#e9a6b0');
-  }
-
-  function drawRole(ctx, role, x, y) {
-    const roleName = String(role.role || '');
-    if (roleName.includes('女僕')) drawMaid(ctx, x, y);
-    else if (roleName.includes('海盜')) drawPirate(ctx, x, y);
-    else if (roleName.includes('小提琴')) drawViolinist(ctx, x, y);
-    else if (roleName.includes('歌手')) drawSinger(ctx, x, y);
-  }
-
-  function draw() {
-    requestAnimationFrame(draw);
-    tick++;
-    if (!isPlaying() || isDeckOpen()) return;
-    const role = getRole();
-    if (!role || !role.role) return;
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const pos = window.COFFEE_SHIP_PLAYER_POS || { x: 480, y: 360 };
-    drawRole(ctx, role, pos.x, pos.y);
-    if (lastRoleText !== role.role) {
-      lastRoleText = role.role;
-      const avatarName = document.getElementById('avatarName');
-      if (avatarName && role.name) avatarName.textContent = `${role.icon || ''} ${role.name}｜${role.role}`;
-    }
-  }
-
-  requestAnimationFrame(draw);
-})();
+.board-status{border:2px solid #5b3e4e;border-radius:12px;padding:10px 12px;margin-bottom:10px;color:var(--muted);background:#1a1220;font-size:14px;line-height:1.45}.board-status.online{border-color:#4f8f73;color:#9ff0cf}.board-status.connecting{border-color:#a56b45;color:#ffe5ae}.board-status.offline{border-color:#8b4d5c;color:#f3b4ba}button:disabled{opacity:.58;cursor:not-allowed;transform:none;box-shadow:0 6px 0 #9b5d31}
