@@ -108,6 +108,7 @@
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('deck-shark-event.js', 'deckSharkEvent');
     loadScript('mobile-modal-fix.js', 'mobileModalFix');
+    loadScript('mobile-shark-modal-fix.js', 'mobileSharkModalFix');
     loadScript('port.js', 'portScene');
   }
 
