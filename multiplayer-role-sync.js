@@ -203,7 +203,7 @@
     label(ctx, 'Singer', x, y - 79, '#e9a6b0');
   }
 
-  function drawRole(ctx, p) {
+  function drawRole(p) {
     const canvas = document.getElementById('game');
     const panel = document.getElementById('gamePanel');
     const deck = document.getElementById('deckOverlay');
