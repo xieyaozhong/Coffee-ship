@@ -101,6 +101,7 @@
     loadScript('change-character.js', 'changeCharacter');
     loadScript('mobile-home-safe.js', 'mobileHomeSafe');
     loadScript('mobile-game-layout.js', 'mobileGameLayout');
+    loadScript('mobile-deck-fix.js', 'mobileDeckFix');
     loadScript('port.js', 'portScene');
   }
 
