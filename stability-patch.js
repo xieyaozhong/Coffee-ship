@@ -106,6 +106,7 @@
     loadScript('deck-role-fix.js', 'deckRoleFix');
     loadScript('deck-fishing.js', 'deckFishing');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
+    loadScript('mobile-modal-fix.js', 'mobileModalFix');
     loadScript('port.js', 'portScene');
   }
 
