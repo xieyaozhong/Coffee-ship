@@ -110,6 +110,7 @@
     loadScript('lanar-bottle-letters.js', 'lanarBottleLetters');
     loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
     loadScript('bottle-dex-patch.js', 'bottleDexPatch');
+    loadScript('fishing-rare-animation.js', 'fishingRareAnimation');
     loadScript('mobile-modal-fix.js', 'mobileModalFix');
     loadScript('mobile-shark-modal-fix.js', 'mobileSharkModalFix');
     loadScript('port.js', 'portScene');
