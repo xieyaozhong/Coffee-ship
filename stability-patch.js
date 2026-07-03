@@ -109,6 +109,7 @@
     loadScript('deck-shark-event.js', 'deckSharkEvent');
     loadScript('lanar-bottle-letters.js', 'lanarBottleLetters');
     loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
+    loadScript('island-triangle-letters.js', 'islandTriangleLetters');
     loadScript('bottle-dex-patch.js', 'bottleDexPatch');
     loadScript('fishing-rare-animation.js', 'fishingRareAnimation');
     loadScript('mobile-modal-fix.js', 'mobileModalFix');
