@@ -100,6 +100,7 @@
     loadScript('role-mobile-ability.js', 'roleAbility');
     loadScript('change-character.js', 'changeCharacter');
     loadScript('mobile-home-safe.js', 'mobileHomeSafe');
+    loadScript('mobile-game-layout.js', 'mobileGameLayout');
     loadScript('port.js', 'portScene');
   }
 
