@@ -1,87 +1,21 @@
-(() => {
-  'use strict';
+MIT License
 
-  function addStyle() {
-    if (document.getElementById('changeCharacterStyle')) return;
-    const style = document.createElement('style');
-    style.id = 'changeCharacterStyle';
-    style.textContent = `
-      #changeCharacterBtn {
-        margin-left: 8px;
-        min-width: 44px;
-        height: 44px;
-        padding: 8px 10px;
-        border-radius: 12px;
-        font-size: 20px;
-        line-height: 1;
-        background: #79d0b1;
-        color: #15231f;
-        box-shadow: 0 5px 0 #34735d;
-      }
-      #changeCharacterBtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #34735d; }
-      @media (max-width: 760px) {
-        #changeCharacterBtn { position: absolute; right: 14px; top: 12px; z-index: 20; min-width: 42px; height: 42px; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
+Copyright (c) 2026 xieyaozhong
 
-  function clearRoleState() {
-    localStorage.removeItem('coffeeShipRole');
-    localStorage.removeItem('coffeeShipAnimal');
-    localStorage.removeItem('coffeeShipAvatar');
-    window.COFFEE_SHIP_PENDING_ROLE = null;
-    window.COFFEE_SHIP_FORCE_HUMAN_ROLE = false;
-    const rolePanel = document.querySelector('.role-panel');
-    if (rolePanel) rolePanel.remove();
-    const abilityBtn = document.getElementById('roleAbilityBtn');
-    if (abilityBtn) abilityBtn.classList.remove('show');
-  }
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-  function showCreator() {
-    const creator = document.getElementById('creator');
-    const gamePanel = document.getElementById('gamePanel');
-    const board = document.getElementById('messageBoard');
-    const coffee = document.getElementById('coffeeMenu');
-    const deck = document.getElementById('deckOverlay');
-    const port = document.getElementById('portOverlay');
-    if (board) board.classList.add('hidden');
-    if (coffee) coffee.classList.add('hidden');
-    if (deck) deck.classList.add('hidden');
-    if (port) port.classList.add('hidden');
-    if (gamePanel) gamePanel.classList.add('hidden');
-    if (creator) creator.classList.remove('hidden');
-    const status = document.getElementById('statusText');
-    if (status) status.textContent = '重新選擇角色';
-    window.COFFEE_SHIP_SCENE = 'cafe';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-  function changeCharacter() {
-    clearRoleState();
-    showCreator();
-  }
-
-  function mount() {
-    const topbar = document.querySelector('.game-topbar > div:first-child');
-    if (!topbar || document.getElementById('changeCharacterBtn')) return;
-    const btn = document.createElement('button');
-    btn.id = 'changeCharacterBtn';
-    btn.type = 'button';
-    btn.title = '更換角色';
-    btn.setAttribute('aria-label', '更換角色');
-    btn.textContent = '👤';
-    btn.addEventListener('click', changeCharacter);
-    topbar.appendChild(btn);
-  }
-
-  function init() {
-    addStyle();
-    mount();
-    const timer = setInterval(mount, 800);
-    setTimeout(() => clearInterval(timer), 6000);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-})();
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
