@@ -52,7 +52,7 @@
         </label>
       </div>
       <button id="startBtn">登上 Coffee Ship</button>
-      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近右側門按 E 前往甲板；靠近 Peak、Bean 或 Mugi 按 E 互動；靠近留言板按 B 留言。</p>
+      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近右側門按 E 前往甲板；靠近角色按 E 互動；靠近留言板按 B 留言。</p>
     </section>
 
     <section id="gamePanel" class="panel game-panel hidden">
@@ -61,7 +61,7 @@
           <strong id="avatarName">Guest</strong>
           <span id="coffeeBadge">還沒點咖啡</span>
         </div>
-        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動/門/摸貓 · B 留言 · Space 表情</div>
+        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動 / 門 · B 留言 · Space 表情</div>
       </div>
       <canvas id="game" width="960" height="576"></canvas>
       <div class="mobile-controls">
@@ -72,7 +72,7 @@
           <button data-move="right">▶</button>
         </div>
         <button id="coffeeBtn">☕</button>
-        <button id="sitBtn">摸/坐</button>
+        <button id="sitBtn">互動</button>
         <button id="messageBtn">留言</button>
         <button id="emoteBtn">✨</button>
       </div>
@@ -110,6 +110,7 @@
   <script type="module" src="game.js"></script>
   <script src="roles.js"></script>
   <script src="deck.js"></script>
+  <script src="ocean-friends-events.js"></script>
   <script src="single-fishing-result.js"></script>
   <script src="stability-patch.js"></script>
   <script src="mermaid-event.js"></script>
