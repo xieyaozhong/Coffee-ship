@@ -2,6 +2,7 @@
   'use strict';
 
   let activeTab = 'fish';
+  let lastVisible = false;
 
   function read(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (e) { return fallback; }
@@ -34,14 +35,15 @@
     const s = document.createElement('style');
     s.id = 'backpackManagerStyle';
     s.textContent = `
-      .backpack-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.backpack-tab{border:2px solid #76536a;background:#211728;color:#fff4d8;border-radius:999px;padding:7px 11px;font-weight:900;cursor:pointer}.backpack-tab.active{background:#ffe16b;color:#211728;border-color:#ffe16b}.backpack-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.backpack-entry{border:2px solid #76536a;background:#171020;border-radius:14px;padding:10px;color:#fff4d8;font-weight:850}.backpack-entry small{display:block;opacity:.86;line-height:1.45;margin-top:4px}.discard-btn{margin-top:8px;border:0;border-radius:10px;padding:7px 10px;background:#c96a4a;color:#fff4d8;font-weight:950;cursor:pointer}.discard-btn:hover{filter:brightness(1.12)}.backpack-empty{border:2px dashed #76536a;border-radius:14px;padding:14px;text-align:center;color:#d7bb79;font-weight:900}
-      @media(max-width:760px){.backpack-list{grid-template-columns:1fr}.backpack-tab{font-size:13px;padding:6px 9px}.discard-btn{width:100%}}
+      #backpackManagerRoot{margin:14px 0 18px;padding:12px;border:2px solid #76536a;border-radius:18px;background:rgba(16,10,22,.72)}
+      .backpack-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.backpack-tab{border:2px solid #76536a;background:#211728;color:#fff4d8;border-radius:999px;padding:7px 11px;font-weight:900;cursor:pointer}.backpack-tab.active{background:#ffe16b;color:#211728;border-color:#ffe16b}.backpack-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.backpack-entry{border:2px solid #76536a;background:#171020;border-radius:14px;padding:10px;color:#fff4d8;font-weight:850}.backpack-entry small{display:block;opacity:.86;line-height:1.45;margin-top:4px}.discard-btn{margin-top:8px;border:0;border-radius:10px;padding:7px 10px;background:#c96a4a;color:#fff4d8;font-weight:950;cursor:pointer}.discard-btn:hover{filter:brightness(1.12)}.backpack-empty{border:2px dashed #76536a;border-radius:14px;padding:14px;text-align:center;color:#d7bb79;font-weight:900}.backpack-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.backpack-tool{border:0;border-radius:12px;padding:7px 10px;background:#f2a957;color:#211728;font-weight:950;cursor:pointer}
+      @media(max-width:760px){.backpack-list{grid-template-columns:1fr}.backpack-tab{font-size:13px;padding:6px 9px}.discard-btn,.backpack-tool{width:100%}}
     `;
     document.head.appendChild(s);
   }
 
   function itemTitle(item) {
-    const icon = item.icon || (item.kind === 'mutant' ? '🧬' : '🐟');
+    const icon = item.icon || (item.kind === 'mutant' ? '🧬' : isItem(item) ? '📦' : '🐟');
     return `${icon} ${item.quality ? item.quality + ' ' : ''}${item.name || '未知物品'}`;
   }
   function itemDetail(item) {
@@ -57,13 +59,21 @@
     const items = bag();
     items.splice(index, 1);
     setBag(items);
-    refresh(true);
+    forceBuild();
   }
   function discardLetter(key, index) {
     const list = read(key, []);
     list.splice(index, 1);
     save(key, list);
-    refresh(true);
+    forceBuild();
+  }
+  function discardCurrentItems() {
+    const items = bag();
+    const next = activeTab === 'fish' ? items.filter(x => !isFish(x)) : activeTab === 'item' ? items.filter(x => !isItem(x)) : items;
+    if (activeTab === 'letter') {
+      ['coffeeShipBottleLetters','coffeeShipLanarLetters','coffeeShipArielLetters','coffeeShipIslandLetters','coffeeShipBlackbeardLetters','coffeeShipMadPriestLetters','coffeeShipCarnivalLetters'].forEach(k => save(k, []));
+    } else setBag(next);
+    forceBuild();
   }
 
   function renderFish(items) {
@@ -82,41 +92,52 @@
     return `<div class="backpack-list">${arr.map(l => `<div class="backpack-entry"><strong>${l.icon} ${l.title}</strong><small>${l.text || ''}</small><button class="discard-btn" data-discard-letter-key="${l.key}" data-discard-letter-index="${l.index}">丟棄</button></div>`).join('')}</div>`;
   }
 
-  function targetPanel() { return document.getElementById('fishDexPanel'); }
-  function refresh(force) {
-    const panel = targetPanel();
-    if (!panel || panel.classList.contains('hidden')) return;
-    const stamp = `${activeTab}-${JSON.stringify(bag()).length}-${letterSources().length}`;
-    if (!force && panel.dataset.backpackManagerStamp === stamp) return;
-    panel.dataset.backpackManagerStamp = stamp;
-    let root = panel.querySelector('#backpackManagerRoot');
-    if (!root) {
-      root = document.createElement('section');
-      root.id = 'backpackManagerRoot';
-      root.innerHTML = '<h3>🎒 背包管理</h3><div class="backpack-tabs"></div><div class="backpack-content"></div>';
-      panel.insertBefore(root, panel.firstChild?.nextSibling || panel.firstChild);
-    }
+  function panel() { return document.getElementById('fishDexPanel'); }
+  function stripOldSections(p) {
+    p.querySelectorAll('#backpackManagerRoot').forEach(x => x.remove());
+  }
+  function forceBuild() {
+    const p = panel();
+    if (!p || p.classList.contains('hidden')) return;
+    stripOldSections(p);
+    const root = document.createElement('section');
+    root.id = 'backpackManagerRoot';
     const items = bag();
     const counts = { fish: items.filter(isFish).length, item: items.filter(isItem).length, letter: letterSources().length };
-    root.querySelector('.backpack-tabs').innerHTML = `
-      <button class="backpack-tab ${activeTab==='fish'?'active':''}" data-tab="fish">魚類 ${counts.fish}</button>
-      <button class="backpack-tab ${activeTab==='item'?'active':''}" data-tab="item">物品 ${counts.item}</button>
-      <button class="backpack-tab ${activeTab==='letter'?'active':''}" data-tab="letter">信件 ${counts.letter}</button>
-    `;
-    root.querySelector('.backpack-content').innerHTML = activeTab === 'fish' ? renderFish(items) : activeTab === 'item' ? renderItems(items) : renderLetters();
+    root.innerHTML = `
+      <h3>🎒 背包管理</h3>
+      <div class="backpack-tools"><button class="backpack-tool" data-clear-current="1">清空目前分類</button></div>
+      <div class="backpack-tabs">
+        <button class="backpack-tab ${activeTab==='fish'?'active':''}" data-tab="fish">魚類 ${counts.fish}</button>
+        <button class="backpack-tab ${activeTab==='item'?'active':''}" data-tab="item">物品 ${counts.item}</button>
+        <button class="backpack-tab ${activeTab==='letter'?'active':''}" data-tab="letter">信件 ${counts.letter}</button>
+      </div>
+      <div class="backpack-content">${activeTab === 'fish' ? renderFish(items) : activeTab === 'item' ? renderItems(items) : renderLetters()}</div>`;
+    const afterHead = Array.from(p.children).find(el => el.tagName === 'H2' || el.classList.contains('board-head'));
+    if (afterHead && afterHead.nextSibling) p.insertBefore(root, afterHead.nextSibling);
+    else p.insertBefore(root, p.firstChild);
+  }
+  function sync() {
+    const p = panel();
+    const visible = !!p && !p.classList.contains('hidden');
+    if (visible && !lastVisible) setTimeout(forceBuild, 60);
+    if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild();
+    lastVisible = visible;
   }
 
   function bind() {
     document.addEventListener('click', e => {
       const tab = e.target.closest?.('.backpack-tab');
-      if (tab) { activeTab = tab.dataset.tab; refresh(true); return; }
+      if (tab) { activeTab = tab.dataset.tab; forceBuild(); e.preventDefault(); return; }
+      const clearBtn = e.target.closest?.('[data-clear-current]');
+      if (clearBtn) { if (confirm('確定要清空目前分類嗎？')) discardCurrentItems(); e.preventDefault(); return; }
       const bagBtn = e.target.closest?.('[data-discard-bag]');
-      if (bagBtn) { discardBagIndex(Number(bagBtn.dataset.discardBag)); return; }
+      if (bagBtn) { discardBagIndex(Number(bagBtn.dataset.discardBag)); e.preventDefault(); return; }
       const letterBtn = e.target.closest?.('[data-discard-letter-key]');
-      if (letterBtn) { discardLetter(letterBtn.dataset.discardLetterKey, Number(letterBtn.dataset.discardLetterIndex)); }
+      if (letterBtn) { discardLetter(letterBtn.dataset.discardLetterKey, Number(letterBtn.dataset.discardLetterIndex)); e.preventDefault(); }
     }, true);
   }
 
-  function init() { addStyle(); bind(); setInterval(() => refresh(false), 350); }
+  function init() { addStyle(); bind(); setInterval(sync, 120); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
