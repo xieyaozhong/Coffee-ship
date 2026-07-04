@@ -107,6 +107,7 @@
     loadScript('deck-role-fix.js', 'deckRoleFix');
     loadScript('deck-fishing.js', 'deckFishing');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
+    loadScript('extra-fish-50.js', 'extraFish50');
     loadScript('deck-shark-event.js', 'deckSharkEvent');
     loadScript('mutant-creatures.js', 'mutantCreatures');
     loadScript('mobile-mutant-modal-fix.js', 'mobileMutantModalFix');
