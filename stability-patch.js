@@ -117,6 +117,7 @@
     loadScript('mobile-deck-fix.js?v=deck-ui-4', 'mobileDeckFix');
     loadScript('deck-role-fix.js?v=deck-ui-4', 'deckRoleFix');
     loadScript('deck-fishing.js', 'deckFishing');
+    loadScript('fishing-cast-animation.js?v=fishing-v5', 'fishingCastAnimation');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('extra-fish-50.js', 'extraFish50');
     loadScript('mermaid-event.js', 'mermaidEvent');
@@ -132,7 +133,7 @@
     loadScript('story-modal-fix.js', 'storyModalFix');
     loadScript('animation-overlap-guard.js', 'animationOverlapGuard');
     loadScript('bottle-dex-patch.js', 'bottleDexPatch');
-    loadScript('fishing-rare-animation.js', 'fishingRareAnimation');
+    loadScript('fishing-rare-animation.js?v=fishing-v5', 'fishingRareAnimation');
     loadScript('mobile-modal-fix.js', 'mobileModalFix');
     loadScript('mobile-shark-modal-fix.js', 'mobileSharkModalFix');
     loadScript('port.js', 'portScene');
