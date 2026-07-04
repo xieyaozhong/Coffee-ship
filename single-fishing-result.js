@@ -64,6 +64,19 @@
   function choice(list){ return list[Math.floor(Math.random()*list.length)]; }
   function weighted(table){ let r=Math.random()*table.reduce((s,x)=>s+x[1],0); for(const x of table){ r-=x[1]; if(r<=0) return x[0]; } return table[0][0]; }
   function pickPool(){ const keys=Object.keys(fishPools); const key=weighted(keys.map(k=>[k,fishPools[k].weight])); return fishPools[key]; }
+  function rarityFrame(rarity){ return {'普通':'⚪','常見':'🟢','稀有':'🔵','史詩':'🟣','傳說':'🟠','神話':'🔴','世界級':'🌈'}[rarity] || '⚪'; }
+  function qualitySpark(quality){ return {'普通':'','優秀':'✨','完美':'💫','閃亮':'🌟','神話':'👑'}[quality] || ''; }
+  function speciesIcon(name, poolLabel, rarity, quality){
+    const rules = [
+      [/克蘇魯|眼/, '👁️🦑'], [/利維坦|龍/, '🐉🌊'], [/克拉肯|章魚|烏賊|觸手|彩墨/, '🐙'], [/鯨|白鯨|藍鯨|虛空鯨|冥河鯨/, '🐋'], [/鯊|巨齒|旋齒/, '🦈'], [/魟|魔鬼魚/, '🪽🐟'], [/河豚|魨/, '🐡'], [/水母/, '🪼'], [/蟹|寄居蟹/, '🦀'], [/蝦|龍蝦/, '🦐'], [/海馬/, '🐴🌊'], [/海蛇|蛇|鰻/, '🐍'], [/菊石/, '🐚'], [/三葉蟲/, '🪲'], [/鱟|海蠍/, '🦂'], [/骷髏|化石|古|鄧氏|腔棘|利茲/, '🦴🐟'], [/鮟鱇|燈籠/, '💡🐟'], [/蝶魚|蝴蝶/, '🦋🐠'], [/玻璃|水晶|琉璃|寶石/, '💎🐠'], [/星|月|晨星|星核|星空/, '✨🐠'], [/血月|腐化|詛咒|夢魘|黑洞|深淵/, '🌑🐟'], [/鯉|鯛|鱸|石斑|旗魚|飛魚|鸚哥魚|銀魚|小魚|魚/, '🐠']
+    ];
+    const found = rules.find(([re]) => re.test(name));
+    let base = found ? found[1] : (poolLabel.includes('神話') ? '🌌🐟' : poolLabel.includes('變異') ? '🧬🐟' : poolLabel.includes('古生物') ? '🦴🐟' : poolLabel.includes('新奇') ? '🌈🐠' : '🐟');
+    if (poolLabel.includes('變異')) base = `🧬${base}`;
+    if (poolLabel.includes('古生物')) base = `🦴${base}`;
+    if (poolLabel.includes('神話')) base = `🌌${base}`;
+    return `${rarityFrame(rarity)}${qualitySpark(quality)}${base}`;
+  }
 
   function addStyle(){
     if(document.getElementById('centralFishingResultStyle')) return;
@@ -78,10 +91,11 @@
   function addFish(){
     const pool=pickPool(); const f=choice(pool.list); const q=weighted([['普通',45],['優秀',25],['完美',15],['閃亮',9],['神話',6]]); const mult={普通:1,優秀:1.15,完美:1.3,閃亮:1.55,神話:1.9}[q]; const w=(f[3]+Math.random()*(f[4]-f[3]))*mult;
     const kind = pool.label.includes('變異') ? 'mutant' : 'fish';
-    const item={name:f[0],zone:f[1],rarity:f[2],quality:q,weight:w,kind,icon:pool.icon,category:pool.label,at:now()};
+    const icon = speciesIcon(f[0], pool.label, f[2], q);
+    const item={name:f[0],zone:f[1],rarity:f[2],quality:q,weight:w,kind,icon,category:pool.label,at:now()};
     const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120));
     const dex=read('coffeeShipFishDex',{}); dex[item.name]=Math.max(dex[item.name]||0,Number(w.toFixed(2))); save('coffeeShipFishDex',dex);
-    show(`${pool.icon} ${q} ${f[0]}`, `分類：${pool.label}<br>海域：${f[1]}<br>稀有度：${f[2]}<br>重量：${w.toFixed(2)} kg`, f[2]==='世界級'?7600:f[2]==='神話'?6200:4600);
+    show(`${icon} ${q} ${f[0]}`, `分類：${pool.label}<br>海域：${f[1]}<br>稀有度：${f[2]}<br>重量：${w.toFixed(2)} kg`, f[2]==='世界級'?7600:f[2]==='神話'?6200:4600);
   }
   function addItem(){
     const it=choice(items); const w=it[3]+Math.random()*(it[4]-it[3]); const item={name:it[1],zone:it[5],rarity:it[2],quality:'拾獲',weight:w,kind:'treasure',icon:it[0],at:now()}; const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120));
