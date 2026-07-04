@@ -1,0 +1,19 @@
+body:has(#creator.login-interface-ready:not(.hidden)) .hero{display:none!important}
+body:has(#creator.login-interface-ready:not(.hidden)) .shell{padding-top:18px}
+html.login-resetting body::after,
+body.login-resetting::after{
+  content:'正在準備角色…';
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:grid;
+  place-items:center;
+  color:#fff4d8;
+  font-weight:1000;
+  background:#120d1bf2;
+}
+@media(max-width:760px){
+  #creator.login-interface-ready .login-brand h2{display:block!important;margin:0!important}
+  #creator.login-interface-ready .login-controls-header h3{display:block!important}
+  body:has(#creator.login-interface-ready:not(.hidden)) .shell{padding-top:10px}
+}
