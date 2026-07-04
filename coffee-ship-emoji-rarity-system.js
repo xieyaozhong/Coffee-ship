@@ -10,42 +10,67 @@
     '傳說':'0 0 12px rgba(255,225,107,.75)', '神話':'0 0 14px rgba(255,107,138,.85)',
     '世界級':'0 0 16px rgba(159,255,238,.95)'
   };
+
   const uniqueEmoji = {
-    // masks
+    // 漂流瓶系列：恢復原本辨識 Emoji，每個系列一個
+    joke:'😂', lanar:'🌊', ariel:'🧜‍♀️', island:'🏝️', blackbeard:'🏴‍☠️', mad_priest:'📜', carnival:'🎭', turtle_soup:'🍲',
+    // 狂歡面具
     mask_fox:'🦊', mask_wolf:'🐺', mask_lion:'🦁', mask_tiger:'🐯', mask_bear:'🐻', mask_owl:'🦉', mask_deer:'🦌', mask_goat:'🐐', mask_boar:'🐗', mask_snake:'🐍',
-    // clothing
-    cloth_party:'🎽', cloth_shorts:'🩳', cloth_socks:'🧦', cloth_shirt:'👕', cloth_tailcoat:'👔', cloth_gown:'👗', cloth_cape:'🧥', cloth_gloves:'🧤', cloth_scarf:'🧣', cloth_hat:'👒', cloth_top_hat:'🎩', cloth_heels:'👠', cloth_boots:'👢', cloth_shoes:'👞', cloth_ribbon:'🎀',
-    // toys
+    // 衣物
+    cloth_underwear_top:'👙', cloth_underwear_bottom:'🩲', cloth_socks:'🧦', cloth_shirt:'👕', cloth_tailcoat:'👔', cloth_gown:'👗', cloth_cape:'🧥', cloth_gloves:'🧤', cloth_scarf:'🧣', cloth_hat:'👒', cloth_top_hat:'🎩', cloth_heels:'👠', cloth_boots:'👢', cloth_shoes:'👞', cloth_ribbon:'🎀',
+    cloth_party:'👙', cloth_shorts:'🩲',
+    // 玩具
     toy_balloon:'🎈', toy_yoyo:'🪀', toy_kite:'🪁', toy_horse:'🎠', toy_doll:'🪆', toy_nose:'🤡', toy_trumpet:'🎺', toy_drum:'🥁', toy_paint:'🎨', toy_cards:'🃏', toy_dice:'🎲', toy_bear:'🧸', toy_pinata:'🪅', toy_maracas:'🪇', toy_circus:'🎪',
-    // accessories
-    acc_ring:'💍', acc_necklace:'📿', acc_crown:'👑', acc_gem:'💎', acc_feather:'🪶', acc_badge:'📜', acc_medal:'🏅', acc_brooch:'💠', acc_earring:'✨', acc_bell:'🔔',
-    // ocean friend
-    turtle_shell:'🐢', turtle_straw:'🥤', walrus_relic:'🦭', rust_tool:'🧰', drifter_relic:'🧩',
-    // bottles
-    joke:'😂', lanar:'🌊', ariel:'🧜‍♀️', blackbeard:'🏴‍☠️', mad_priest:'⛪', carnival:'🎭', turtle_soup:'🍲',
-    // generic fallbacks
+    // 飾品與寶物
+    acc_ring:'💍', acc_necklace:'📿', acc_crown:'👑', acc_gem:'💎', acc_feather:'🪶', acc_badge:'🏵️', acc_medal:'🏅', acc_brooch:'💠', acc_earring:'✨', acc_bell:'🔔',
+    treasure_crown:'👑', treasure_gem:'💎',
+    // 海洋朋友與特殊物品：恢復原本高辨識 Emoji
+    turtle_shell:'🐢', turtle_straw:'🥤', walrus_tusk:'🦷', walrus_relic:'🦷', scalpel:'🔪', rust_tool:'🔪', human_skin:'🧩', drifter_relic:'🧩',
     pearl:'🦪', fish:'🐟', shark:'🦈', trash:'🗑️', treasure:'💰', bottle:'🍾', item:'📦'
   };
 
-  const autoEmojiPool = ['🪙','🗝️','🧭','🧿','🪬','⚱️','🏺','🪞','🕯️','📯','🧺','🪵','🪨','🪷','🌙','⭐','☄️','🌈','🔥','❄️','⚡','🫧','🪸','🐚','🦀','🦞','🦐','🦑','🐙','🐋','🐡','🐠','🐬','🦈','🦦','🐾','🪽','🛟','⚓','⛵','🚢','🧜','🧪','🧫','🔮','🪄','📘','📕','📗','📙','🧾','💌'];
+  const originalRules = [
+    // 漂流瓶
+    [/冷笑話/, '😂'], [/拉納爾/, '🌊'], [/愛麗兒|美人魚漂流瓶/, '🧜‍♀️'], [/哈斯|可可|莫納|孤島三角戀|孤島/, '🏝️'], [/黑鬍子|藏寶圖/, '🏴‍☠️'], [/瘋狂神父|神父|殘頁/, '📜'], [/狂歡島漂流瓶/, '🎭'], [/海龜湯/, '🍲'],
+    // 面具
+    [/狐狸面具/, '🦊'], [/狼面具/, '🐺'], [/獅子面具/, '🦁'], [/老虎面具/, '🐯'], [/熊面具/, '🐻'], [/貓頭鷹面具/, '🦉'], [/鹿角面具/, '🦌'], [/山羊面具/, '🐐'], [/野豬面具/, '🐗'], [/蛇神面具/, '🐍'], [/面具/, '🎭'],
+    // 衣物
+    [/內衣/, '👙'], [/內褲|短褲/, '🩲'], [/襪/, '🧦'], [/襯衫/, '👕'], [/燕尾服/, '👔'], [/晚禮服|洋裝|禮服/, '👗'], [/披風/, '🧥'], [/手套/, '🧤'], [/圍巾/, '🧣'], [/羽毛帽|帽/, '👒'], [/高帽|禮帽/, '🎩'], [/高跟鞋/, '👠'], [/長靴/, '👢'], [/皮鞋/, '👞'], [/絲帶|緞帶/, '🎀'],
+    // 玩具
+    [/氣球/, '🎈'], [/悠悠球/, '🪀'], [/風箏/, '🪁'], [/木馬|音樂盒/, '🎠'], [/人偶|布偶|玩偶/, '🪆'], [/小丑鼻子/, '🤡'], [/喇叭/, '🎺'], [/小鼓/, '🥁'], [/顏料/, '🎨'], [/撲克|牌/, '🃏'], [/骰子/, '🎲'], [/玩偶熊/, '🧸'], [/彩罐/, '🪅'], [/沙鈴/, '🪇'], [/雜耍球/, '🎪'],
+    // 飾品與寶藏
+    [/戒指/, '💍'], [/項鍊/, '📿'], [/王冠|皇冠/, '👑'], [/寶石/, '💎'], [/羽毛飾品/, '🪶'], [/徽章/, '🏵️'], [/勳章/, '🏅'], [/胸針/, '💠'], [/耳環/, '✨'], [/腳環|銀鈴/, '🔔'],
+    // 海洋朋友與垃圾
+    [/龜殼|海龜/, '🐢'], [/吸管/, '🥤'], [/海象牙|海象角|海象/, '🦷'], [/手術刀|生鏽工具|醫療器具/, '🔪'], [/人皮|漂流者|遺物|皮革/, '🧩'], [/珍珠/, '🦪'], [/鯊/, '🦈'], [/魚|鯨|鰻|魟|鮟鱇/, '🐟'], [/垃圾|塑膠|瓶蓋/, '🗑️'], [/瓶|漂流瓶/, '🍾']
+  ];
 
+  const autoEmojiPool = ['🪙','🗝️','🧭','🧿','🪬','⚱️','🏺','🪞','🕯️','📯','🧺','🪵','🪨','🪷','🌙','⭐','☄️','🌈','🔥','❄️','⚡','🫧','🪸','🐚','🦀','🦞','🦐','🦑','🐙','🐋','🐡','🐠','🐬','🦦','🐾','🪽','🛟','⚓','⛵','🚢','🧪','🧫','🔮','🪄','📘','📕','📗','📙','🧾','💌'];
+
+  function firstEmoji(text) {
+    const s = String(text || '').trim();
+    const m = s.match(/^(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)/u);
+    return m ? m[0] : '';
+  }
   function cleanEmoji(text) { return String(text || '').replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, '').trim(); }
   function keyOf(item) {
-    const raw = item?.id || item?.v2id || item?.iconId || item?.name || item?.title || 'item';
+    const raw = item?.id || item?.v2id || item?.iconId || item?.series || item?.name || item?.title || 'item';
     return String(raw).replace(/\s+/g, '_');
   }
   function emojiFor(item) {
+    const existing = firstEmoji(item?.icon || item?.emoji || '');
+    const name = item?.name || item?.title || item?.series || '';
     const key = keyOf(item);
+    const rule = originalRules.find(([re]) => re.test(`${key} ${name}`));
+    if (rule) return rule[1];
     if (uniqueEmoji[key]) return uniqueEmoji[key];
-    const name = item?.name || item?.title || '';
-    for (const [k, e] of Object.entries(uniqueEmoji)) if (name.includes(k) || key.includes(k)) return e;
+    if (existing) return existing;
     let h = 0; String(key).split('').forEach(ch => h = (h * 31 + ch.charCodeAt(0)) >>> 0);
     return autoEmojiPool[h % autoEmojiPool.length];
   }
   function applyDbEmoji() {
     if (!window.COFFEE_SHIP_DB) return;
     const db = window.COFFEE_SHIP_DB;
-    const patchRow = row => { if (Array.isArray(row)) row[1] = uniqueEmoji[row[0]] || row[1] || emojiFor({ id:row[0], name:row[2] }); };
+    const patchRow = row => { if (Array.isArray(row)) row[1] = emojiFor({ id:row[0], name:row[2], series:row[2], icon:row[1] }); };
     (db.carnivalLoot || []).forEach(patchRow);
     (db.oceanLoot || []).forEach(patchRow);
     (db.bottles || []).forEach(patchRow);
@@ -61,7 +86,7 @@
       if (!item || typeof item !== 'object') return item;
       const one = emojiFor(item);
       const cleanName = cleanEmoji(item.name || '');
-      if (item.icon !== one || item.name !== cleanName) {
+      if (item.icon !== one || item.emoji !== one || item.name !== cleanName) {
         changed = true;
         return { ...item, icon:one, emoji:one, name:cleanName || item.name };
       }
