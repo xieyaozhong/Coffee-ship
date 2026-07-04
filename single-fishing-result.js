@@ -7,9 +7,23 @@
     'lanarCard','arielCard','islandCard','blackbeardCard','madPriestCard','carnivalCard'
   ];
 
-  const fish = [
-    ['晨霧銀魚','近海','普通',0.04,0.25],['檸檬小鯛','近海','普通',0.12,0.65],['奶茶雀魚','近海','普通',0.05,0.28],['玻璃小魚','近海','普通',0.03,0.2],['港燈鰆魚','港口','常見',0.8,3.4],['咖啡紋鱸','港口','常見',1.0,4.8],['白帆石斑','港口','常見',1.5,6.5],['夜燈鯉','夜海','稀有',0.6,3.2],['星露鰻','夜海','稀有',1.2,7.8],['紫霧魟','夜海','稀有',2.5,12],['深海琥珀魚','深海','史詩',8,36],['古鐘鮟鱇','深海','史詩',12,66],['晨星龍魚','傳說','傳說',35,180],['海神白鯨','傳說','傳說',220,1100]
-  ];
+  const fishPools = {
+    normal: { label:'一般魚類', icon:'🐟', weight:35, list:[
+      ['晨霧銀魚','近海','普通',0.04,0.25],['檸檬小鯛','近海','普通',0.12,0.65],['奶茶雀魚','近海','普通',0.05,0.28],['玻璃小魚','近海','普通',0.03,0.2],['港燈鰆魚','港口','常見',0.8,3.4],['咖啡紋鱸','港口','常見',1.0,4.8],['白帆石斑','港口','常見',1.5,6.5],['夜燈鯉','夜海','稀有',0.6,3.2],['星露鰻','夜海','稀有',1.2,7.8],['紫霧魟','夜海','稀有',2.5,12],['深海琥珀魚','深海','史詩',8,36],['古鐘鮟鱇','深海','史詩',12,66],['晨星龍魚','傳說','傳說',35,180],['海神白鯨','傳說','傳說',220,1100]
+    ]},
+    strange: { label:'新奇魚類', icon:'🌈', weight:25, list:[
+      ['彩虹玻璃魚','幻彩海域','稀有',0.08,0.6],['月光魟魚','夜海','稀有',3,18],['水晶蝶魚','珊瑚幻境','稀有',0.2,1.4],['黃金海馬王','珊瑚幻境','史詩',0.08,0.5],['彩墨章魚','墨色海溝','史詩',4,24],['七彩河豚','泡泡灣','稀有',0.4,2.2],['星空燈籠魚','夜海','史詩',1,8],['雲霧水母','霧海','稀有',0.1,1.1],['琉璃飛魚','港外海域','稀有',0.3,1.8],['糖霜海兔','甜霧海','普通',0.05,0.25],['銀羽旗魚','遠洋','傳說',25,160],['寶石鸚哥魚','珊瑚幻境','史詩',1.2,7]
+    ]},
+    ancient: { label:'古生物魚類', icon:'🦴', weight:15, list:[
+      ['腔棘魚','古海裂谷','史詩',20,120],['菊石王','古海裂谷','稀有',2,15],['三葉蟲守衛','古海裂谷','稀有',0.3,2],['古代鱟','古海裂谷','稀有',1,7],['鄧氏魚幼體','古海裂谷','傳說',80,420],['利茲魚','古海裂谷','傳說',300,1600],['海蠍王','古海裂谷','史詩',8,60],['旋齒鯊','古海裂谷','傳說',60,280],['滄龍幼體','古海裂谷','神話',500,2600],['遠古巨牙魚','古海裂谷','史詩',40,220],['劍射魚化石種','古海裂谷','稀有',3,18],['古龍鰭魚','古海裂谷','傳說',90,530]
+    ]},
+    mutant: { label:'變異魚類', icon:'🧬', weight:15, list:[
+      ['百眼鮟鱇','深淵變異區','傳說',40,180],['發光骷髏魚','深淵變異區','史詩',2,18],['毒刺河豚王','深淵變異區','史詩',4,28],['深海鐮刀蝦','深淵變異區','稀有',0.6,4.8],['黑洞烏賊','深淵變異區','神話',120,900],['腐化藍鯨','深淵變異區','神話',100000,220000],['海淵蛇皇','深淵變異區','傳說',300,2200],['星核蝶魚','深淵變異區','傳說',1.5,9.5],['血月水母王','深淵變異區','神話',80,680],['詛咒寄居蟹','深淵變異區','史詩',2,18],['深海夢魘鰻','深淵變異區','傳說',25,190],['虛空鯨','深淵變異區','神話',900,9000]
+    ]},
+    mythic: { label:'深淵神話生物', icon:'🌌', weight:10, list:[
+      ['克拉肯幼體','神話深海','神話',800,5000],['利維坦幼體','神話深海','神話',5000,30000],['北海巨妖觸手','神話深海','神話',300,1800],['深海天使','神話深海','傳說',12,80],['冥河鯨','神話深海','神話',1500,12000],['海神眷屬','神話深海','神話',60,460],['深海守門人','神話深海','神話',700,4200],['虛空海蛇','神話深海','神話',400,2600],['月蝕魔鬼魚','神話深海','傳說',30,240],['克蘇魯之眼','世界深淵','世界級',999999,9999999]
+    ]}
+  };
   const items = [
     ['🗑️','漂流塑膠袋','普通',0.01,0.04,'海底垃圾'],['🗑️','破吸管','普通',0.01,0.03,'海底垃圾'],['🗑️','生鏽瓶蓋','普通',0.02,0.08,'海底垃圾'],['🪢','舊船繩','常見',0.5,2,'海底物品'],['🎭','狂歡面具','稀有',0.2,0.8,'狂歡島遺失物'],['👒','華麗羽毛帽','稀有',0.1,0.4,'狂歡島遺失物'],['💍','鍍金戒指','稀有',0.01,0.05,'海底物品'],['🪞','裂開的化妝鏡','稀有',0.3,0.9,'狂歡島遺失物']
   ];
@@ -49,6 +63,7 @@
   function locked(){ return now() < lockedUntil || hasVisibleResult(); }
   function choice(list){ return list[Math.floor(Math.random()*list.length)]; }
   function weighted(table){ let r=Math.random()*table.reduce((s,x)=>s+x[1],0); for(const x of table){ r-=x[1]; if(r<=0) return x[0]; } return table[0][0]; }
+  function pickPool(){ const keys=Object.keys(fishPools); const key=weighted(keys.map(k=>[k,fishPools[k].weight])); return fishPools[key]; }
 
   function addStyle(){
     if(document.getElementById('centralFishingResultStyle')) return;
@@ -61,9 +76,12 @@
   function show(title, detail, ms=4600){ const c=card(); if(!c) return; c.innerHTML=`<div class="central-fish-title">${title}</div><div class="central-fish-detail">${detail}</div>`; c.classList.remove('hidden'); lockedUntil=now()+ms; setTimeout(()=>c.classList.add('hidden'),ms); }
 
   function addFish(){
-    const f=choice(fish); const q=weighted([['普通',55],['優秀',25],['完美',13],['閃亮',5],['神話',2]]); const mult={普通:1,優秀:1.15,完美:1.3,閃亮:1.55,神話:1.9}[q]; const w=(f[3]+Math.random()*(f[4]-f[3]))*mult;
-    const item={name:f[0],zone:f[1],rarity:f[2],quality:q,weight:w,kind:'fish',icon:'🐟',at:now()}; const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120)); const dex=read('coffeeShipFishDex',{}); dex[item.name]=Math.max(dex[item.name]||0,Number(w.toFixed(2))); save('coffeeShipFishDex',dex);
-    show(`🐟 ${q} ${f[0]}`, `類型：魚類<br>海域：${f[1]}<br>稀有度：${f[2]}<br>重量：${w.toFixed(2)} kg`);
+    const pool=pickPool(); const f=choice(pool.list); const q=weighted([['普通',45],['優秀',25],['完美',15],['閃亮',9],['神話',6]]); const mult={普通:1,優秀:1.15,完美:1.3,閃亮:1.55,神話:1.9}[q]; const w=(f[3]+Math.random()*(f[4]-f[3]))*mult;
+    const kind = pool.label.includes('變異') ? 'mutant' : 'fish';
+    const item={name:f[0],zone:f[1],rarity:f[2],quality:q,weight:w,kind,icon:pool.icon,category:pool.label,at:now()};
+    const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120));
+    const dex=read('coffeeShipFishDex',{}); dex[item.name]=Math.max(dex[item.name]||0,Number(w.toFixed(2))); save('coffeeShipFishDex',dex);
+    show(`${pool.icon} ${q} ${f[0]}`, `分類：${pool.label}<br>海域：${f[1]}<br>稀有度：${f[2]}<br>重量：${w.toFixed(2)} kg`, f[2]==='世界級'?7600:f[2]==='神話'?6200:4600);
   }
   function addItem(){
     const it=choice(items); const w=it[3]+Math.random()*(it[4]-it[3]); const item={name:it[1],zone:it[5],rarity:it[2],quality:'拾獲',weight:w,kind:'treasure',icon:it[0],at:now()}; const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120));
@@ -91,14 +109,14 @@
   function shark(){
     const shark = choice(sharks);
     const bag=read('coffeeShipFishBag',[]);
-    const fishItems=bag.map((x,i)=>({x,i})).filter(o=>o.x&&o.x.kind==='fish');
+    const fishItems=bag.map((x,i)=>({x,i})).filter(o=>o.x&&(o.x.kind==='fish'||o.x.kind==='mutant'));
     const wanted = shark.min + Math.floor(Math.random()*(shark.max-shark.min+1));
     const eaten = sharkTargets(fishItems, shark, Math.min(wanted, fishItems.length));
     const eatenIdx = eaten.map(e=>e.i);
     const next=bag.filter((_,i)=>!eatenIdx.includes(i));
     if (shark.drop) next.push({name:'巨齒鯊王之牙',zone:'鯊魚事件',rarity:'神話',quality:'戰利品',weight:3+Math.random()*8,kind:'treasure',icon:'🦷',at:now()});
     save('coffeeShipFishBag',next.slice(-120));
-    const lost = eaten.length ? `<div class="shark-loss-list">${eaten.map(e=>`・${e.x.quality || ''} ${e.x.name}（${Number(e.x.weight||0).toFixed(2)} kg）`).join('<br>')}</div>` : '<br>但背包裡沒有魚可以被吃掉。';
+    const lost = eaten.length ? `<div class="shark-loss-list">${eaten.map(e=>`・${e.x.icon||'🐟'} ${e.x.quality || ''} ${e.x.name}（${Number(e.x.weight||0).toFixed(2)} kg）`).join('<br>')}</div>` : '<br>但背包裡沒有魚可以被吃掉。';
     const drop = shark.drop ? '<br>獲得：🦷 巨齒鯊王之牙' : '';
     show(`${shark.icon} ${shark.name}`, `稀有度：${shark.rarity}<br>${shark.note}<br><br>損失漁獲：${eaten.length} 件${lost}${drop}`, shark.rarity==='世界級'?7600:6200);
   }
