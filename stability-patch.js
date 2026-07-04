@@ -49,7 +49,7 @@
         event.preventDefault();
         event.stopImmediatePropagation();
         const api = window.COFFEE_SHIP_DECK;
-        if (api?.switchToCafe) api.switchToCafe();
+        if (api?.handleAction) api.handleAction();
         else {
           keyEvent('keydown', 'e');
           setTimeout(() => keyEvent('keyup', 'e'), 80);
@@ -111,11 +111,11 @@
     loadScript('role-mobile-ability.js', 'roleAbility');
     loadScript('change-character.js', 'changeCharacter');
     loadScript('mobile-home-safe.js', 'mobileHomeSafe');
-    loadScript('mobile-game-layout.js', 'mobileGameLayout');
+    loadScript('mobile-game-layout.js?v=deck-ui-4', 'mobileGameLayout');
     loadScript('quality-polish.js', 'qualityPolish');
     loadScript('black-cat-nox.js', 'blackCatNox');
-    loadScript('mobile-deck-fix.js', 'mobileDeckFix');
-    loadScript('deck-role-fix.js', 'deckRoleFix');
+    loadScript('mobile-deck-fix.js?v=deck-ui-4', 'mobileDeckFix');
+    loadScript('deck-role-fix.js?v=deck-ui-4', 'deckRoleFix');
     loadScript('deck-fishing.js', 'deckFishing');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('extra-fish-50.js', 'extraFish50');
