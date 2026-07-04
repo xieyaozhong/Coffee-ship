@@ -113,6 +113,7 @@
     loadScript('lanar-bottle-letters.js', 'lanarBottleLetters');
     loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
     loadScript('island-triangle-letters.js', 'islandTriangleLetters');
+    loadScript('blackbeard-treasure-letters.js', 'blackbeardTreasureLetters');
     loadScript('story-modal-fix.js', 'storyModalFix');
     loadScript('animation-overlap-guard.js', 'animationOverlapGuard');
     loadScript('bottle-dex-patch.js', 'bottleDexPatch');
