@@ -1,5 +1,7 @@
 (() => {
   function isDeckOpen() {
+    const api = window.COFFEE_SHIP_DECK;
+    if (api?.isDeckOpen) return api.isDeckOpen();
     const deck = document.getElementById('deckOverlay');
     return !!deck && !deck.classList.contains('hidden');
   }
@@ -10,12 +12,12 @@
   }
 
   function keyEvent(type, key) {
-    window.dispatchEvent(new KeyboardEvent(type, { key, code: key, bubbles: true, cancelable: true }));
+    window.dispatchEvent(new KeyboardEvent(type, { key, code:key, bubbles:true, cancelable:true }));
   }
 
   function holdKey(button, key) {
     let down = false;
-    const start = (event) => {
+    const start = event => {
       if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
@@ -36,21 +38,32 @@
   }
 
   function bindMobileDeckControls() {
-    const map = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
+    const map = { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight' };
     document.querySelectorAll('[data-move]').forEach(button => {
       const key = map[button.dataset.move];
       if (key) holdKey(button, key);
     });
 
-    document.getElementById('sitBtn')?.addEventListener('click', (event) => {
-      if (!isDeckOpen() && !isPortOpen()) return;
+    document.getElementById('sitBtn')?.addEventListener('click', event => {
+      if (isDeckOpen() && !isPortOpen()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const api = window.COFFEE_SHIP_DECK;
+        if (api?.switchToCafe) api.switchToCafe();
+        else {
+          keyEvent('keydown', 'e');
+          setTimeout(() => keyEvent('keyup', 'e'), 80);
+        }
+        return;
+      }
+      if (!isPortOpen()) return;
       event.preventDefault();
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       keyEvent('keydown', 'e');
       setTimeout(() => keyEvent('keyup', 'e'), 80);
     }, true);
 
-    document.getElementById('emoteBtn')?.addEventListener('click', (event) => {
+    document.getElementById('emoteBtn')?.addEventListener('click', event => {
       if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
@@ -60,13 +73,11 @@
   }
 
   function preventCafeMovementBehindDeck() {
-    window.addEventListener('keydown', (event) => {
+    window.addEventListener('keydown', event => {
       if (!isDeckOpen() && !isPortOpen()) return;
       const k = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      const blocked = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd', 'e', ' '];
-      if (blocked.includes(k)) {
-        event.stopPropagation();
-      }
+      const blocked = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','e',' '];
+      if (blocked.includes(k)) event.stopPropagation();
     }, true);
   }
 
