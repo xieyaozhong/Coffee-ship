@@ -15,7 +15,7 @@
     coffeeShipBottleLetters:'冷笑話漂流瓶',
     coffeeShipLanarLetters:'拉納爾漂流瓶',
     coffeeShipArielLetters:'愛麗兒漂流瓶',
-    coffeeShipIslandLetters:'哈斯、可可、莫納漂流瓶',
+    coffeeShipIslandLetters:'可可漂流瓶',
     coffeeShipBlackbeardLetters:'黑鬍子藏寶圖',
     coffeeShipMadPriestLetters:'瘋狂神父殘頁',
     coffeeShipCarnivalLetters:'狂歡島漂流瓶',
