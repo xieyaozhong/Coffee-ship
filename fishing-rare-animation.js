@@ -29,13 +29,10 @@
     playing = false;
   }
 
-  function visible(card) {
-    return card && !card.classList.contains('hidden');
-  }
-
+  function visible(card) { return card && !card.classList.contains('hidden'); }
   function tierFromCard(card, text) {
     if (!visible(card)) return '';
-    if (card.id === 'lanarCard' || card.id === 'arielCard' || card.id === 'islandCard') return '';
+    if (card.id === 'lanarCard' || card.id === 'arielCard' || card.id === 'islandCard' || card.id === 'blackbeardCard') return '';
     if (card.id === 'mutantCard') {
       const m = text.match(/稀有度：\s*(世界級|神話|傳說|史詩|稀有|常見|普通)/);
       return m ? m[1] : '';
@@ -47,7 +44,7 @@
       if (m[1] === '常見' || m[1] === '普通') return '';
       return m[1];
     }
-    if (card.id === 'fishingCard' || card.id === 'fishingSpecialCard') {
+    if (['fishingCard','fishingSpecialCard','extraFish50Card'].includes(card.id)) {
       const m = text.match(/稀有度：\s*(傳說|史詩|稀有|常見|普通)/);
       if (!m) return '';
       if (m[1] === '普通' || m[1] === '常見') return '';
@@ -55,11 +52,7 @@
     }
     return '';
   }
-
-  function nameFromText(text) {
-    return text.replace(/海域：.*$/s, '').replace(/類型：.*$/s, '').replace(/稀有度：.*$/s, '').replace(/\s+/g, ' ').trim().slice(0, 42);
-  }
-
+  function nameFromText(text) { return text.replace(/海域：.*$/s, '').replace(/類型：.*$/s, '').replace(/稀有度：.*$/s, '').replace(/\s+/g, ' ').trim().slice(0, 42); }
   function iconFromText(text, tier) {
     if (/鯊/.test(text)) return '🦈';
     if (/瓶|信/.test(text)) return '🍾';
@@ -70,7 +63,6 @@
     if (/人魚/.test(text)) return '🧜‍♀️';
     return tierMap[tier]?.icon || '🐟';
   }
-
   function play(card, text) {
     const tier = tierFromCard(card, text);
     if (!tier || !tierMap[tier]) return;
@@ -101,22 +93,10 @@
     }
     timer = setTimeout(() => clearOverlay(), cfg.ms);
   }
-
   function watchCards() {
-    const cards = ['#fishingCard', '#fishingSpecialCard', '#sharkCard', '#mutantCard'].map(s => document.querySelector(s)).filter(Boolean);
-    for (const card of cards) {
-      if (!visible(card)) continue;
-      const text = card.textContent.trim();
-      if (text) play(card, text);
-      break;
-    }
+    const cards = ['#fishingCard', '#fishingSpecialCard', '#extraFish50Card', '#sharkCard', '#mutantCard'].map(s => document.querySelector(s)).filter(Boolean);
+    for (const card of cards) { if (!visible(card)) continue; const text = card.textContent.trim(); if (text) play(card, text); break; }
   }
-
-  function init() {
-    addStyle();
-    setInterval(watchCards, 180);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  function init() { addStyle(); setInterval(watchCards, 180); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
