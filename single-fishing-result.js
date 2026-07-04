@@ -24,11 +24,18 @@
       ['克拉肯幼體','神話深海','神話',800,5000],['利維坦幼體','神話深海','神話',5000,30000],['北海巨妖觸手','神話深海','神話',300,1800],['深海天使','神話深海','傳說',12,80],['冥河鯨','神話深海','神話',1500,12000],['海神眷屬','神話深海','神話',60,460],['深海守門人','神話深海','神話',700,4200],['虛空海蛇','神話深海','神話',400,2600],['月蝕魔鬼魚','神話深海','傳說',30,240],['克蘇魯之眼','世界深淵','世界級',999999,9999999]
     ]}
   };
+  const jokeBottles = [
+    '魚為什麼不上班？因為今天請鮭假。','章魚考試都考幾分？八十分，因為牠有八隻手。','螃蟹最大的夢想？有一天可以直著走。','海馬騎什麼？另一匹海馬。','烏賊最怕考試，因為一緊張就噴墨。','龍蝦最大的願望？不要進火鍋。','河豚生氣跟平常有什麼差？更圓。','鯊魚最討厭什麼？素食餐廳。','海豹每天都在蓋章，所以叫海豹。','海星最怕什麼？被評成四星。',
+    '水母為什麼不怕停電？牠自己會發光。','鮪魚失戀後去哪裡？去罐頭裡冷靜一下。','比目魚自拍最煩惱什麼？永遠只有一邊好看。','海龜為什麼長壽？因為牠從不趕時間。','鯨魚為什麼不能小聲說話？因為牠一開口就是大聲公。','飛魚為什麼很忙？牠常常飛來飛去。','小丑魚為什麼不去馬戲團？因為海葵已經是牠的舞台。','海葵為什麼朋友很多？因為大家都靠近牠就有安全感。','蝦子為什麼不借錢？怕被討蝦。','貝殼最會說什麼？你聽，都是海的聲音。',
+    '燈籠魚為什麼不用手電筒？牠自帶頭燈。','海膽最怕擁抱，因為大家都會刺痛。','章魚開餐廳最大的優勢？八隻手同時上菜。','鯉魚最會考試，因為牠會躍龍門。','鯨魚減肥失敗的原因？牠總是小題大作。','海蛇最會什麼運動？滑水。','鯛魚最懂禮貌，因為牠常常說鯛謝。','石斑魚最愛哪種音樂？Rock。','鮭魚為什麼逆流而上？牠不想隨波逐流。','海豚為什麼英文很好？因為每天都 Dolphin。',
+    '螃蟹為什麼很會防守？牠有兩支鉗鋒。','魟魚為什麼像飛毯？因為牠在海裡滑翔。','魚醫生開什麼藥？魚油。','海獅為什麼會拍手？因為牠找到掌聲了。','企鵝為什麼不怕冷場？牠本來就住冷的地方。','珊瑚最怕什麼？被說太硬了。','海鷗為什麼愛搶食物？因為牠覺得那是海鷗外。','船錨為什麼不旅行？因為放不下。','瓶中信為什麼不回訊息？因為它還在漂。','釣竿為什麼很有耐心？因為它懂得放線。',
+    '魚群開會誰主持？魚主席。','章魚為什麼不打字？怕手太多按錯鍵。','螃蟹買鞋很麻煩，因為牠橫著試穿。','海浪為什麼很會聊天？一直拍岸叫好。','水母為什麼不加班？牠下班就透明。','海馬記憶好不好？牠自己也記不太清。','龍蝦為什麼穿盔甲？怕被叫去火鍋局。','鯊魚為什麼不玩躲貓貓？背鰭太明顯。','魚為什麼不說謊？一開口就露餡。','漂流瓶最怕什麼？怕被已讀不回。'
+  ];
   const items = [
     ['🗑️','漂流塑膠袋','普通',0.01,0.04,'海底垃圾'],['🗑️','破吸管','普通',0.01,0.03,'海底垃圾'],['🗑️','生鏽瓶蓋','普通',0.02,0.08,'海底垃圾'],['🪢','舊船繩','常見',0.5,2,'海底物品'],['🎭','狂歡面具','稀有',0.2,0.8,'狂歡島遺失物'],['👒','華麗羽毛帽','稀有',0.1,0.4,'狂歡島遺失物'],['💍','鍍金戒指','稀有',0.01,0.05,'海底物品'],['🪞','裂開的化妝鏡','稀有',0.3,0.9,'狂歡島遺失物']
   ];
   const letters = [
-    ['coffeeShipBottleLetters','🍾','普通瓶中信','不要急著抵達終點，船上的風、咖啡與朋友，本身就是旅程。'],
+    ['coffeeShipBottleLetters','🍾','冷笑話漂流瓶',() => jokeBottles[Math.floor(Math.random()*jokeBottles.length)]],
     ['coffeeShipLanarLetters','🌊','拉納爾漂流瓶','海洋學家拉納爾記下海獸的影子：牠從船底游過時，整片海像被翻到背面。'],
     ['coffeeShipArielLetters','🧜‍♀️','愛麗兒漂流瓶','我曾以為失去聲音就能換來愛，後來才知道，沉默只會讓不愛你的人更容易離開。'],
     ['coffeeShipBlackbeardLetters','🏴‍☠️','黑鬍子藏寶圖','老子把寶藏埋在黑礁石底下，敢挖就看你有沒有命帶走。'],
@@ -67,9 +74,7 @@
   function rarityFrame(rarity){ return {'普通':'⚪','常見':'🟢','稀有':'🔵','史詩':'🟣','傳說':'🟠','神話':'🔴','世界級':'🌈'}[rarity] || '⚪'; }
   function qualitySpark(quality){ return {'普通':'','優秀':'✨','完美':'💫','閃亮':'🌟','神話':'👑'}[quality] || ''; }
   function speciesIcon(name, poolLabel, rarity, quality){
-    const rules = [
-      [/克蘇魯|眼/, '👁️🦑'], [/利維坦|龍/, '🐉🌊'], [/克拉肯|章魚|烏賊|觸手|彩墨/, '🐙'], [/鯨|白鯨|藍鯨|虛空鯨|冥河鯨/, '🐋'], [/鯊|巨齒|旋齒/, '🦈'], [/魟|魔鬼魚/, '🪽🐟'], [/河豚|魨/, '🐡'], [/水母/, '🪼'], [/蟹|寄居蟹/, '🦀'], [/蝦|龍蝦/, '🦐'], [/海馬/, '🐴🌊'], [/海蛇|蛇|鰻/, '🐍'], [/菊石/, '🐚'], [/三葉蟲/, '🪲'], [/鱟|海蠍/, '🦂'], [/骷髏|化石|古|鄧氏|腔棘|利茲/, '🦴🐟'], [/鮟鱇|燈籠/, '💡🐟'], [/蝶魚|蝴蝶/, '🦋🐠'], [/玻璃|水晶|琉璃|寶石/, '💎🐠'], [/星|月|晨星|星核|星空/, '✨🐠'], [/血月|腐化|詛咒|夢魘|黑洞|深淵/, '🌑🐟'], [/鯉|鯛|鱸|石斑|旗魚|飛魚|鸚哥魚|銀魚|小魚|魚/, '🐠']
-    ];
+    const rules = [[/克蘇魯|眼/, '👁️🦑'], [/利維坦|龍/, '🐉🌊'], [/克拉肯|章魚|烏賊|觸手|彩墨/, '🐙'], [/鯨|白鯨|藍鯨|虛空鯨|冥河鯨/, '🐋'], [/鯊|巨齒|旋齒/, '🦈'], [/魟|魔鬼魚/, '🪽🐟'], [/河豚|魨/, '🐡'], [/水母/, '🪼'], [/蟹|寄居蟹/, '🦀'], [/蝦|龍蝦/, '🦐'], [/海馬/, '🐴🌊'], [/海蛇|蛇|鰻/, '🐍'], [/菊石/, '🐚'], [/三葉蟲/, '🪲'], [/鱟|海蠍/, '🦂'], [/骷髏|化石|古|鄧氏|腔棘|利茲/, '🦴🐟'], [/鮟鱇|燈籠/, '💡🐟'], [/蝶魚|蝴蝶/, '🦋🐠'], [/玻璃|水晶|琉璃|寶石/, '💎🐠'], [/星|月|晨星|星核|星空/, '✨🐠'], [/血月|腐化|詛咒|夢魘|黑洞|深淵/, '🌑🐟'], [/鯉|鯛|鱸|石斑|旗魚|飛魚|鸚哥魚|銀魚|小魚|魚/, '🐠']];
     const found = rules.find(([re]) => re.test(name));
     let base = found ? found[1] : (poolLabel.includes('神話') ? '🌌🐟' : poolLabel.includes('變異') ? '🧬🐟' : poolLabel.includes('古生物') ? '🦴🐟' : poolLabel.includes('新奇') ? '🌈🐠' : '🐟');
     if (poolLabel.includes('變異')) base = `🧬${base}`;
@@ -97,64 +102,17 @@
     const dex=read('coffeeShipFishDex',{}); dex[item.name]=Math.max(dex[item.name]||0,Number(w.toFixed(2))); save('coffeeShipFishDex',dex);
     show(`${icon} ${q} ${f[0]}`, `分類：${pool.label}<br>海域：${f[1]}<br>稀有度：${f[2]}<br>重量：${w.toFixed(2)} kg`, f[2]==='世界級'?7600:f[2]==='神話'?6200:4600);
   }
-  function addItem(){
-    const it=choice(items); const w=it[3]+Math.random()*(it[4]-it[3]); const item={name:it[1],zone:it[5],rarity:it[2],quality:'拾獲',weight:w,kind:'treasure',icon:it[0],at:now()}; const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120));
-    show(`${it[0]} ${it[1]}`, `類型：物品 / 海底垃圾<br>來源：${it[5]}<br>稀有度：${it[2]}<br>重量：${w.toFixed(2)} kg`);
-  }
+  function addItem(){ const it=choice(items); const w=it[3]+Math.random()*(it[4]-it[3]); const item={name:it[1],zone:it[5],rarity:it[2],quality:'拾獲',weight:w,kind:'treasure',icon:it[0],at:now()}; const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-120)); show(`${it[0]} ${it[1]}`, `類型：物品 / 海底垃圾<br>來源：${it[5]}<br>稀有度：${it[2]}<br>重量：${w.toFixed(2)} kg`); }
   function addLetter(){
-    const l=choice(letters); const list=read(l[0],[]); const title=`${l[2]} ${list.length+1}`; const text=l[3]; list.push({title,text,at:now()}); save(l[0],list.slice(-60));
-    show(`${l[1]} ${title}`, `類型：瓶中信<br><br>${text}`, 6200);
+    const l=choice(letters); const list=read(l[0],[]); const text=typeof l[3]==='function'?l[3]():l[3]; const title=`${l[2]} ${list.length+1}`; list.push({title,text,at:now()}); save(l[0],list.slice(-80)); show(`${l[1]} ${title}`, `類型：瓶中信<br><br>${text}`, 6200);
   }
   function sharkScore(item){ const r={普通:1,常見:2,稀有:4,史詩:7,傳說:11,神話:16,世界級:25}[item.rarity]||1; return r * Math.max(1, Number(item.weight||1)); }
-  function sharkTargets(fishItems, shark, count){
-    let pool = fishItems.slice();
-    if (shark.mode === 'rare') pool = pool.filter(o => !['普通','常見'].includes(o.x.rarity)) || pool;
-    if (!pool.length) pool = fishItems.slice();
-    if (shark.mode === 'heaviest') pool.sort((a,b)=>(b.x.weight||0)-(a.x.weight||0));
-    else if (shark.mode === 'valuable') pool.sort((a,b)=>sharkScore(b.x)-sharkScore(a.x));
-    else if (shark.mode === 'half') count = Math.max(count, Math.ceil(fishItems.length/2));
-    const eaten=[];
-    while(pool.length && eaten.length<count){
-      const pick = (shark.mode === 'random' || shark.mode === 'rare') ? pool.splice(Math.floor(Math.random()*pool.length),1)[0] : pool.shift();
-      if(pick && !eaten.some(e=>e.i===pick.i)) eaten.push(pick);
-    }
-    return eaten;
-  }
-  function shark(){
-    const shark = choice(sharks);
-    const bag=read('coffeeShipFishBag',[]);
-    const fishItems=bag.map((x,i)=>({x,i})).filter(o=>o.x&&(o.x.kind==='fish'||o.x.kind==='mutant'));
-    const wanted = shark.min + Math.floor(Math.random()*(shark.max-shark.min+1));
-    const eaten = sharkTargets(fishItems, shark, Math.min(wanted, fishItems.length));
-    const eatenIdx = eaten.map(e=>e.i);
-    const next=bag.filter((_,i)=>!eatenIdx.includes(i));
-    if (shark.drop) next.push({name:'巨齒鯊王之牙',zone:'鯊魚事件',rarity:'神話',quality:'戰利品',weight:3+Math.random()*8,kind:'treasure',icon:'🦷',at:now()});
-    save('coffeeShipFishBag',next.slice(-120));
-    const lost = eaten.length ? `<div class="shark-loss-list">${eaten.map(e=>`・${e.x.icon||'🐟'} ${e.x.quality || ''} ${e.x.name}（${Number(e.x.weight||0).toFixed(2)} kg）`).join('<br>')}</div>` : '<br>但背包裡沒有魚可以被吃掉。';
-    const drop = shark.drop ? '<br>獲得：🦷 巨齒鯊王之牙' : '';
-    show(`${shark.icon} ${shark.name}`, `稀有度：${shark.rarity}<br>${shark.note}<br><br>損失漁獲：${eaten.length} 件${lost}${drop}`, shark.rarity==='世界級'?7600:6200);
-  }
-  function mermaid(){
-    const bag=read('coffeeShipFishBag',[]); const amount=80+Math.floor(Math.random()*121); bag.push({name:`${amount} 珍珠`,kind:'currency',icon:'🦪',amount,zone:'美人魚贈禮',rarity:'稀有',quality:'貨幣',at:now()}); save('coffeeShipFishBag',bag.slice(-120));
-    show('🧜‍♀️ 美人魚事件', `海面亮起藍色光芒，美人魚唱完一小段歌後潛回海裡。<br>獲得：🦪 ${amount} 珍珠`, 6200);
-  }
+  function sharkTargets(fishItems, shark, count){ let pool = fishItems.slice(); if (shark.mode === 'rare') pool = pool.filter(o => !['普通','常見'].includes(o.x.rarity)) || pool; if (!pool.length) pool = fishItems.slice(); if (shark.mode === 'heaviest') pool.sort((a,b)=>(b.x.weight||0)-(a.x.weight||0)); else if (shark.mode === 'valuable') pool.sort((a,b)=>sharkScore(b.x)-sharkScore(a.x)); else if (shark.mode === 'half') count = Math.max(count, Math.ceil(fishItems.length/2)); const eaten=[]; while(pool.length && eaten.length<count){ const pick = (shark.mode === 'random' || shark.mode === 'rare') ? pool.splice(Math.floor(Math.random()*pool.length),1)[0] : pool.shift(); if(pick && !eaten.some(e=>e.i===pick.i)) eaten.push(pick); } return eaten; }
+  function shark(){ const shark = choice(sharks); const bag=read('coffeeShipFishBag',[]); const fishItems=bag.map((x,i)=>({x,i})).filter(o=>o.x&&(o.x.kind==='fish'||o.x.kind==='mutant')); const wanted = shark.min + Math.floor(Math.random()*(shark.max-shark.min+1)); const eaten = sharkTargets(fishItems, shark, Math.min(wanted, fishItems.length)); const eatenIdx = eaten.map(e=>e.i); const next=bag.filter((_,i)=>!eatenIdx.includes(i)); if (shark.drop) next.push({name:'巨齒鯊王之牙',zone:'鯊魚事件',rarity:'神話',quality:'戰利品',weight:3+Math.random()*8,kind:'treasure',icon:'🦷',at:now()}); save('coffeeShipFishBag',next.slice(-120)); const lost = eaten.length ? `<div class="shark-loss-list">${eaten.map(e=>`・${e.x.icon||'🐟'} ${e.x.quality || ''} ${e.x.name}（${Number(e.x.weight||0).toFixed(2)} kg）`).join('<br>')}</div>` : '<br>但背包裡沒有魚可以被吃掉。'; const drop = shark.drop ? '<br>獲得：🦷 巨齒鯊王之牙' : ''; show(`${shark.icon} ${shark.name}`, `稀有度：${shark.rarity}<br>${shark.note}<br><br>損失漁獲：${eaten.length} 件${lost}${drop}`, shark.rarity==='世界級'?7600:6200); }
+  function mermaid(){ const bag=read('coffeeShipFishBag',[]); const amount=80+Math.floor(Math.random()*121); bag.push({name:`${amount} 珍珠`,kind:'currency',icon:'🦪',amount,zone:'美人魚贈禮',rarity:'稀有',quality:'貨幣',at:now()}); save('coffeeShipFishBag',bag.slice(-120)); show('🧜‍♀️ 美人魚事件', `海面亮起藍色光芒，美人魚唱完一小段歌後潛回海裡。<br>獲得：🦪 ${amount} 珍珠`, 6200); }
 
-  function roll(){
-    const r=Math.random()*100;
-    if(r<4) return shark();
-    if(r<6) return mermaid();
-    if(r<75) return addFish();
-    if(r<93) return addItem();
-    return addLetter();
-  }
-
-  function handle(event){
-    if(!isFishingInput(event)) return;
-    event.preventDefault(); event.stopImmediatePropagation();
-    if(locked()) return;
-    clearAll(); lockedUntil=now()+2000; setTimeout(roll,450);
-  }
-
+  function roll(){ const r=Math.random()*100; if(r<4) return shark(); if(r<6) return mermaid(); if(r<75) return addFish(); if(r<93) return addItem(); return addLetter(); }
+  function handle(event){ if(!isFishingInput(event)) return; event.preventDefault(); event.stopImmediatePropagation(); if(locked()) return; clearAll(); lockedUntil=now()+2000; setTimeout(roll,450); }
   function init(){ addStyle(); ['keydown','click','pointerdown','touchstart'].forEach(t=>window.addEventListener(t,handle,true)); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
