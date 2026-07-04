@@ -1,13 +1,113 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Coffee Ship</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main id="app"></main>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">PIXEL CAFÉ SOCIAL GAME</p>
+        <h1>Coffee Ship</h1>
+        <p class="tagline">創造你的像素分身，登上漂浮咖啡船，喝咖啡、坐下、發呆一下。</p>
+      </div>
+      <div class="status-card">
+        <span id="moodDot"></span>
+        <p id="statusText">等待登船</p>
+      </div>
+    </section>
+
+    <section id="creator" class="panel creator">
+      <h2>建立你的虛擬分身</h2>
+      <div class="form-grid">
+        <label>名字
+          <input id="playerName" maxlength="12" placeholder="例如：L&J" />
+        </label>
+        <label>頭髮
+          <select id="hairColor">
+            <option value="#2b1d16">咖啡黑</option>
+            <option value="#6d3f26">焦糖棕</option>
+            <option value="#e0b45d">拿鐵金</option>
+            <option value="#7e8ee8">星夜藍</option>
+          </select>
+        </label>
+        <label>衣服
+          <select id="shirtColor">
+            <option value="#c96a4a">夕陽橘</option>
+            <option value="#4f8f73">森林綠</option>
+            <option value="#8460c8">薰衣草紫</option>
+            <option value="#d7bb79">奶泡米</option>
+          </select>
+        </label>
+        <label>咖啡
+          <select id="coffeeType">
+            <option>美式</option>
+            <option>拿鐵</option>
+            <option>義式濃縮</option>
+            <option>手沖</option>
+          </select>
+        </label>
+      </div>
+      <button id="startBtn">登上 Coffee Ship</button>
+      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近右側門按 E 前往甲板；靠近 Peak、Bean 或 Mugi 按 E 互動；靠近留言板按 B 留言。</p>
+    </section>
+
+    <section id="gamePanel" class="panel game-panel hidden">
+      <div class="game-topbar">
+        <div>
+          <strong id="avatarName">Guest</strong>
+          <span id="coffeeBadge">還沒點咖啡</span>
+        </div>
+        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動/門/摸貓 · B 留言 · Space 表情</div>
+      </div>
+      <canvas id="game" width="960" height="576"></canvas>
+      <div class="mobile-controls">
+        <button data-move="up">▲</button>
+        <div>
+          <button data-move="left">◀</button>
+          <button data-move="down">▼</button>
+          <button data-move="right">▶</button>
+        </div>
+        <button id="coffeeBtn">☕</button>
+        <button id="sitBtn">摸/坐</button>
+        <button id="messageBtn">留言</button>
+        <button id="emoteBtn">✨</button>
+      </div>
+
+      <aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite">
+        <div class="board-head">
+          <div>
+            <p class="eyebrow">MOMO'S BAR COUNTER</p>
+            <h2>Momo</h2>
+          </div>
+          <button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button>
+        </div>
+        <p class="board-note">靠近 Momo，選一杯今天想喝的咖啡。</p>
+        <div id="coffeeOptions" class="coffee-options"></div>
+      </aside>
+
+      <aside id="messageBoard" class="message-board hidden" aria-live="polite">
+        <div class="board-head">
+          <div>
+            <p class="eyebrow">SHIP MESSAGE BOARD</p>
+            <h2>船上留言板</h2>
+          </div>
+          <button id="closeBoardBtn" class="ghost-btn">關閉</button>
+        </div>
+        <p class="board-note">已完善 Firebase 即時留言板：不同裝置打開同一個 GitHub Pages 網址，就會同步看到留言。</p>
+        <div id="messagesList" class="messages-list"></div>
+        <form id="messageForm" class="message-form">
+          <textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea>
+          <button type="submit">貼到留言板</button>
+        </form>
+      </aside>
+    </section>
+  </main>
+
+  <script src="firebase-config.js"></script>
   <script type="module" src="game.js"></script>
   <script src="roles.js"></script>
   <script src="deck.js"></script>
