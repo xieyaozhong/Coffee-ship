@@ -116,7 +116,7 @@
     loadScript('black-cat-nox.js', 'blackCatNox');
     loadScript('mobile-deck-fix.js?v=deck-ui-4', 'mobileDeckFix');
     loadScript('deck-role-fix.js?v=deck-ui-4', 'deckRoleFix');
-    loadScript('deck-fishing.js', 'deckFishing');
+    loadScript('deck-fishing.js?v=fishing-v5', 'deckFishing');
     loadScript('fishing-cast-animation.js?v=fishing-v5', 'fishingCastAnimation');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('extra-fish-50.js', 'extraFish50');
