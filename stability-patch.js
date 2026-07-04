@@ -109,8 +109,8 @@
     addStatusBadge();
     loadScript('role-sprites.js', 'roleSprites');
     loadScript('role-mobile-ability.js', 'roleAbility');
-    loadScript('change-character.js', 'changeCharacter');
-    loadScript('mobile-home-safe.js', 'mobileHomeSafe');
+    loadScript('change-character.js?v=login-v2', 'changeCharacter');
+    loadScript('mobile-home-safe.js?v=login-v2', 'mobileHomeSafe');
     loadScript('mobile-game-layout.js?v=deck-ui-4', 'mobileGameLayout');
     loadScript('quality-polish.js', 'qualityPolish');
     loadScript('black-cat-nox.js', 'blackCatNox');
