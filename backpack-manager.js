@@ -27,8 +27,9 @@
     s.id = 'backpackManagerStyle';
     s.textContent = `
       #backpackManagerRoot{display:block!important;visibility:visible!important;margin:14px 0 18px;padding:12px;border:2px solid #76536a;border-radius:18px;background:rgba(16,10,22,.94);position:relative;z-index:3}
+      #backpackSafeOpenBtn{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:16000;border:0;border-radius:18px;padding:12px 14px;background:#3a263f;color:#fff4d8;font-weight:1000;box-shadow:0 8px 0 rgba(0,0,0,.28);border:2px solid #76536a;cursor:pointer}
       .backpack-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.backpack-tab{border:2px solid #76536a;background:#211728;color:#fff4d8;border-radius:999px;padding:7px 11px;font-weight:900;cursor:pointer}.backpack-tab.active{background:#ffe16b;color:#211728;border-color:#ffe16b}.backpack-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.backpack-entry{border:2px solid #76536a;background:#171020;border-radius:14px;padding:10px;color:#fff4d8;font-weight:850}.backpack-entry small{display:block;opacity:.86;line-height:1.45;margin-top:4px}.backpack-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.discard-btn,.sell-btn{border:0;border-radius:10px;padding:7px 10px;color:#fff4d8;font-weight:950;cursor:pointer}.discard-btn{background:#c96a4a}.sell-btn{background:#4f8f73}.discard-btn:hover,.sell-btn:hover{filter:brightness(1.12)}.backpack-empty{border:2px dashed #76536a;border-radius:14px;padding:14px;text-align:center;color:#d7bb79;font-weight:900}.backpack-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.backpack-tool{border:0;border-radius:12px;padding:7px 10px;background:#f2a957;color:#211728;font-weight:950;cursor:pointer}.price-line{color:#ffe16b;font-weight:1000}
-      @media(max-width:760px){.backpack-list{grid-template-columns:1fr}.backpack-tab{font-size:13px;padding:6px 9px}.discard-btn,.sell-btn,.backpack-tool{width:100%}.backpack-actions{gap:6px}}
+      @media(max-width:900px){#backpackSafeOpenBtn{right:14px;bottom:calc(110px + env(safe-area-inset-bottom));font-size:18px;padding:13px 15px}.backpack-list{grid-template-columns:1fr}.backpack-tab{font-size:13px;padding:6px 9px}.discard-btn,.sell-btn,.backpack-tool{width:100%}.backpack-actions{gap:6px}}
     `;
     document.head.appendChild(s);
   }
@@ -66,7 +67,25 @@
     root.innerHTML = `<h3>🎒 背包管理</h3><div class="backpack-tools"><button class="backpack-tool" data-organize-pearls="1">整理珍珠：${pearlTotal}</button><button class="backpack-tool" data-clear-current="1">清空目前分類</button></div><div class="backpack-tabs"><button class="backpack-tab ${activeTab==='fish'?'active':''}" data-tab="fish">魚類 ${counts.fish}</button><button class="backpack-tab ${activeTab==='item'?'active':''}" data-tab="item">物品 ${counts.item}</button><button class="backpack-tab ${activeTab==='letter'?'active':''}" data-tab="letter">信件 ${counts.letter}</button></div><div class="backpack-content">${activeTab === 'fish' ? renderFish(items) : activeTab === 'item' ? renderItems(items) : renderLetters()}</div>`;
     p.insertBefore(root, p.firstChild);
   }
-  function sync() { const p = panel(); const visible = !!p && !p.classList.contains('hidden'); if (visible && !lastVisible) setTimeout(forceBuild, 60); if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild(); if (visible) cleanupLegacyButtons(p); lastVisible = visible; }
+  function openBackpack() {
+    const p = panel();
+    if (!p) return;
+    p.classList.remove('hidden');
+    p.style.display = '';
+    p.style.visibility = 'visible';
+    p.style.pointerEvents = 'auto';
+    setTimeout(forceBuild, 30);
+  }
+  function ensureOpenButton() {
+    if (document.getElementById('backpackSafeOpenBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'backpackSafeOpenBtn';
+    btn.type = 'button';
+    btn.textContent = '📖 背包';
+    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openBackpack(); }, true);
+    document.body.appendChild(btn);
+  }
+  function sync() { ensureOpenButton(); const p = panel(); const visible = !!p && !p.classList.contains('hidden'); if (visible && !lastVisible) setTimeout(forceBuild, 60); if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild(); if (visible) cleanupLegacyButtons(p); lastVisible = visible; }
 
   function bind() {
     document.addEventListener('click', e => {
@@ -80,6 +99,6 @@
     }, true);
   }
 
-  function init() { addStyle(); bind(); setInterval(sync, 120); }
+  function init() { addStyle(); ensureOpenButton(); bind(); setInterval(sync, 120); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
