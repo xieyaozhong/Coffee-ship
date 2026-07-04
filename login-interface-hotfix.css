@@ -1,5 +1,24 @@
 body:has(#creator.login-interface-ready:not(.hidden)) .hero{display:none!important}
 body:has(#creator.login-interface-ready:not(.hidden)) .shell{padding-top:18px}
+body:has(#creator:not(.hidden)) #backpackSafeOpenBtn,
+body:has(#creator:not(.hidden)) #fishDexPanel,
+body:has(#creator:not(.hidden)) #sceneStatusBadge,
+body:has(#creator:not(.hidden)) #deckCoffeeAuraCanvas,
+body:has(#creator:not(.hidden)) #fishingMotionCanvas,
+body:has(#creator:not(.hidden)) #fishingRareCanvas{
+  display:none!important;
+}
+#creator.login-interface-ready .login-role-loading{
+  margin:0;
+  padding:12px;
+  color:#d0bfa8;
+  text-align:center;
+  border:1px dashed #76536a;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:800;
+}
+#creator.login-interface-ready #animalHint{display:none!important}
 html.login-resetting body::after,
 body.login-resetting::after{
   content:'正在準備角色…';
