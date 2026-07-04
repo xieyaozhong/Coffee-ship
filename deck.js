@@ -4,6 +4,7 @@
   let scene = 'cafe';
   let overlay;
   let ctx;
+  let mobileReturnBtn;
   let deckPlayer = { x: 150, y: 360, speed: 2.4, emote: null, emoteTimer: 0 };
   const keys = new Set();
   let wave = 0;
@@ -12,7 +13,9 @@
   let deckShownOnce = false;
 
   function addStyle() {
+    if (document.getElementById('deckSceneStyle')) return;
     const style = document.createElement('style');
+    style.id = 'deckSceneStyle';
     style.textContent = `
       .deck-overlay {
         position: absolute;
@@ -41,6 +44,30 @@
         box-shadow: 0 6px 0 rgba(0,0,0,.25);
       }
       .deck-tip.hidden { display: none; }
+      .deck-mobile-return {
+        display: none;
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        z-index: 16000;
+        min-height: 48px;
+        padding: 11px 16px;
+        border: 2px solid #ffe5ae;
+        border-radius: 14px;
+        background: #f0a75c;
+        color: #2b1713;
+        font-size: 16px;
+        font-weight: 1000;
+        box-shadow: 0 6px 0 #9b5d31;
+        pointer-events: auto;
+        touch-action: manipulation;
+      }
+      @media (max-width:760px) {
+        .mobile-controls { position: relative; z-index: 20; }
+        .game-topbar { position: relative; z-index: 20; }
+        .deck-mobile-return.show { display: block; }
+        .deck-tip { top: 64px; max-width: calc(100% - 32px); text-align: center; }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -48,22 +75,45 @@
   function makeOverlay() {
     const panel = document.getElementById('gamePanel');
     const game = document.getElementById('game');
-    if (!panel || !game || document.getElementById('deckOverlay')) return;
+    if (!panel || !game) return;
     if (getComputedStyle(panel).position === 'static') panel.style.position = 'relative';
-    overlay = document.createElement('canvas');
-    overlay.id = 'deckOverlay';
-    overlay.className = 'deck-overlay hidden';
-    overlay.width = W;
-    overlay.height = H;
+
+    overlay = document.getElementById('deckOverlay');
+    if (!overlay) {
+      overlay = document.createElement('canvas');
+      overlay.id = 'deckOverlay';
+      overlay.className = 'deck-overlay hidden';
+      overlay.width = W;
+      overlay.height = H;
+      panel.appendChild(overlay);
+    }
     ctx = overlay.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    panel.appendChild(overlay);
 
-    const tip = document.createElement('div');
-    tip.id = 'deckTip';
-    tip.className = 'deck-tip hidden';
-    tip.textContent = '🚪 靠近右側門按 E 前往甲板';
-    panel.appendChild(tip);
+    let tip = document.getElementById('deckTip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'deckTip';
+      tip.className = 'deck-tip hidden';
+      tip.textContent = '🚪 靠近右側門按 E 前往甲板';
+      panel.appendChild(tip);
+    }
+
+    mobileReturnBtn = document.getElementById('deckMobileReturnBtn');
+    if (!mobileReturnBtn) {
+      mobileReturnBtn = document.createElement('button');
+      mobileReturnBtn.type = 'button';
+      mobileReturnBtn.id = 'deckMobileReturnBtn';
+      mobileReturnBtn.className = 'deck-mobile-return';
+      mobileReturnBtn.textContent = '🚪 回咖啡廳';
+      mobileReturnBtn.setAttribute('aria-label', '回到咖啡廳');
+      mobileReturnBtn.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        switchToCafe();
+      }, true);
+      panel.appendChild(mobileReturnBtn);
+    }
   }
 
   function setTip(text, show) {
@@ -71,6 +121,13 @@
     if (!tip) return;
     tip.textContent = text;
     tip.classList.toggle('hidden', !show);
+  }
+
+  function updateSceneState(nextScene) {
+    window.COFFEE_SHIP_SCENE = nextScene;
+    document.body.dataset.coffeeShipScene = nextScene;
+    const badge = document.getElementById('sceneStatusBadge');
+    if (badge) badge.textContent = nextScene === 'deck' ? '🌊 Deck' : '☕ Cafe';
   }
 
   function playerPos() {
@@ -83,23 +140,30 @@
   }
 
   function switchToDeck() {
+    if (!overlay) makeOverlay();
     if (!overlay) return;
     scene = 'deck';
+    keys.clear();
     overlay.classList.remove('hidden');
+    mobileReturnBtn?.classList.add('show');
     deckPlayer.x = 145;
     deckPlayer.y = 360;
     fade = 1;
+    updateSceneState('deck');
     if (!deckShownOnce) {
       deckShownOnce = true;
-      setTip('🌊 Welcome to the Deck｜今晚海風很好，按 E 可從左側門回咖啡廳', true);
+      setTip('🌊 Welcome to the Deck｜手機可按右下角「回咖啡廳」', true);
       setTimeout(() => { if (scene === 'deck') setTip('', false); }, 4200);
     }
   }
 
   function switchToCafe() {
     scene = 'cafe';
+    keys.clear();
     overlay?.classList.add('hidden');
+    mobileReturnBtn?.classList.remove('show');
     setTip('', false);
+    updateSceneState('cafe');
   }
 
   function px(x, y, w, h, color) {
@@ -219,7 +283,7 @@
       drawDeck();
       drawDeckPlayer();
       if (Math.hypot(deckPlayer.x - 113, deckPlayer.y - 395) < 70) {
-        setTip('🚪 按 E 回咖啡廳', true);
+        setTip('🚪 按 E 或右下角按鈕回咖啡廳', true);
       } else {
         setTip('', false);
       }
@@ -262,6 +326,13 @@
   function init() {
     addStyle();
     makeOverlay();
+    updateSceneState('cafe');
+    window.COFFEE_SHIP_DECK = {
+      switchToDeck,
+      switchToCafe,
+      isDeckOpen: () => scene === 'deck',
+      getScene: () => scene
+    };
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('keyup', onKeyUp, true);
     loop();
