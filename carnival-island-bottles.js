@@ -23,6 +23,10 @@
     ['狂歡島漂流瓶 19｜最後的清醒','我把所有找到的遺失物綁成一包丟進海裡。也許有人會釣到它們。請記住：那些不是紀念品，是有人忘記自己以前是人的證據。'],
     ['狂歡島漂流瓶 20｜不要靠岸','如果你在海上看見燈火、聽見笑聲、聞到甜味，請立刻轉舵。不要靠岸。當你覺得音樂很好聽時，就已經太晚了。']
   ];
+
+  const items = [
+    ['👒','華麗羽毛帽',0.1,0.4],['🎭','狂歡面具',0.2,0.8],['🎈','褪色派對氣球',0.01,0.05],['🧸','舊布偶',0.2,0.9],['🎠','壞掉的音樂盒',0.4,1.4],['🥂','裂紋水晶杯',0.2,0.7],['🍾','空酒瓶',0.3,1.1],['🎲','刻字骰子',0.05,0.2],['🎺','金色小喇叭',0.4,1.2],['🪇','斷柄沙鈴',0.15,0.5],['👗','華麗禮服碎片',0.1,0.6],['👔','黑色燕尾服',0.6,1.6],['👠','單隻高跟鞋',0.3,0.9],['👞','發霉皮鞋',0.4,1.2],['🎀','濕掉的緞帶',0.02,0.1],['💍','鍍金戒指',0.01,0.05],['🧤','白手套',0.03,0.12],['🎩','泡水禮帽',0.2,0.7],['📿','彩色項鍊',0.05,0.2],['🪞','裂開的化妝鏡',0.3,0.9]
+  ];
   let lock = false;
 
   function isDeckOpen(){ const d=document.getElementById('deckOverlay'); return d && !d.classList.contains('hidden'); }
@@ -38,13 +42,7 @@
   function ensureCard(){ const p=document.getElementById('gamePanel'); if(!p||document.getElementById('carnivalCard')) return; if(getComputedStyle(p).position==='static') p.style.position='relative'; const c=document.createElement('div'); c.id='carnivalCard'; c.className='carnival-card hidden'; p.appendChild(c); }
   function saveLetter(title,text){ let list=read('coffeeShipCarnivalLetters',[]); if(!list.some(x=>x.title===title)) list.push({title,text,at:Date.now()}); save('coffeeShipCarnivalLetters',list.slice(-30)); }
   function showLetter(){ const card=document.getElementById('carnivalCard'); if(!card)return; const e=letters[Math.floor(Math.random()*letters.length)]; saveLetter(e[0],e[1]); card.innerHTML=`<div class="carnival-title">🎭 ${e[0]}</div><div class="carnival-text">${e[1]}</div>`; card.classList.remove('hidden'); setTimeout(()=>card.classList.add('hidden'),8200); }
-  function showItem(){
-    const card=document.getElementById('carnivalCard'); if(!card)return;
-    const item = window.COFFEE_SHIP_CARNIVAL_LOOT?.pick ? window.COFFEE_SHIP_CARNIVAL_LOOT.pick() : {name:'狂歡節面具',zone:'狂歡島遺失物',rarity:'稀有',quality:'遺失物',weight:.2,kind:'treasure',icon:'🎭',note:'從狂歡島漂來的遺失物。',at:Date.now()};
-    const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-180));
-    card.innerHTML=`<div class="carnival-title">${item.icon} 狂歡島遺失物</div><div class="carnival-text">釣到了：${item.name}<br>分類：${item.quality || '遺失物'}<br>稀有度：${item.rarity || '普通'}<br>重量：${Number(item.weight || 0).toFixed(2)} kg<br><br>${item.note || '它聞起來像甜酒、海鹽和一場不肯結束的宴會。'}</div>`;
-    card.classList.remove('hidden'); setTimeout(()=>card.classList.add('hidden'),5200);
-  }
+  function showItem(){ const card=document.getElementById('carnivalCard'); if(!card)return; const it=items[Math.floor(Math.random()*items.length)]; const w=it[2]+Math.random()*(it[3]-it[2]); const item={name:it[1],zone:'狂歡島漂流物',rarity:'稀有',quality:'遺失物',weight:w,kind:'treasure',icon:it[0],at:Date.now()}; const bag=read('coffeeShipFishBag',[]); bag.push(item); save('coffeeShipFishBag',bag.slice(-80)); card.innerHTML=`<div class="carnival-title">${it[0]} 狂歡島遺失物</div><div class="carnival-text">釣到了：${it[1]}<br>來源：狂歡島海域<br>重量：${w.toFixed(2)} kg<br><br>它聞起來像甜酒、海鹽和一場不肯結束的宴會。</div>`; card.classList.remove('hidden'); setTimeout(()=>card.classList.add('hidden'),5200); }
   function tryCarnival(e){ if(!isDeckOpen()||lock)return false; if(Math.random()>.16)return false; lock=true; e?.preventDefault?.(); e?.stopImmediatePropagation?.(); setTimeout(()=>{ Math.random()<.58?showLetter():showItem(); lock=false; },700+Math.random()*900); return true; }
   function bind(){ window.addEventListener('keydown',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;if(k==='f'||k==='c')tryCarnival(e);},true); document.getElementById('coffeeBtn')?.addEventListener('click',e=>tryCarnival(e),true); }
   function init(){ addStyle(); ensureCard(); bind(); }
