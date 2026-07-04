@@ -6,6 +6,7 @@
   <title>Coffee Ship</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="npc-coffee-upgrade.css?v=npc-coffee-1" />
+  <link rel="stylesheet" href="login-interface-fix.css?v=login-v2" />
 </head>
 <body>
   <main class="shell">
@@ -25,7 +26,7 @@
       <h2>建立你的虛擬分身</h2>
       <div class="form-grid">
         <label>名字
-          <input id="playerName" maxlength="12" placeholder="例如：L&J" />
+          <input id="playerName" maxlength="12" autocomplete="nickname" placeholder="例如：L&J" />
         </label>
         <label>頭髮
           <select id="hairColor">
@@ -43,8 +44,8 @@
             <option value="#d7bb79">奶泡米</option>
           </select>
         </label>
-        <label>咖啡偏好
-          <select id="coffeeType">
+        <label class="login-legacy-field" aria-hidden="true">舊版咖啡偏好
+          <select id="coffeeType" tabindex="-1">
             <option>美式</option>
             <option>拿鐵</option>
             <option>義式濃縮</option>
@@ -52,7 +53,7 @@
           </select>
         </label>
       </div>
-      <button id="startBtn">登上 Coffee Ship</button>
+      <button id="startBtn">以一般旅人登船</button>
       <p class="hint">方向鍵 / WASD 移動。靠近巡店中的 Momo 按 C 或 E，以珍珠購買效果咖啡；靠近 Peak、Bean 或 Mugi 按 E 互動。</p>
     </section>
 
@@ -110,7 +111,8 @@
 
   <script src="firebase-config.js"></script>
   <script type="module" src="game.js?v=npc-coffee-1"></script>
-  <script src="roles.js"></script>
+  <script src="roles.js?v=login-v2"></script>
+  <script src="login-interface-fix.js?v=login-v2"></script>
   <script src="deck.js?v=deck-ui-4"></script>
   <script src="coffee-ship-v2-db.js"></script>
   <script src="coffee-ship-emoji-rarity-system.js?v=icons-v5"></script>
@@ -126,7 +128,7 @@
   <script src="original-emoji-restore.js"></script>
   <script src="ocean-friends-events.js"></script>
   <script src="single-fishing-result.js"></script>
-  <script src="stability-patch.js?v=npc-coffee-1"></script>
+  <script src="stability-patch.js?v=login-v2"></script>
   <script src="mermaid-event.js"></script>
   <script src="mad-priest-bottles.js?v=story-rebuild-30"></script>
   <script src="carnival-island-bottles.js?v=story-rebuild-30"></script>
