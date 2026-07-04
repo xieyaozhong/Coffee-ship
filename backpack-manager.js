@@ -26,7 +26,7 @@
     const s = document.createElement('style');
     s.id = 'backpackManagerStyle';
     s.textContent = `
-      #backpackManagerRoot{margin:14px 0 18px;padding:12px;border:2px solid #76536a;border-radius:18px;background:rgba(16,10,22,.92)}
+      #backpackManagerRoot{display:block!important;visibility:visible!important;margin:14px 0 18px;padding:12px;border:2px solid #76536a;border-radius:18px;background:rgba(16,10,22,.92)}
       .backpack-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.backpack-tab{border:2px solid #76536a;background:#211728;color:#fff4d8;border-radius:999px;padding:7px 11px;font-weight:900;cursor:pointer}.backpack-tab.active{background:#ffe16b;color:#211728;border-color:#ffe16b}.backpack-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.backpack-entry{border:2px solid #76536a;background:#171020;border-radius:14px;padding:10px;color:#fff4d8;font-weight:850}.backpack-entry small{display:block;opacity:.86;line-height:1.45;margin-top:4px}.backpack-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.discard-btn,.sell-btn{border:0;border-radius:10px;padding:7px 10px;color:#fff4d8;font-weight:950;cursor:pointer}.discard-btn{background:#c96a4a}.sell-btn{background:#4f8f73}.discard-btn:hover,.sell-btn:hover{filter:brightness(1.12)}.backpack-empty{border:2px dashed #76536a;border-radius:14px;padding:14px;text-align:center;color:#d7bb79;font-weight:900}.backpack-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.backpack-tool{border:0;border-radius:12px;padding:7px 10px;background:#f2a957;color:#211728;font-weight:950;cursor:pointer}.price-line{color:#ffe16b;font-weight:1000}.legacy-dex-hidden{display:none!important}
       @media(max-width:760px){.backpack-list{grid-template-columns:1fr}.backpack-tab{font-size:13px;padding:6px 9px}.discard-btn,.sell-btn,.backpack-tool{width:100%}.backpack-actions{gap:6px}}
     `;
@@ -34,37 +34,12 @@
   }
 
   function itemTitle(item) { const icon = item.icon || (item.kind === 'mutant' ? '🧬' : isCurrency(item) ? '🦪' : isItem(item) ? '📦' : '🐟'); return `${icon} ${item.quality && item.kind !== 'currency' ? item.quality + ' ' : ''}${item.name || '未知物品'}`; }
-  function priceOf(item) {
-    if (!item) return 1;
-    if (item.kind === 'currency') return Math.max(1, Number(item.amount || 1));
-    const rarity = { '普通': 4, '常見': 7, '稀有': 18, '史詩': 55, '傳說': 180, '神話': 520, '世界級': 3000 }[item.rarity] || 10;
-    const quality = { '普通': 1, '優秀': 1.25, '完美': 1.7, '閃亮': 2.4, '神話': 4, '拾獲': 1.1, '遺失物': 1.4, '變異': 3 }[item.quality] || 1;
-    const weight = Math.max(1, Number(item.weight || 1));
-    const kindBoost = item.kind === 'mutant' ? 4 : item.kind === 'treasure' ? 1.8 : isFish(item) ? 1 : 1.2;
-    return Math.max(1, Math.round(weight * rarity * quality * kindBoost));
-  }
+  function priceOf(item) { if (!item) return 1; if (item.kind === 'currency') return Math.max(1, Number(item.amount || 1)); const rarity = { '普通': 4, '常見': 7, '稀有': 18, '史詩': 55, '傳說': 180, '神話': 520, '世界級': 3000 }[item.rarity] || 10; const quality = { '普通': 1, '優秀': 1.25, '完美': 1.7, '閃亮': 2.4, '神話': 4, '拾獲': 1.1, '遺失物': 1.4, '變異': 3 }[item.quality] || 1; const weight = Math.max(1, Number(item.weight || 1)); const kindBoost = item.kind === 'mutant' ? 4 : item.kind === 'treasure' ? 1.8 : isFish(item) ? 1 : 1.2; return Math.max(1, Math.round(weight * rarity * quality * kindBoost)); }
   function letterPrice(letter) { const t = `${letter.title || ''} ${letter.text || ''}`; if (/黑鬍子|藏寶圖/.test(t)) return 120; if (/拉納爾|愛麗兒/.test(t)) return 95; if (/瘋狂神父|狂歡島/.test(t)) return 80; if (/哈斯|可可|莫納|孤島/.test(t)) return 70; return 45; }
-  function itemDetail(item) {
-    const parts = [];
-    if (item.zone) parts.push(`來源：${item.zone}`);
-    if (item.rarity) parts.push(`稀有度：${item.rarity}`);
-    if (item.weight) parts.push(`重量：${Number(item.weight).toFixed(2)} kg`);
-    if (item.amount) parts.push(`數量：${Number(item.amount)} 珍珠`);
-    if (item.trait) parts.push(`特性：${item.trait}`);
-    parts.push(`<span class="price-line">售價：${priceOf(item)} 珍珠</span>`);
-    return parts.join('<br>');
-  }
+  function itemDetail(item) { const parts = []; if (item.zone) parts.push(`來源：${item.zone}`); if (item.rarity) parts.push(`稀有度：${item.rarity}`); if (item.weight) parts.push(`重量：${Number(item.weight).toFixed(2)} kg`); if (item.amount) parts.push(`數量：${Number(item.amount)} 珍珠`); if (item.trait) parts.push(`特性：${item.trait}`); parts.push(`<span class="price-line">售價：${priceOf(item)} 珍珠</span>`); return parts.join('<br>'); }
 
   function addPearls(amount, source) { const items = bag(); items.push({ name: `${amount} 珍珠`, kind: 'currency', icon: '🦪', amount, zone: source || '販售所得', rarity: '常見', quality: '貨幣', at: Date.now() }); setBag(items); }
-  function organizePearls() {
-    const items = bag();
-    const total = items.filter(isCurrency).reduce((s, x) => s + Number(x.amount || 0), 0);
-    const others = items.filter(x => !isCurrency(x));
-    if (total > 0) others.push({ name: `${total} 珍珠`, kind: 'currency', icon: '🦪', amount: total, zone: '整理珍珠', rarity: '常見', quality: '貨幣', at: Date.now() });
-    setBag(others);
-    activeTab = 'item';
-    forceBuild();
-  }
+  function organizePearls() { const items = bag(); const total = items.filter(isCurrency).reduce((s, x) => s + Number(x.amount || 0), 0); const others = items.filter(x => !isCurrency(x)); if (total > 0) others.push({ name: `${total} 珍珠`, kind: 'currency', icon: '🦪', amount: total, zone: '整理珍珠', rarity: '常見', quality: '貨幣', at: Date.now() }); setBag(others); activeTab = 'item'; forceBuild(); }
   function discardBagIndex(index) { const items = bag(); items.splice(index, 1); setBag(items); forceBuild(); }
   function sellBagIndex(index) { const items = bag(); const item = items[index]; const price = priceOf(item); items.splice(index, 1); setBag(items); addPearls(price, `販售：${item?.name || '物品'}`); activeTab = 'item'; forceBuild(); }
   function discardLetter(key, index) { const list = read(key, []); list.splice(index, 1); save(key, list); forceBuild(); }
@@ -76,10 +51,8 @@
   function renderLetters() { const arr = letterSources(); if (!arr.length) return '<div class="backpack-empty">目前沒有信件。</div>'; return `<div class="backpack-list">${arr.map(l => `<div class="backpack-entry"><strong>${l.icon} ${l.title}</strong><small>${l.text || ''}<br><span class="price-line">售價：${letterPrice(l)} 珍珠</span></small><div class="backpack-actions"><button class="sell-btn" data-sell-letter-key="${l.key}" data-sell-letter-index="${l.index}">販售</button><button class="discard-btn" data-discard-letter-key="${l.key}" data-discard-letter-index="${l.index}">丟棄</button></div></div>`).join('')}</div>`; }
 
   function panel() { return document.getElementById('fishDexPanel'); }
-  function hideLegacyDex(p) {
-    Array.from(p.children).forEach(el => { if (el.id !== 'backpackManagerRoot' && !el.classList.contains('board-head')) el.classList.add('legacy-dex-hidden'); });
-    Array.from(p.querySelectorAll('button')).forEach(btn => { const text=(btn.textContent||'').trim(); if (text === '只關閉' || text.includes('賣出背包可販售漁獲')) btn.remove(); });
-  }
+  function removeLegacyButtons(p) { Array.from(p.querySelectorAll('button')).forEach(btn => { const text=(btn.textContent||'').trim(); if (text === '只關閉' || text.includes('賣出背包可販售漁獲')) btn.remove(); }); }
+  function hideLegacyDex(p) { removeLegacyButtons(p); Array.from(p.children).forEach(el => { if (el.id === 'backpackManagerRoot') return; if (el.querySelector && el.querySelector('#backpackManagerRoot')) return; if (el.classList.contains('board-head')) return; if (el.tagName === 'BUTTON') return; el.classList.add('legacy-dex-hidden'); }); }
   function stripOldSections(p) { p.querySelectorAll('#backpackManagerRoot').forEach(x => x.remove()); }
   function forceBuild() {
     const p = panel();
@@ -90,19 +63,11 @@
     const items = bag();
     const counts = { fish: items.filter(isFish).length, item: items.filter(isItem).length, letter: letterSources().length };
     const pearlTotal = items.filter(isCurrency).reduce((s,x)=>s+Number(x.amount||0),0);
-    root.innerHTML = `
-      <h3>🎒 背包管理</h3>
-      <div class="backpack-tools"><button class="backpack-tool" data-organize-pearls="1">整理珍珠：${pearlTotal}</button><button class="backpack-tool" data-clear-current="1">清空目前分類</button></div>
-      <div class="backpack-tabs">
-        <button class="backpack-tab ${activeTab==='fish'?'active':''}" data-tab="fish">魚類 ${counts.fish}</button>
-        <button class="backpack-tab ${activeTab==='item'?'active':''}" data-tab="item">物品 ${counts.item}</button>
-        <button class="backpack-tab ${activeTab==='letter'?'active':''}" data-tab="letter">信件 ${counts.letter}</button>
-      </div>
-      <div class="backpack-content">${activeTab === 'fish' ? renderFish(items) : activeTab === 'item' ? renderItems(items) : renderLetters()}</div>`;
+    root.innerHTML = `<h3>🎒 背包管理</h3><div class="backpack-tools"><button class="backpack-tool" data-organize-pearls="1">整理珍珠：${pearlTotal}</button><button class="backpack-tool" data-clear-current="1">清空目前分類</button></div><div class="backpack-tabs"><button class="backpack-tab ${activeTab==='fish'?'active':''}" data-tab="fish">魚類 ${counts.fish}</button><button class="backpack-tab ${activeTab==='item'?'active':''}" data-tab="item">物品 ${counts.item}</button><button class="backpack-tab ${activeTab==='letter'?'active':''}" data-tab="letter">信件 ${counts.letter}</button></div><div class="backpack-content">${activeTab === 'fish' ? renderFish(items) : activeTab === 'item' ? renderItems(items) : renderLetters()}</div>`;
     p.insertBefore(root, p.firstChild);
     hideLegacyDex(p);
   }
-  function sync() { const p = panel(); const visible = !!p && !p.classList.contains('hidden'); if (visible) hideLegacyDex(p); if (visible && !lastVisible) setTimeout(forceBuild, 60); if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild(); lastVisible = visible; }
+  function sync() { const p = panel(); const visible = !!p && !p.classList.contains('hidden'); if (visible && !lastVisible) setTimeout(forceBuild, 60); if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild(); if (visible) hideLegacyDex(p); lastVisible = visible; }
 
   function bind() {
     document.addEventListener('click', e => {
