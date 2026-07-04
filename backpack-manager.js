@@ -96,10 +96,17 @@
   function stripOldSections(p) {
     p.querySelectorAll('#backpackManagerRoot').forEach(x => x.remove());
   }
+  function removeCloseOnlyButtons(p) {
+    Array.from(p.querySelectorAll('button')).forEach(btn => {
+      const text = (btn.textContent || '').trim();
+      if (text === '只關閉') btn.remove();
+    });
+  }
   function forceBuild() {
     const p = panel();
     if (!p || p.classList.contains('hidden')) return;
     stripOldSections(p);
+    removeCloseOnlyButtons(p);
     const root = document.createElement('section');
     root.id = 'backpackManagerRoot';
     const items = bag();
@@ -120,6 +127,7 @@
   function sync() {
     const p = panel();
     const visible = !!p && !p.classList.contains('hidden');
+    if (visible) removeCloseOnlyButtons(p);
     if (visible && !lastVisible) setTimeout(forceBuild, 60);
     if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild();
     lastVisible = visible;
