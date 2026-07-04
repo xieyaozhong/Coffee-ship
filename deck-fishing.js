@@ -34,84 +34,91 @@
     {title:'威爾伯德的求救信 Day 10', text:'第十天，這可能是我最重要的一封信。我會在最高的棕櫚樹旁生火，直到有人來。若你讀到這裡，請把 Coffee Ship 開向有黑礁石的孤島。'}
   ];
 
-  const RARITY_WEIGHT = { '普通':50, '常見':31, '稀有':14, '史詩':4.2, '傳說':0.8 };
+  const RARITY_WEIGHT = {普通:50,常見:31,稀有:14,史詩:4.2,傳說:.8};
   const QUALITY_TABLE = [['普通',55,1],['優秀',25,1.13],['完美',13,1.28],['閃亮',5,1.5],['神話',2,1.9]];
-  const COLORS = { '普通':'#fff4d8', '常見':'#9ce8f0', '稀有':'#79d0b1', '史詩':'#e9a6b0', '傳說':'#ffe16b' };
-  const ICONS = { fish:'🐟', shrimp:'🦐', crab:'🦀', angler:'🐡', mermaid:'🧜‍♀️', trash:'🗑️', letter:'🍾', squid:'🦑', jelly:'🪼', shell:'🐚', octopus:'🐙', whale:'🐋', treasure:'📦' };
-  const STORAGE = { count:'coffeeShipCatchCount', best:'coffeeShipBestFish', dex:'coffeeShipFishDex', bag:'coffeeShipFishBag', money:'coffeeShipPearls', letters:'coffeeShipBottleLetters' };
+  const COLORS = {普通:'#fff4d8',常見:'#9ce8f0',稀有:'#79d0b1',史詩:'#e9a6b0',傳說:'#ffe16b'};
+  const ICONS = {fish:'🐟',shrimp:'🦐',crab:'🦀',angler:'🐡',mermaid:'🧜‍♀️',trash:'🗑️',letter:'🍾',squid:'🦑',jelly:'🪼',shell:'🐚',octopus:'🐙',whale:'🐋',treasure:'📦'};
+  const STORAGE = {count:'coffeeShipCatchCount',best:'coffeeShipBestFish',dex:'coffeeShipFishDex',bag:'coffeeShipFishBag',money:'coffeeShipPearls',letters:'coffeeShipBottleLetters'};
 
-  let busy=false, cooldown=0, noticeTimer=0, notice='', noticeColor='#fff4d8';
+  let busy=false,cooldown=0,noticeTimer=0,notice='',noticeColor='#fff4d8';
   let count=Number(localStorage.getItem(STORAGE.count)||0);
   let best=readJson(STORAGE.best,null);
   let dex=readJson(STORAGE.dex,{});
   let bag=readJson(STORAGE.bag,[]);
-  let pearls=Number(localStorage.getItem(STORAGE.money)||0);
   let savedLetters=readJson(STORAGE.letters,[]);
 
   function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch{return fallback;}}
-  function saveAll(){localStorage.setItem(STORAGE.count,String(count));localStorage.setItem(STORAGE.dex,JSON.stringify(dex));localStorage.setItem(STORAGE.bag,JSON.stringify(bag.slice(-220)));localStorage.setItem(STORAGE.money,String(pearls));localStorage.setItem(STORAGE.letters,JSON.stringify(savedLetters.slice(-120)));if(best)localStorage.setItem(STORAGE.best,JSON.stringify(best));}
+  function readPearls(){return Math.max(0,Number(localStorage.getItem(STORAGE.money)||0));}
+  function writePearls(value){const next=Math.max(0,Math.floor(Number(value)||0));localStorage.setItem(STORAGE.money,String(next));window.dispatchEvent(new CustomEvent('coffeeShipPearlsChanged',{detail:{pearls:next}}));return next;}
+  function saveAll(){localStorage.setItem(STORAGE.count,String(count));localStorage.setItem(STORAGE.dex,JSON.stringify(dex));localStorage.setItem(STORAGE.bag,JSON.stringify(bag.slice(-220)));localStorage.setItem(STORAGE.letters,JSON.stringify(savedLetters.slice(-120)));if(best)localStorage.setItem(STORAGE.best,JSON.stringify(best));}
   function isDeckOpen(){const api=window.COFFEE_SHIP_DECK;if(api?.isDeckOpen)return api.isDeckOpen();const d=document.getElementById('deckOverlay');return d&&!d.classList.contains('hidden');}
   function ctxDeck(){const d=document.getElementById('deckOverlay');return d?d.getContext('2d'):null;}
+  function coffeeEffect(){const effect=window.COFFEE_SHIP_COFFEE_EFFECT;return effect&&effect.expiresAt>Date.now()?effect:null;}
+  function bonus(name,fallback=1){const value=coffeeEffect()?.bonuses?.[name];return Number.isFinite(Number(value))?Number(value):fallback;}
 
   function addStyle(){
     if(document.getElementById('deckFishingStyle'))return;
     const s=document.createElement('style');s.id='deckFishingStyle';
-    s.textContent=`
-      .fishing-card,.fishdex-panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;background:rgba(21,16,32,.97);border:3px solid #d7bb79;border-radius:18px;padding:16px;color:#fff4d8;text-align:center;font-weight:900;box-shadow:0 12px 0 rgba(0,0,0,.28);line-height:1.55;max-width:92%}
-      .fishing-card{pointer-events:none}.fishing-card.hidden,.fishdex-panel.hidden{display:none}.letter-text{margin-top:10px;padding:10px;border:2px solid #76536a;border-radius:12px;background:#1a1220;color:#fff4d8;font-weight:800;line-height:1.65;text-align:left}
-      .fishdex-panel{width:min(680px,92vw);max-height:78vh;overflow:auto;text-align:left}.fishdex-panel h2{margin:0 0 8px}.fishdex-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.fishdex-actions button{box-shadow:none;padding:8px 10px;border-radius:10px}.fish-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px}.fish-entry{border:1px solid #76536a;border-radius:10px;padding:8px;background:#1a1220}.fish-entry small{color:#d0bfa8}.fishdex-close{float:right;background:#3a293d;color:#fff4d8}
-      #fishDexBtn{display:none}@media(max-width:760px){.fishing-card{min-width:245px;font-size:14px;padding:13px}.fishdex-panel{font-size:13px}.mobile-controls #fishDexBtn{display:inline-flex!important}}
-    `;document.head.appendChild(s);
+    s.textContent=`.fishing-card,.fishdex-panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;background:rgba(21,16,32,.97);border:3px solid #d7bb79;border-radius:18px;padding:16px;color:#fff4d8;text-align:center;font-weight:900;box-shadow:0 12px 0 rgba(0,0,0,.28);line-height:1.55;max-width:92%}.fishing-card{pointer-events:none}.fishing-card.hidden,.fishdex-panel.hidden{display:none}.letter-text{margin-top:10px;padding:10px;border:2px solid #76536a;border-radius:12px;background:#1a1220;color:#fff4d8;font-weight:800;line-height:1.65;text-align:left}.fishdex-panel{width:min(680px,92vw);max-height:78vh;overflow:auto;text-align:left}.fishdex-panel h2{margin:0 0 8px}.fishdex-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.fishdex-actions button{box-shadow:none;padding:8px 10px;border-radius:10px}.fish-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px}.fish-entry{border:1px solid #76536a;border-radius:10px;padding:8px;background:#1a1220}.fish-entry small{color:#d0bfa8}.fishdex-close{float:right;background:#3a293d;color:#fff4d8}#fishDexBtn{display:none}@media(max-width:760px){.fishing-card{min-width:245px;font-size:14px;padding:13px}.fishdex-panel{font-size:13px}.mobile-controls #fishDexBtn{display:inline-flex!important}}`;
+    document.head.appendChild(s);
   }
 
   function ensureUi(){
     const p=document.getElementById('gamePanel');if(!p)return;if(getComputedStyle(p).position==='static')p.style.position='relative';
     if(!document.getElementById('fishingCard')){const c=document.createElement('div');c.id='fishingCard';c.className='fishing-card hidden';p.appendChild(c);}
     if(!document.getElementById('fishDexPanel')){const panel=document.createElement('div');panel.id='fishDexPanel';panel.className='fishdex-panel hidden';p.appendChild(panel);}
-    const mobile=document.querySelector('.mobile-controls');
-    if(mobile&&!document.getElementById('fishDexBtn')){const b=document.createElement('button');b.id='fishDexBtn';b.type='button';b.textContent='📖';b.title='FishDex';b.addEventListener('click',e=>{if(isDeckOpen()){e.preventDefault();e.stopPropagation();openDex();}},true);mobile.appendChild(b);}
+    const mobile=document.querySelector('.mobile-controls');if(mobile&&!document.getElementById('fishDexBtn')){const b=document.createElement('button');b.id='fishDexBtn';b.type='button';b.textContent='📖';b.title='FishDex';b.addEventListener('click',e=>{if(isDeckOpen()){e.preventDefault();e.stopPropagation();openDex();}},true);mobile.appendChild(b);}
   }
 
   function chooseWeighted(map){const total=Object.values(map).reduce((a,b)=>a+b,0);let r=Math.random()*total;for(const[k,w]of Object.entries(map)){r-=w;if(r<=0)return k;}return Object.keys(map)[0];}
-  function chooseQuality(){const total=QUALITY_TABLE.reduce((a,b)=>a+b[1],0);let r=Math.random()*total;for(const q of QUALITY_TABLE){r-=q[1];if(r<=0)return q;}return QUALITY_TABLE[0];}
+  function chooseRarity(){
+    const luck=Math.max(1,bonus('fishingLuck',1));
+    const weights={...RARITY_WEIGHT};
+    if(luck>1){weights.普通/=luck;weights.常見/=Math.sqrt(luck);weights.稀有*=luck;weights.史詩*=luck*1.12;weights.傳說*=luck*1.28;}
+    return chooseWeighted(weights);
+  }
+  function chooseQuality(){
+    const qualityBonus=Math.max(0,bonus('qualityBonus',0));
+    if(qualityBonus>0&&Math.random()<qualityBonus){const boosted=QUALITY_TABLE.slice(2);return boosted[Math.floor(Math.random()*boosted.length)];}
+    const total=QUALITY_TABLE.reduce((a,b)=>a+b[1],0);let r=Math.random()*total;for(const q of QUALITY_TABLE){r-=q[1];if(r<=0)return q;}return QUALITY_TABLE[0];
+  }
   function descriptorFor(item){return window.COFFEE_SHIP_ICON?.iconDescriptor?.(item)||{base:ICONS[item.kind]||'🐟',badge:'✦',hue:190,color:COLORS[item.rarity]||'#fff4d8',key:item.name};}
   function iconFor(item){return descriptorFor(item).base;}
   function iconMarkup(item){return window.COFFEE_SHIP_ICON?.iconHtml?.(item)||`<span class="unique-emoji">${iconFor(item)}</span>`;}
   function enrichItem(item){const icon=descriptorFor(item);return{...item,icon:icon.base,emoji:icon.base,iconKey:icon.key,iconBadge:icon.badge,iconHue:icon.hue};}
-  function priceOf(item){const rarityMul={普通:2,常見:4,稀有:10,史詩:28,傳說:120}[item.rarity]||2;const qMul={普通:1,優秀:1.4,完美:2,閃亮:3.5,神話:6}[item.quality]||1;return Math.max(1,Math.round((item.weight||.1)*rarityMul*qMul));}
+  function priceOf(item){const rarityMul={普通:2,常見:4,稀有:10,史詩:28,傳說:120}[item.rarity]||2;const qMul={普通:1,優秀:1.4,完美:2,閃亮:3.5,神話:6}[item.quality]||1;const coffeeMul=item.coffeePearlBonus||1;return Math.max(1,Math.round((item.weight||.1)*rarityMul*qMul*coffeeMul));}
   function pickLetter(){const wilburd=LETTERS.filter(l=>l.title.includes('威爾伯德'));const normal=LETTERS.filter(l=>!l.title.includes('威爾伯德'));const pool=Math.random()<.72?wilburd:normal;return pool[Math.floor(Math.random()*pool.length)];}
 
   function showCard(item){
-    const card=document.getElementById('fishingCard');if(!card)return;
-    const got=Object.keys(dex).length;const bestText=best?`最大紀錄：${best.name} ${best.weight.toFixed(2)} kg`:'最大紀錄：尚無';const color=COLORS[item.rarity]||'#fff4d8';
-    const displayItem=item.kind==='letter'?{...item,name:item.letterTitle||item.name}:item;
-    if(item.kind==='letter')card.innerHTML=`<div style="font-size:22px;color:${color}">${iconMarkup(displayItem)}<span>${item.letterTitle||item.name}</span></div><div>海域：${item.zone}<br>稀有度：${item.rarity}<br>FishDex：${got}/${CATCHES.length}<br>已讀信件：${savedLetters.length}</div><div class="letter-text">${item.letter}</div>`;
-    else{const value=item.kind==='trash'?'不可販售':`${priceOf(item)} 珍珠`;card.innerHTML=`<div style="font-size:22px;color:${color}">${iconMarkup(item)}<span>${item.quality} ${item.name}</span></div><div>海域：${item.zone}<br>稀有度：${item.rarity}<br>重量：${item.weight.toFixed(2)} kg<br>價值：${value}<br>FishDex：${got}/${CATCHES.length}<br>總釣獲：${count} 次<br>${bestText}</div>`;}
+    const card=document.getElementById('fishingCard');if(!card)return;const got=Object.keys(dex).length;const bestText=best?`最大紀錄：${best.name} ${best.weight.toFixed(2)} kg`:'最大紀錄：尚無';const color=COLORS[item.rarity]||'#fff4d8';const displayItem=item.kind==='letter'?{...item,name:item.letterTitle||item.name}:item;const effectText=item.coffeeEffectName?`<br>咖啡加成：${item.coffeeEffectName}`:'';
+    if(item.kind==='letter')card.innerHTML=`<div style="font-size:22px;color:${color}">${iconMarkup(displayItem)}<span>${item.letterTitle||item.name}</span></div><div>海域：${item.zone}<br>稀有度：${item.rarity}<br>FishDex：${got}/${CATCHES.length}<br>已讀信件：${savedLetters.length}${effectText}</div><div class="letter-text">${item.letter}</div>`;
+    else{const value=item.kind==='trash'?'不可販售':`${priceOf(item)} 珍珠`;card.innerHTML=`<div style="font-size:22px;color:${color}">${iconMarkup(item)}<span>${item.quality} ${item.name}</span></div><div>海域：${item.zone}<br>稀有度：${item.rarity}<br>重量：${item.weight.toFixed(2)} kg<br>價值：${value}<br>FishDex：${got}/${CATCHES.length}<br>總釣獲：${count} 次<br>${bestText}${effectText}</div>`;}
     card.classList.remove('hidden');setTimeout(()=>card.classList.add('hidden'),item.kind==='letter'?7600:4200);
   }
 
+  function selectCatch(){
+    const bottleLuck=Math.max(0,bonus('bottleLuck',0));
+    if(bottleLuck>0&&Math.random()<bottleLuck){const letters=CATCHES.filter(f=>f[5]==='letter');return letters[Math.floor(Math.random()*letters.length)];}
+    const rarity=chooseRarity();const list=CATCHES.filter(f=>f[2]===rarity);return list[Math.floor(Math.random()*list.length)];
+  }
+
   function catchOne(){
-    const rarity=chooseWeighted(RARITY_WEIGHT);const list=CATCHES.filter(f=>f[2]===rarity);const f=list[Math.floor(Math.random()*list.length)];const quality=chooseQuality();
-    const weight=(f[3]+Math.pow(Math.random(),1.65)*(f[4]-f[3]))*quality[2];let item={name:f[0],zone:f[1],rarity,quality:quality[0],weight,kind:f[5],at:Date.now()};
+    const f=selectCatch();const rarity=f[2];const quality=chooseQuality();const weight=(f[3]+Math.pow(Math.random(),1.65)*(f[4]-f[3]))*quality[2];const effect=coffeeEffect();
+    let item={name:f[0],zone:f[1],rarity,quality:quality[0],weight,kind:f[5],at:Date.now(),coffeePearlBonus:Math.max(1,bonus('pearlBonus',1)),coffeeEffectName:effect?.name||''};
     if(item.kind==='letter'){const letter=pickLetter();item.letterTitle=letter.title;item.letter=letter.text;savedLetters.push({title:letter.title,text:letter.text,at:Date.now()});}
-    item=enrichItem(item);count++;dex[item.name]=Math.max(dex[item.name]||0,Number(item.weight.toFixed(2)));if(item.kind!=='letter')bag.push(item);
-    if(item.kind!=='trash'&&item.kind!=='letter'&&(!best||item.weight>best.weight))best=item;
+    item=enrichItem(item);count++;dex[item.name]=Math.max(dex[item.name]||0,Number(item.weight.toFixed(2)));if(item.kind!=='letter')bag.push(item);if(item.kind!=='trash'&&item.kind!=='letter'&&(!best||item.weight>best.weight))best=item;
     saveAll();notice=item.kind==='letter'?`${item.letterTitle||'瓶中信'}`:`${iconFor(item)} ${item.quality} ${item.name} ${item.weight.toFixed(2)}kg`;noticeColor=COLORS[item.rarity]||'#fff4d8';noticeTimer=360;showCard(item);
   }
 
-  function startFishing(){if(!isDeckOpen()||busy||cooldown>0)return;busy=true;cooldown=120;notice='拋竿中...';noticeColor='#9ce8f0';noticeTimer=120;setTimeout(()=>{if(isDeckOpen())catchOne();busy=false;},650+Math.random()*1300);}
+  function startFishing(){if(!isDeckOpen()||busy||cooldown>0)return;busy=true;cooldown=120;notice='拋竿中...';noticeColor=coffeeEffect()?.aura||'#9ce8f0';noticeTimer=120;const speed=Math.max(.45,bonus('fishingSpeed',1));const delay=(650+Math.random()*1300)*speed;setTimeout(()=>{if(isDeckOpen())catchOne();busy=false;},delay);}
 
   function openDex(){
-    ensureUi();const panel=document.getElementById('fishDexPanel');if(!panel)return;const got=Object.keys(dex).length;const bestText=best?`${best.name} ${best.weight.toFixed(2)}kg`:'尚無';
-    const recent=bag.slice(-18).reverse();const letters=savedLetters.slice(-10).reverse();
-    panel.innerHTML=`<button class="fishdex-close" type="button">關閉</button><h2>📖 FishDex</h2><div>收集：${got}/${CATCHES.length}｜總釣獲：${count}｜珍珠：${pearls}｜最大：${bestText}</div><div class="fishdex-actions"><button id="sellFishBtn" type="button">賣出背包可販售漁獲</button><button id="clearFishCardBtn" type="button">只關閉</button></div><h3>最近漁獲</h3><div class="fish-grid">${recent.length?recent.map(it=>`<div class="fish-entry"><strong>${iconMarkup(it)}<span>${it.quality} ${it.name}</span></strong><small>${it.rarity}｜${it.weight.toFixed(2)}kg｜${it.kind==='trash'?'不可販售':priceOf(it)+' 珍珠'}</small></div>`).join(''):'<div class="fish-entry">還沒有背包漁獲，先去釣魚吧。</div>'}</div><h3>最近瓶中信</h3><div class="fish-grid">${letters.length?letters.map(l=>`<div class="fish-entry"><strong>${iconMarkup({name:l.title,kind:'letter',rarity:'稀有'})}<span>${l.title}</span></strong><small>${l.text}</small></div>`).join(''):'<div class="fish-entry">還沒有讀過瓶中信。</div>'}</div>`;
-    panel.classList.remove('hidden');panel.querySelector('.fishdex-close').onclick=()=>panel.classList.add('hidden');panel.querySelector('#clearFishCardBtn').onclick=()=>panel.classList.add('hidden');panel.querySelector('#sellFishBtn').onclick=()=>{let gain=0;bag=bag.filter(it=>{if(it.kind==='trash')return true;gain+=priceOf(it);return false;});pearls+=gain;saveAll();notice=`賣出漁獲 +${gain} 珍珠`;noticeColor='#ffe16b';noticeTimer=240;openDex();};
+    ensureUi();const panel=document.getElementById('fishDexPanel');if(!panel)return;const got=Object.keys(dex).length;const bestText=best?`${best.name} ${best.weight.toFixed(2)}kg`:'尚無';const pearls=readPearls();const recent=bag.slice(-18).reverse();const letters=savedLetters.slice(-10).reverse();const effect=coffeeEffect();
+    panel.innerHTML=`<button class="fishdex-close" type="button">關閉</button><h2>📖 FishDex</h2><div>收集：${got}/${CATCHES.length}｜總釣獲：${count}｜珍珠：${pearls}｜最大：${bestText}${effect?`｜咖啡：${effect.icon} ${effect.name}`:''}</div><div class="fishdex-actions"><button id="sellFishBtn" type="button">賣出背包可販售漁獲</button><button id="clearFishCardBtn" type="button">只關閉</button></div><h3>最近漁獲</h3><div class="fish-grid">${recent.length?recent.map(it=>`<div class="fish-entry"><strong>${iconMarkup(it)}<span>${it.quality} ${it.name}</span></strong><small>${it.rarity}｜${it.weight.toFixed(2)}kg｜${it.kind==='trash'?'不可販售':priceOf(it)+' 珍珠'}</small></div>`).join(''):'<div class="fish-entry">還沒有背包漁獲，先去釣魚吧。</div>'}</div><h3>最近瓶中信</h3><div class="fish-grid">${letters.length?letters.map(l=>`<div class="fish-entry"><strong>${iconMarkup({name:l.title,kind:'letter',rarity:'稀有'})}<span>${l.title}</span></strong><small>${l.text}</small></div>`).join(''):'<div class="fish-entry">還沒有讀過瓶中信。</div>'}</div>`;
+    panel.classList.remove('hidden');panel.querySelector('.fishdex-close').onclick=()=>panel.classList.add('hidden');panel.querySelector('#clearFishCardBtn').onclick=()=>panel.classList.add('hidden');panel.querySelector('#sellFishBtn').onclick=()=>{let gain=0;bag=bag.filter(it=>{if(it.kind==='trash')return true;gain+=priceOf(it);return false;});writePearls(readPearls()+gain);saveAll();notice=`賣出漁獲 +${gain} 珍珠`;noticeColor='#ffe16b';noticeTimer=240;openDex();};
   }
 
-  function draw(){
-    if(!isDeckOpen())return;const ctx=ctxDeck();if(!ctx)return;ctx.save();ctx.textAlign='center';ctx.font='900 24px ui-rounded,system-ui,sans-serif';ctx.fillStyle='#120b17';ctx.fillText('🎣 釣魚點',822,338);ctx.fillStyle='#9ce8f0';ctx.fillText('🎣 釣魚點',820,336);ctx.font='900 13px ui-rounded,system-ui,sans-serif';const dexText=`FishDex ${Object.keys(dex).length}/${CATCHES.length}`;ctx.fillStyle='#120b17';ctx.fillText('F釣魚 / G圖鑑 / 手機🎣',822,362);ctx.fillText(dexText,822,380);ctx.fillStyle='#fff4d8';ctx.fillText('F釣魚 / G圖鑑 / 手機🎣',820,360);ctx.fillStyle='#d7bb79';ctx.fillText(dexText,820,378);if(noticeTimer>0){ctx.font='900 15px ui-rounded,system-ui,sans-serif';ctx.fillStyle='#120b17';ctx.fillText(notice,692,336);ctx.fillStyle=noticeColor;ctx.fillText(notice,690,334);noticeTimer--;}ctx.restore();
-  }
-
+  function draw(){if(!isDeckOpen())return;const ctx=ctxDeck();if(!ctx)return;ctx.save();ctx.textAlign='center';ctx.font='900 24px ui-rounded,system-ui,sans-serif';ctx.fillStyle='#120b17';ctx.fillText('🎣 釣魚點',822,338);ctx.fillStyle=coffeeEffect()?.aura||'#9ce8f0';ctx.fillText('🎣 釣魚點',820,336);ctx.font='900 13px ui-rounded,system-ui,sans-serif';const dexText=`FishDex ${Object.keys(dex).length}/${CATCHES.length}`;ctx.fillStyle='#120b17';ctx.fillText('F釣魚 / G圖鑑 / 手機🎣',822,362);ctx.fillText(dexText,822,380);ctx.fillStyle='#fff4d8';ctx.fillText('F釣魚 / G圖鑑 / 手機🎣',820,360);ctx.fillStyle='#d7bb79';ctx.fillText(dexText,820,378);if(noticeTimer>0){ctx.font='900 15px ui-rounded,system-ui,sans-serif';ctx.fillStyle='#120b17';ctx.fillText(notice,692,336);ctx.fillStyle=noticeColor;ctx.fillText(notice,690,334);noticeTimer--;}ctx.restore();}
   function bind(){window.addEventListener('keydown',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;if(!isDeckOpen())return;if(k==='f'||k==='c'){e.preventDefault();startFishing();}if(k==='g'){e.preventDefault();openDex();}},true);document.getElementById('coffeeBtn')?.addEventListener('click',e=>{if(!isDeckOpen())return;e.preventDefault();e.stopPropagation();startFishing();},true);}
   function loop(){requestAnimationFrame(loop);if(cooldown>0)cooldown--;draw();}
   function init(){addStyle();ensureUi();bind();loop();}
