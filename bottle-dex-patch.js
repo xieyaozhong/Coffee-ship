@@ -26,7 +26,8 @@
     const blackbeard = read('coffeeShipBlackbeardLetters').map(x => ({ source: '🏴‍☠️', title: x.title, text: x.text, at: x.at || 0 }));
     const priest = read('coffeeShipMadPriestLetters').map(x => ({ source: '📜', title: x.title, text: x.text, at: x.at || 0 }));
     const carnival = read('coffeeShipCarnivalLetters').map(x => ({ source: '🎭', title: x.title, text: x.text, at: x.at || 0 }));
-    return uniqueByTitle(base.concat(lanar, ariel, island, blackbeard, priest, carnival).sort((a, b) => b.at - a.at));
+    const mermaid = read('coffeeShipMermaidEncounters').map(x => ({ source: '🧜‍♀️', title: '美人魚事件｜' + x.title, text: x.text, at: x.at || 0 }));
+    return uniqueByTitle(base.concat(lanar, ariel, island, blackbeard, priest, carnival, mermaid).sort((a, b) => b.at - a.at));
   }
 
   function mutantEntries() {
@@ -39,7 +40,8 @@
     if (!panel || panel.classList.contains('hidden')) return;
     const letters = allLetters();
     const mutants = mutantEntries();
-    const stamp = `${letters.length}-${mutants.length}`;
+    const mermaidDex = readObj('coffeeShipMermaidDex');
+    const stamp = `${letters.length}-${mutants.length}-${Object.keys(mermaidDex).length}`;
     if (panel.dataset.bottleDexPatched === stamp) return;
     panel.dataset.bottleDexPatched = stamp;
     const oldHeads = Array.from(panel.querySelectorAll('h3')).filter(h => h.textContent.includes('最近瓶中信') || h.textContent.includes('變異生物'));
@@ -50,7 +52,7 @@
     });
     const mutantHtml = `<h3>🧬 變異生物</h3><div class="fish-grid">${mutants.length ? mutants.slice(0, 20).map(([name, weight]) => `<div class="fish-entry"><strong>🧬 ${name}</strong><small>最大紀錄：${Number(weight).toFixed(2)} kg</small></div>`).join('') : '<div class="fish-entry">尚未發現變異生物。</div>'}</div>`;
     const letterHtml = `<h3>最近瓶中信 / 漂流瓶</h3><div class="fish-grid">${letters.length ? letters.slice(0, 60).map(l => `<div class="fish-entry"><strong>${l.source} ${l.title}</strong><small>${l.text}</small></div>`).join('') : '<div class="fish-entry">還沒有讀過瓶中信。</div>'}</div>`;
-    panel.insertAdjacentHTML('beforeend', mutantHtml + letterHtml);
+    panel.insertAdjacentHTML('beforeend', mutantHtml + mermaidHtml + letterHtml);
   }
 
   function init() {

@@ -2,7 +2,7 @@
   'use strict';
 
   const blockingIds = [
-    'lanarCard','arielCard','islandCard','blackbeardCard','mutantCard','sharkCard',
+    'lanarCard','arielCard','islandCard','blackbeardCard','madPriestCard','carnivalCard','mermaidCard','mutantCard','sharkCard',
     'fishDexPanel','fishingCard','fishingSpecialCard','extraFish50Card','messageBoard','coffeeMenu'
   ];
 
@@ -16,7 +16,7 @@
   }
 
   function storyOpen() {
-    return ['lanarCard','arielCard','islandCard','blackbeardCard'].some(isVisible);
+    return ['lanarCard','arielCard','islandCard','blackbeardCard','madPriestCard','carnivalCard'].some(isVisible);
   }
 
   function addStyle() {
@@ -33,11 +33,11 @@
       body.animation-guard-open #changeCharacterBtn{display:none!important}
       body.story-open .rare-catch-overlay{display:none!important;opacity:0!important;pointer-events:none!important}
       body.animation-guard-open .rare-catch-overlay{z-index:9000!important}
-      #lanarCard:not(.hidden),#arielCard:not(.hidden),#islandCard:not(.hidden),#blackbeardCard:not(.hidden){z-index:14000!important}
-      #mutantCard:not(.hidden),#sharkCard:not(.hidden),#fishingCard:not(.hidden),#fishingSpecialCard:not(.hidden),#extraFish50Card:not(.hidden){z-index:13500!important}
+      #lanarCard:not(.hidden),#arielCard:not(.hidden),#islandCard:not(.hidden),#blackbeardCard:not(.hidden),#madPriestCard:not(.hidden),#carnivalCard:not(.hidden){z-index:14000!important}
+      #mermaidCard:not(.hidden){z-index:14100!important}#mutantCard:not(.hidden),#sharkCard:not(.hidden),#fishingCard:not(.hidden),#fishingSpecialCard:not(.hidden),#extraFish50Card:not(.hidden){z-index:13500!important}
       @media(max-width:760px){
-        #lanarCard:not(.hidden),#arielCard:not(.hidden),#islandCard:not(.hidden),#blackbeardCard:not(.hidden),#mutantCard:not(.hidden),#sharkCard:not(.hidden),#fishingCard:not(.hidden),#fishingSpecialCard:not(.hidden),#extraFish50Card:not(.hidden){position:fixed!important;left:50%!important;top:36%!important;transform:translate(-50%,-50%)!important;width:min(90vw,390px)!important;max-height:56dvh!important;overflow-y:auto!important;pointer-events:auto!important;padding:14px!important}
-        #lanarCard:not(.hidden) .lanar-text,#arielCard:not(.hidden) .ariel-text,#islandCard:not(.hidden) .island-text,#blackbeardCard:not(.hidden) .blackbeard-text,#mutantCard:not(.hidden) .mutant-trait,#sharkCard:not(.hidden) .shark-loss{max-height:34dvh!important;overflow-y:auto!important}
+        #lanarCard:not(.hidden),#arielCard:not(.hidden),#islandCard:not(.hidden),#blackbeardCard:not(.hidden),#madPriestCard:not(.hidden),#carnivalCard:not(.hidden),#mermaidCard:not(.hidden),#mutantCard:not(.hidden),#sharkCard:not(.hidden),#fishingCard:not(.hidden),#fishingSpecialCard:not(.hidden),#extraFish50Card:not(.hidden){position:fixed!important;left:50%!important;top:36%!important;transform:translate(-50%,-50%)!important;width:min(90vw,390px)!important;max-height:56dvh!important;overflow-y:auto!important;pointer-events:auto!important;padding:14px!important}
+        #lanarCard:not(.hidden) .lanar-text,#arielCard:not(.hidden) .ariel-text,#islandCard:not(.hidden) .island-text,#blackbeardCard:not(.hidden) .blackbeard-text,#madPriestCard:not(.hidden) .mad-priest-text,#carnivalCard:not(.hidden) .carnival-text,#mermaidCard:not(.hidden) .mermaid-body,#mutantCard:not(.hidden) .mutant-trait,#sharkCard:not(.hidden) .shark-loss{max-height:34dvh!important;overflow-y:auto!important}
       }
     `;
     document.head.appendChild(style);

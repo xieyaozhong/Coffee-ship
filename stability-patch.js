@@ -108,6 +108,7 @@
     loadScript('deck-fishing.js', 'deckFishing');
     loadScript('deck-fishing-specials.js', 'deckFishingSpecials');
     loadScript('extra-fish-50.js', 'extraFish50');
+    loadScript('mermaid-event.js', 'mermaidEvent');
     loadScript('deck-shark-event.js', 'deckSharkEvent');
     loadScript('mutant-creatures.js', 'mutantCreatures');
     loadScript('mobile-mutant-modal-fix.js', 'mobileMutantModalFix');
@@ -115,6 +116,8 @@
     loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
     loadScript('island-triangle-letters.js', 'islandTriangleLetters');
     loadScript('blackbeard-treasure-letters.js', 'blackbeardTreasureLetters');
+    loadScript('mad-priest-bottles.js', 'madPriestBottles');
+    loadScript('carnival-island-bottles.js', 'carnivalIslandBottles');
     loadScript('story-modal-fix.js', 'storyModalFix');
     loadScript('animation-overlap-guard.js', 'animationOverlapGuard');
     loadScript('bottle-dex-patch.js', 'bottleDexPatch');
