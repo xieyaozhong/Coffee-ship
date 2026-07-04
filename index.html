@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Coffee Ship</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="npc-coffee-upgrade.css?v=npc-coffee-1" />
 </head>
 <body>
   <main class="shell">
@@ -42,7 +43,7 @@
             <option value="#d7bb79">奶泡米</option>
           </select>
         </label>
-        <label>咖啡
+        <label>咖啡偏好
           <select id="coffeeType">
             <option>美式</option>
             <option>拿鐵</option>
@@ -52,16 +53,16 @@
         </label>
       </div>
       <button id="startBtn">登上 Coffee Ship</button>
-      <p class="hint">方向鍵 / WASD 移動。靠近 Momo 按 C 點咖啡；靠近右側門按 E 前往甲板；靠近 Peak、Bean 或 Mugi 按 E 互動；靠近留言板按 B 留言。</p>
+      <p class="hint">方向鍵 / WASD 移動。靠近巡店中的 Momo 按 C 或 E，以珍珠購買效果咖啡；靠近 Peak、Bean 或 Mugi 按 E 互動。</p>
     </section>
 
     <section id="gamePanel" class="panel game-panel hidden">
       <div class="game-topbar">
         <div>
           <strong id="avatarName">Guest</strong>
-          <span id="coffeeBadge">還沒點咖啡</span>
+          <span id="coffeeBadge">🦪 0 · 尚無咖啡效果</span>
         </div>
-        <div class="controls">WASD / 方向鍵移動 · C 點咖啡 · E 互動/門/摸貓 · B 留言 · Space 表情</div>
+        <div class="controls">WASD / 方向鍵移動 · C 咖啡 · E 互動/門 · B 留言 · Space 表情</div>
       </div>
       <canvas id="game" width="960" height="576"></canvas>
       <div class="mobile-controls">
@@ -80,12 +81,12 @@
       <aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite">
         <div class="board-head">
           <div>
-            <p class="eyebrow">MOMO'S BAR COUNTER</p>
-            <h2>Momo</h2>
+            <p class="eyebrow">MOMO'S PEARL COFFEE BAR</p>
+            <h2>Momo 的效果咖啡</h2>
           </div>
           <button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button>
         </div>
-        <p class="board-note">靠近 Momo，選一杯今天想喝的咖啡。</p>
+        <p class="board-note">咖啡以珍珠購買，每一杯都會提供不同的限時人物效果。</p>
         <div id="coffeeOptions" class="coffee-options"></div>
       </aside>
 
@@ -108,7 +109,7 @@
   </main>
 
   <script src="firebase-config.js"></script>
-  <script type="module" src="game.js"></script>
+  <script type="module" src="game.js?v=npc-coffee-1"></script>
   <script src="roles.js"></script>
   <script src="deck.js?v=deck-ui-4"></script>
   <script src="coffee-ship-v2-db.js"></script>
@@ -125,7 +126,7 @@
   <script src="original-emoji-restore.js"></script>
   <script src="ocean-friends-events.js"></script>
   <script src="single-fishing-result.js"></script>
-  <script src="stability-patch.js?v=fishing-v5"></script>
+  <script src="stability-patch.js?v=npc-coffee-1"></script>
   <script src="mermaid-event.js"></script>
   <script src="mad-priest-bottles.js?v=story-rebuild-30"></script>
   <script src="carnival-island-bottles.js?v=story-rebuild-30"></script>
