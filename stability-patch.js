@@ -114,6 +114,7 @@
     loadScript('ariel-bottle-letters.js', 'arielBottleLetters');
     loadScript('island-triangle-letters.js', 'islandTriangleLetters');
     loadScript('story-modal-fix.js', 'storyModalFix');
+    loadScript('animation-overlap-guard.js', 'animationOverlapGuard');
     loadScript('bottle-dex-patch.js', 'bottleDexPatch');
     loadScript('fishing-rare-animation.js', 'fishingRareAnimation');
     loadScript('mobile-modal-fix.js', 'mobileModalFix');
