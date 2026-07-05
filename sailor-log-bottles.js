@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_SAILOR_LOGS_V1__) return;
-  window.__COFFEE_SHIP_SAILOR_LOGS_V1__ = true;
+  if (window.__COFFEE_SHIP_SAILOR_LOGS_V2__) return;
+  window.__COFFEE_SHIP_SAILOR_LOGS_V2__ = true;
 
   const STORE_KEY = 'coffeeShipSailorLogLetters';
   const SERIES = '晨星號水手航海日誌';
@@ -131,6 +131,8 @@
   ];
 
   const TOTAL = ENTRIES.length;
+  const handledCasts = new Set();
+  let boundFishingApi = null;
 
   function read(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -182,7 +184,8 @@
 
   function modifiers() {
     return window.COFFEE_SHIP_ECONOMY?.fishingModifiers?.() || {
-      pearlBonus:Math.max(1, Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.pearlBonus || 1))
+      pearlBonus:Math.max(1, Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.pearlBonus || 1)),
+      bottleLuck:Math.max(0, Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.bottleLuck || 0))
     };
   }
 
@@ -217,13 +220,16 @@
   }
 
   function dropChance() {
-    return window.COFFEE_SHIP_ECONOMY?.eventChance?.(.05,'bottle')
-      ?? Math.min(.45, .05 + Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.bottleLuck || 0));
+    const bottleLuck = Math.max(0, Number(modifiers().bottleLuck || 0));
+    return Math.min(.85, .42 + bottleLuck * .8);
   }
 
-  function trigger(event) {
-    if (Math.random() > dropChance()) return;
-    const castId = event.detail?.castId || window.COFFEE_SHIP_FISHING_API?.getCurrentCastId?.();
+  function salvageKey(payload) {
+    return String(payload?.castId || `salvage-${Date.now()}`);
+  }
+
+  function triggerSalvage(payload = {}) {
+    const castId = payload.castId || window.COFFEE_SHIP_FISHING_API?.getCurrentCastId?.();
     const entry = createNext();
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
@@ -233,6 +239,31 @@
       accent:'#b8a98b',
       text:`系列：${SERIES}｜${entry.rarity}\n${entry.text}\n收集進度：${collected()}/${TOTAL}`
     });
+    return entry;
+  }
+
+  function bindSalvageBridge() {
+    const api = window.COFFEE_SHIP_FISHING_API;
+    if (!api?.pushEvent || api === boundFishingApi) return false;
+
+    const originalPushEvent = api.pushEvent.bind(api);
+    api.pushEvent = payload => {
+      const result = originalPushEvent(payload);
+      const title = String(payload?.title || '');
+      if (!title.startsWith('海上打撈事件｜')) return result;
+
+      const key = salvageKey(payload);
+      if (handledCasts.has(key)) return result;
+      handledCasts.add(key);
+      setTimeout(() => handledCasts.delete(key), 7000);
+
+      if (Math.random() <= dropChance()) queueMicrotask(() => triggerSalvage(payload));
+      return result;
+    };
+
+    api.__sailorLogSalvageBridge = true;
+    boundFishingApi = api;
+    return true;
   }
 
   function escapeHtml(value) {
@@ -348,7 +379,9 @@
     addStyle();
     normalizeAll();
     bindBackpack();
-    window.addEventListener('coffee-ship:fishing-result',trigger);
+    bindSalvageBridge();
+    setInterval(bindSalvageBridge, 750);
+    window.addEventListener('coffee-ship:fishing-extras-ready',bindSalvageBridge);
 
     window.COFFEE_SHIP_BOTTLE_PROVIDERS = window.COFFEE_SHIP_BOTTLE_PROVIDERS || {};
     window.COFFEE_SHIP_BOTTLE_PROVIDERS.sailorLog = {
@@ -370,8 +403,9 @@
     createByNumber,
     collected,
     dropChance,
-    trigger,
-    version:1
+    trigger:triggerSalvage,
+    bindSalvageBridge,
+    version:2
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
