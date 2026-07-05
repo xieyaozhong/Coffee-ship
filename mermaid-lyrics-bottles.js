@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V4__) return;
-  window.__COFFEE_SHIP_MERMAID_LYRICS_V4__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V5__) return;
+  window.__COFFEE_SHIP_MERMAID_LYRICS_V5__ = true;
 
   const STORE_KEY = 'coffeeShipMermaidLyrics';
   const BAG_KEY = 'coffeeShipFishBag';
@@ -10,7 +10,7 @@
   const LYRICS = [
     {id:'pearl_moonlight',number:1,icon:'🎹',title:'黑暗巴洛克',rarity:'史詩',sellPrice:110,text:'沒有光的世界巴洛克\n變成動人的那美妙聲音\n黑暗陷阱中的秘密聲音\n沉睡搖籃中一直到永遠不醒\n\n看慢慢的向前方邁進\n為最終時刻來臨齊聲歡呼\n充滿冰冷的微笑沒有光\n就將真珠 變成灰燼\n來吧朋友們 如果有希望的光在前方\n讓我們唱出 那首叫絕望的美麗讚歌'},
     {id:'seven_tides',number:2,icon:'🌄',title:'全世界最早的早晨出現的地方',rarity:'史詩',sellPrice:115,text:'思念全世界最早的早晨出現的地方\n思念是道光芒 圍著白雲綻放\n許願火孤單 這場夢依舊燦爛\n\n那段時光 那段過往\n心情擺盪 回憶兩端\n風還微涼 你在身旁\n甜甜的佔據夜晚\n\n如果是你在我的心上\n請你也停止悲傷\n期待眼淚沖淡你的傷\n我永遠在你身旁'},
-    {id:'bubbles_return',number:3,icon:'🫧',title:'泡沫不說再見',rarity:'史詩',sellPrice:118,text:'泡沫升起不是告別\n只是把思念送往更高的天空\n等晨風吹回熟悉的旋律\n我會在浪尖重新與你相逢'},
+    {id:'bubbles_return',number:3,icon:'🎁',title:'愛的百寶箱',rarity:'史詩',sellPrice:118,text:'微微風吹起紅白的風帆\n浪漫的　自由的　幸福的　海的夢幻\n時間的魔法飄到了遠方　手一碰　就溶化\n轉眼有一道光芒\n\n明明是你　對我如影隨形\n心卻像隔著遙遠的距離\n毫無保留的你\n我該認真相信　真心　不能有懷疑\n\n百寶箱的愛能解開\n忌妒感和安全感　能給人愛的能量\n百寶箱的愛最可愛　能坦率讓我明白\n我和你有相同的愛　純真而專一的愛'},
     {id:'deepsea_promise',number:4,icon:'🔷',title:'深海的約定',rarity:'史詩',sellPrice:120,text:'在無光的海底握住彼此\n微弱的聲音也能成為燈塔\n只要記得最初交換的約定\n黑暗就沒有辦法奪走方向'},
     {id:'coral_kingdom',number:5,icon:'🪸',title:'珊瑚王國的夢',rarity:'傳說',sellPrice:145,text:'珊瑚城門在夢中打開\n魚群披著銀色花瓣起舞\n我不是等待被拯救的公主\n我要唱著自己的名字回家'},
     {id:'stardust_wish',number:6,icon:'⭐',title:'星砂心願',rarity:'史詩',sellPrice:122,text:'我將一粒星砂放進掌心\n請它替我守護遙遠的人\n若你在夜裡聽見海潮回應\n那是我的心願抵達你身旁'},
@@ -250,7 +250,7 @@
     createById,
     collected:() => new Set(normalizeAll().map(entry => entry.id)).size,
     injectBackpack,
-    version:4
+    version:5
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
