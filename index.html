@@ -52,11 +52,12 @@
 <div class="game-topbar"><div><strong id="avatarName">Guest</strong><span id="coffeeBadge">🦪 0 · 尚無咖啡效果</span></div><div class="controls">WASD / 方向鍵移動 · C 咖啡 · E 互動 · B 留言</div></div>
 <canvas id="game" width="960" height="576"></canvas>
 <div class="mobile-controls"><button data-move="up">▲</button><div><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div><button id="coffeeBtn">☕</button><button id="sitBtn">摸/坐</button><button id="messageBtn">留言</button><button id="emoteBtn">✨</button></div>
-<aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">MOMO'S PEARL COFFEE BAR</p><h2>Momo 的效果咖啡</h2></div><button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button></div><p class="board-note">使用珍珠購買限時效果咖啡。</p><div id="coffeeOptions" class="coffee-options"></div></aside>
+<aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">MOMO'S PEARL COFFEE BAR</p><h2>Momo 的效果咖啡</h2></div><button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button></div><p class="board-note">出售漁獲獲得珍珠，再用珍珠購買限時效果咖啡。</p><div id="coffeeOptions" class="coffee-options"></div></aside>
 <aside id="messageBoard" class="message-board hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">SHIP MESSAGE BOARD</p><h2>船上留言板</h2></div><button id="closeBoardBtn" class="ghost-btn">關閉</button></div><p class="board-note">不同裝置會同步看到留言。</p><div id="messagesList" class="messages-list"></div><form id="messageForm" class="message-form"><textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea><button type="submit">貼到留言板</button></form></aside>
 </section>
 </main>
 <script src="firebase-config.js"></script>
+<script src="economy-core.js?v=economy-1"></script>
 <script src="mobile-black-screen-priority.js?v=priority-3"></script>
 <script src="game.js?v=core-v7"></script>
 <script src="roles.js?v=login-v7"></script>
@@ -65,9 +66,9 @@
 <script src="coffee-ship-v2-db.js?v=core-v7"></script>
 <script src="coffee-ship-emoji-rarity-system.js?v=icons-v7"></script>
 <script src="coffee-ship-v2-bridge.js?v=core-v7"></script>
-<script src="fishing-event-stack.js?v=unified-fishing-4b"></script>
-<script src="stability-patch.js?v=loader-v7"></script>
-<script src="backpack-manager.js?v=backpack-v4"></script>
+<script src="fishing-event-stack.js?v=economy-1"></script>
+<script src="stability-patch.js?v=loader-v8"></script>
+<script src="backpack-manager.js?v=backpack-v5"></script>
 <script src="fishing-ui-coordinator.js?v=fishing-ui-1"></script>
 <script src="multiplayer-role-sync.js?v=core-v7"></script>
 <script src="desktop-role-ability.js?v=deck-entry-2"></script>
