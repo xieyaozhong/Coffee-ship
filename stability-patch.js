@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V8__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V8__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V9__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V9__ = true;
 
   let controlsBound = false;
   let fishingCoreReady = false;
@@ -132,15 +132,15 @@
 
   async function loadCafeEnhancements() {
     await loadSequence([
-      ['role-sprites.js?v=stable-8','roleSprites'],
-      ['role-mobile-ability.js?v=stable-8','roleAbility'],
-      ['change-character.js?v=stable-8','changeCharacter'],
-      ['mobile-home-safe.js?v=stable-8','mobileHomeSafe'],
-      ['mobile-game-layout.js?v=stable-8','mobileGameLayout'],
-      ['quality-polish.js?v=stable-8','qualityPolish'],
-      ['black-cat-nox.js?v=stable-8','blackCatNox'],
-      ['npc-behavior-polish.js?v=stable-8','npcBehaviorPolish'],
-      ['port.js?v=stable-8','portScene']
+      ['role-sprites.js?v=stable-9','roleSprites'],
+      ['role-mobile-ability.js?v=stable-9','roleAbility'],
+      ['change-character.js?v=stable-9','changeCharacter'],
+      ['mobile-home-safe.js?v=stable-9','mobileHomeSafe'],
+      ['mobile-game-layout.js?v=stable-9','mobileGameLayout'],
+      ['quality-polish.js?v=stable-9','qualityPolish'],
+      ['black-cat-nox.js?v=stable-9','blackCatNox'],
+      ['npc-behavior-polish.js?v=stable-9','npcBehaviorPolish'],
+      ['port.js?v=stable-9','portScene']
     ],80);
   }
 
@@ -153,7 +153,7 @@
     if (fishingCoreLoading) return fishingCoreLoading;
 
     fishingCoreLoading = (async () => {
-      const ok = await loadScript('deck-fishing.js?v=unified-fishing-4e','deckFishing');
+      const ok = await loadScript('deck-fishing.js?v=unified-fishing-4f','deckFishing');
       fishingCoreReady = ok && Number(window.COFFEE_SHIP_FISHING_API?.version || 0) >= 4;
       fishingCoreLoading = null;
       window.COFFEE_SHIP_FISHING_READY = fishingCoreReady;
@@ -166,15 +166,17 @@
     if (fishingExtrasPromise) return fishingExtrasPromise;
     fishingExtrasPromise = (async () => {
       await loadSequence([
-        ['extra-fish-50.js?v=economy-1','extraFish50'],
-        ['loot-bottle-core.js?v=economy-1','lootBottleCore'],
-        ['bottle-series-restore.js?v=economy-1','bottleSeriesRestore'],
-        ['mermaid-event.js?v=economy-1','mermaidEvent'],
-        ['deck-shark-event.js?v=economy-1','deckSharkEvent'],
-        ['mutant-creatures.js?v=economy-1','mutantCreatures'],
-        ['fishing-event-stack.js?v=economy-1','fishingEventBridge']
+        ['extra-fish-50.js?v=events-1','extraFish50'],
+        ['loot-bottle-core.js?v=events-1','lootBottleCore'],
+        ['bottle-series-restore.js?v=events-1','bottleSeriesRestore'],
+        ['mermaid-event.js?v=events-1','mermaidEvent'],
+        ['deck-shark-event.js?v=events-1','deckSharkEvent'],
+        ['mutant-creatures.js?v=events-1','mutantCreatures'],
+        ['ocean-carnival-events.js?v=events-1','oceanCarnivalEvents'],
+        ['event-loot-normalizer.js?v=events-1','eventLootNormalizer'],
+        ['fishing-event-stack.js?v=events-1','fishingEventBridge']
       ],70);
-      window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready',{detail:{version:5,economy:true}}));
+      window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready',{detail:{version:6,economy:true,expandedEvents:true}}));
       return true;
     })();
     return fishingExtrasPromise;
@@ -184,22 +186,22 @@
     if (storyModulesPromise) return storyModulesPromise;
     storyModulesPromise = (async () => {
       await loadSequence([
-        ['turtle-soup-bottles.js?v=story-8','turtleSoupBottles'],
-        ['lanar-bottles.js?v=story-8','lanarBottles'],
-        ['ariel-chapter1-bottles.js?v=story-8','arielBottles'],
-        ['coco-bottles.js?v=story-8','cocoBottles'],
-        ['blackbeard-bottles.js?v=story-8','blackbeardBottles'],
-        ['mad-priest-bottles.js?v=story-8','madPriestBottles'],
-        ['carnival-island-bottles.js?v=story-8','carnivalIslandBottles'],
-        ['original-emoji-restore.js?v=story-8','originalEmojiRestore'],
-        ['lanar-bottle-letters.js?v=story-8','lanarBottleLetters'],
-        ['ariel-bottle-letters.js?v=story-8','arielBottleLetters'],
-        ['island-triangle-letters.js?v=story-8','islandTriangleLetters'],
-        ['blackbeard-treasure-letters.js?v=story-8','blackbeardTreasureLetters'],
-        ['story-modal-fix.js?v=story-8','storyModalFix'],
-        ['bottle-dex-patch.js?v=story-8','bottleDexPatch']
+        ['turtle-soup-bottles.js?v=story-9','turtleSoupBottles'],
+        ['lanar-bottles.js?v=story-9','lanarBottles'],
+        ['ariel-chapter1-bottles.js?v=story-9','arielBottles'],
+        ['coco-bottles.js?v=story-9','cocoBottles'],
+        ['blackbeard-bottles.js?v=story-9','blackbeardBottles'],
+        ['mad-priest-bottles.js?v=story-9','madPriestBottles'],
+        ['carnival-island-bottles.js?v=story-9','carnivalIslandBottles'],
+        ['original-emoji-restore.js?v=story-9','originalEmojiRestore'],
+        ['lanar-bottle-letters.js?v=story-9','lanarBottleLetters'],
+        ['ariel-bottle-letters.js?v=story-9','arielBottleLetters'],
+        ['island-triangle-letters.js?v=story-9','islandTriangleLetters'],
+        ['blackbeard-treasure-letters.js?v=story-9','blackbeardTreasureLetters'],
+        ['story-modal-fix.js?v=story-9','storyModalFix'],
+        ['bottle-dex-patch.js?v=story-9','bottleDexPatch']
       ],420);
-      window.dispatchEvent(new CustomEvent('coffee-ship:story-ready',{detail:{version:8}}));
+      window.dispatchEvent(new CustomEvent('coffee-ship:story-ready',{detail:{version:9}}));
       return true;
     })();
     return storyModulesPromise;
@@ -255,7 +257,8 @@
       fishingAnimation:false,
       fishDex:true,
       economy:true,
-      version:8
+      expandedEvents:true,
+      version:9
     };
   }
 
