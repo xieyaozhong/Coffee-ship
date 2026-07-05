@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V1__) return;
-  window.__COFFEE_SHIP_MERMAID_LYRICS_V1__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V2__) return;
+  window.__COFFEE_SHIP_MERMAID_LYRICS_V2__ = true;
 
   const STORE_KEY = 'coffeeShipMermaidLyrics';
   const BAG_KEY = 'coffeeShipFishBag';
@@ -17,8 +17,11 @@
     {id:'dawn_song',number:7,icon:'🌅',title:'破曉之歌',rarity:'傳說',sellPrice:150,text:'天空還未亮，我先唱出第一個音\n讓受傷的浪重新學會前進\n當太陽越過最後一道風暴\n我們會看見新的海正在誕生'},
     {id:'guardian_pearl',number:8,icon:'🛡️',title:'守護珍珠',rarity:'傳說',sellPrice:155,text:'珍珠不是王冠也不是眼淚\n是我選擇守護世界的證明\n每一次顫抖都能化成勇氣\n每一句歌都能讓孤單被聽見'},
     {id:'sea_wind_reply',number:9,icon:'💌',title:'海風的回信',rarity:'傳說',sellPrice:160,text:'我把問題寫給遠方海風\n它帶回你沒有說完的回答\n原來真正的愛不是佔有\n是願意讓彼此自由地發光'},
-    {id:'eternal_chorus',number:10,icon:'🎼',title:'永恆合唱',rarity:'神話',sellPrice:220,text:'當十道歌聲越過暴雨相遇\n海面會綻放無數透明花朵\n即使故事終有一天寫到最後\n我們的合唱仍在潮汐裡繼續'}
+    {id:'eternal_chorus',number:10,icon:'🎼',title:'永恆合唱',rarity:'神話',sellPrice:220,text:'當十道歌聲越過暴雨相遇\n海面會綻放無數透明花朵\n即使故事終有一天寫到最後\n我們的合唱仍在潮汐裡繼續'},
+    {id:'rainbow_breeze',number:11,icon:'🍃',title:'七彩的微風',rarity:'神話',sellPrice:240,text:'七彩的微風\n側著臉輕輕吹拂\n想溜走　溜到沒有紛擾的角落\n在黎明前夕　傳來優美的旋律\n記憶裡最美麗最動人的 Melody'}
   ];
+
+  const TOTAL = LYRICS.length;
 
   function read(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -40,7 +43,8 @@
   }
 
   function normalizeEntry(entry) {
-    const source = entryById(entry?.id) || LYRICS[Math.max(0, Math.min(9, Number(entry?.number || 1) - 1))];
+    const index = Math.max(0, Math.min(TOTAL - 1, Number(entry?.number || 1) - 1));
+    const source = entryById(entry?.id) || LYRICS[index];
     return {
       ...source,
       ...entry,
@@ -166,7 +170,7 @@
     section.dataset.mermaidLyricsSection = 'true';
     section.dataset.signature = signature;
     section.innerHTML = `
-      <div class="mermaid-lyrics-heading"><span>🎼 美人魚歌詞漂流瓶</span><small>${new Set(rows.map(entry => entry.id)).size}/10 已收集</small></div>
+      <div class="mermaid-lyrics-heading"><span>🎼 美人魚歌詞漂流瓶</span><small>${new Set(rows.map(entry => entry.id)).size}/${TOTAL} 已收集</small></div>
       <div class="bp-list">${rows.map((entry,index) => `
         <article class="bp-card mermaid-lyric-card">
           <strong class="bp-title"><span>${escapeHtml(entry.icon)}</span><span>${escapeHtml(entry.title)}</span><span class="mermaid-lyric-number">${escapeHtml(entry.rarity)}</span></strong>
@@ -229,9 +233,10 @@
     bindBackpack();
     window.COFFEE_SHIP_BOTTLE_PROVIDERS = window.COFFEE_SHIP_BOTTLE_PROVIDERS || {};
     window.COFFEE_SHIP_BOTTLE_PROVIDERS.mermaidLyrics = {
-      getEntry:number => normalizeEntry(LYRICS[Math.max(0,Math.min(9,Number(number || 1) - 1))]),
+      getEntry:number => normalizeEntry(LYRICS[Math.max(0,Math.min(TOTAL - 1,Number(number || 1) - 1))]),
       create:createRandom,
-      entries:LYRICS
+      entries:LYRICS,
+      total:TOTAL
     };
   }
 
@@ -239,12 +244,13 @@
     series:SERIES,
     storageKey:STORE_KEY,
     entries:LYRICS,
+    total:TOTAL,
     list:normalizeAll,
     createRandom,
     createById,
     collected:() => new Set(normalizeAll().map(entry => entry.id)).size,
     injectBackpack,
-    version:1
+    version:2
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
