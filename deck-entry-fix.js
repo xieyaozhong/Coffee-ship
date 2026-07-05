@@ -1,12 +1,13 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_DECK_ENTRY_FIX_V4__) return;
-  window.__COFFEE_SHIP_DECK_ENTRY_FIX_V4__ = true;
+  if (window.__COFFEE_SHIP_DECK_ENTRY_FIX_V5__) return;
+  window.__COFFEE_SHIP_DECK_ENTRY_FIX_V5__ = true;
   window.__COFFEE_SHIP_DECK_ENTRY_FIX__ = true;
 
-  const CAFE_DOOR = { x:835, y:300, radius:112 };
+  const CAFE_DOOR = { x:835, y:300, radius:225 };
   const GUIDE_ORIGIN = { x:785, y:182 };
   const GUIDE_SIZE = { w:100, h:220 };
+  const SAFE_CAFE_PARKING = { x:190, y:470 };
 
   let entering = false;
   let guide = null;
@@ -14,6 +15,10 @@
 
   function deckApi() {
     return window.COFFEE_SHIP_DECK || null;
+  }
+
+  function gameApi() {
+    return window.COFFEE_SHIP_GAME_API || null;
   }
 
   function isDeckOpen() {
@@ -36,20 +41,39 @@
   }
 
   function playerPosition() {
-    return window.COFFEE_SHIP_PLAYER_POS || window.COFFEE_SHIP_GAME_API?.player || { x:480, y:360 };
+    return window.COFFEE_SHIP_PLAYER_POS || gameApi()?.player || { x:480, y:360 };
+  }
+
+  function distanceToCafeDoor() {
+    const player = playerPosition();
+    return Math.hypot(Number(player.x || 0) - CAFE_DOOR.x, Number(player.y || 0) - CAFE_DOOR.y);
   }
 
   function isNearCafeDoor() {
-    const player = playerPosition();
-    return Math.hypot(Number(player.x || 0) - CAFE_DOOR.x, Number(player.y || 0) - CAFE_DOOR.y) < CAFE_DOOR.radius;
+    return distanceToCafeDoor() < CAFE_DOOR.radius;
+  }
+
+  function parkCafeAvatar() {
+    const player = gameApi()?.player;
+    if (!player) return;
+
+    player.x = SAFE_CAFE_PARKING.x;
+    player.y = SAFE_CAFE_PARKING.y;
+    player.sitting = false;
+    window.COFFEE_SHIP_PLAYER_POS = {x:player.x,y:player.y};
+
+    window.dispatchEvent(new CustomEvent('coffee-ship:multiplayer-passage-cleared',{
+      detail:{scene:'deck',parking:{...SAFE_CAFE_PARKING}}
+    }));
   }
 
   function addStyle() {
-    if (document.getElementById('cafeDeckDoorStyleV4')) return;
+    if (document.getElementById('cafeDeckDoorStyleV5')) return;
     document.getElementById('cafeDeckDoorStyle')?.remove();
+    document.getElementById('cafeDeckDoorStyleV4')?.remove();
 
     const style = document.createElement('style');
-    style.id = 'cafeDeckDoorStyleV4';
+    style.id = 'cafeDeckDoorStyleV5';
     style.textContent = `
       #cafeDeckDoorGuide{
         position:absolute;
@@ -132,9 +156,9 @@
 
       .cafe-deck-hint{
         position:absolute;
-        left:4px;
+        left:-22px;
         top:203px;
-        width:92px;
+        width:144px;
         color:#79d0b1;
         font-size:11px;
         font-weight:1000;
@@ -160,6 +184,7 @@
   function ensureGuide() {
     if (guide?.isConnected) return guide;
 
+    document.getElementById('cafeDeckDoorGuide')?.remove();
     guide = document.createElement('section');
     guide.id = 'cafeDeckDoorGuide';
     guide.className = 'hidden';
@@ -168,7 +193,7 @@
       <div class="cafe-deck-sign">甲板</div>
       <button id="cafeDeckDoorAction" type="button" aria-label="登上甲板"></button>
       <div class="cafe-deck-threshold" aria-hidden="true"></div>
-      <div class="cafe-deck-hint">E／互動</div>`;
+      <div class="cafe-deck-hint">E／互動・防堵入口</div>`;
 
     const panel = document.getElementById('gamePanel') || document.body;
     panel.appendChild(guide);
@@ -209,10 +234,11 @@
 
   function enterDeck() {
     const api = deckApi();
-    if (!api?.switchToDeck || isDeckOpen() || entering || !isNearCafeDoor()) return false;
+    if (!api?.switchToDeck || isDeckOpen() || entering || !isCafeOpen() || !isNearCafeDoor()) return false;
 
     entering = true;
     try {
+      parkCafeAvatar();
       api.switchToDeck();
       ensureGuide().classList.add('hidden');
       return true;
@@ -260,14 +286,16 @@
     if (button) {
       if (!button.dataset.deckDoorOriginalText) button.dataset.deckDoorOriginalText = button.textContent || '互動';
       button.textContent = near ? '🚪 甲板' : button.dataset.deckDoorOriginalText;
-      button.title = near ? '登上甲板' : '互動／摸貓／坐下';
+      button.title = near ? '登上甲板（多人防堵入口）' : '互動／摸貓／坐下';
       button.setAttribute('aria-label',near ? '登上甲板' : '互動、摸貓或坐下');
       button.classList.toggle('deck-door-ready',near);
     }
 
     if (near !== lastNear) {
       lastNear = near;
-      window.dispatchEvent(new CustomEvent('coffee-ship:deck-door-state',{detail:{near}}));
+      window.dispatchEvent(new CustomEvent('coffee-ship:deck-door-state',{
+        detail:{near,distance:distanceToCafeDoor(),radius:CAFE_DOOR.radius}
+      }));
     }
   }
 
@@ -281,7 +309,7 @@
     window.addEventListener('coffee-ship:scene',syncHint);
     window.addEventListener('coffee-ship:entered',syncHint);
 
-    const timer = setInterval(syncHint,180);
+    const timer = setInterval(syncHint,140);
     document.addEventListener('visibilitychange',() => {
       if (document.hidden) entering = false;
       else syncHint();
@@ -290,9 +318,11 @@
     window.COFFEE_SHIP_DECK_ENTRY = {
       enterDeck,
       isNearCafeDoor,
+      distanceToCafeDoor,
       position:CAFE_DOOR,
+      parking:SAFE_CAFE_PARKING,
       showGuide:syncHint,
-      version:4
+      version:5
     };
 
     setTimeout(() => clearInterval(timer),1000 * 60 * 45);
