@@ -112,17 +112,34 @@
     }
   }
 
-  function loadDeckEntryFix() {
-    if (window.__COFFEE_SHIP_DECK_ENTRY_FIX__ || document.querySelector('script[data-deck-entry-fix="true"]')) return;
+  function loadSupportScript(src, dataKey, readyCheck) {
+    if (readyCheck?.() || document.querySelector(`script[data-${dataKey}="true"]`)) return;
     const script = document.createElement('script');
-    script.src = `deck-entry-fix.js?v=deck-entry-1-${Date.now()}`;
-    script.dataset.deckEntryFix = 'true';
+    script.src = `${src}?v=${dataKey}-${Date.now()}`;
+    script.dataset[dataKey] = 'true';
     script.async = false;
     document.body.appendChild(script);
   }
 
+  function loadDeckEntryFix() {
+    loadSupportScript(
+      'deck-entry-fix.js',
+      'deckEntryFix',
+      () => !!window.__COFFEE_SHIP_DECK_ENTRY_FIX__
+    );
+  }
+
+  function loadFishingEventStack() {
+    loadSupportScript(
+      'fishing-event-stack.js',
+      'fishingEventStack',
+      () => !!window.__COFFEE_SHIP_FISHING_EVENT_STACK__
+    );
+  }
+
   function init() {
     loadDeckEntryFix();
+    loadFishingEventStack();
     sync();
     setInterval(sync, 800);
   }
