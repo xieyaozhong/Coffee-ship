@@ -13,7 +13,7 @@
     blackbeard:{icon:'🏴‍☠️',series:'黑鬍子藏寶圖',rarity:'傳說',count:10},
     priest:{icon:'📜',series:'瘋狂神父殘頁',rarity:'傳說',count:30},
     carnival:{icon:'🎭',series:'狂歡島漂流瓶',rarity:'史詩',count:30},
-    turtle:{icon:'🍲',series:'海龜湯神秘故事',rarity:'神話',count:20}
+    turtle:{icon:'🍲',series:'海龜湯神秘故事',rarity:'神話',count:10}
   };
 
   const jokes = [
@@ -54,7 +54,7 @@
     if(type === 'blackbeard') { const treasures=['伊莉莎白的皇冠','總督夫人的藍寶石項鍊','聖銀教堂的金杯','王家船隊的黑珍珠箱','東港銀行的金磚','路西安王子的紅寶石戒指','低語羅盤','玻璃小提琴','月潮沙漏','戴維・瓊斯的心臟']; return `黑鬍子用粗魯的字跡寫道：這是老子收藏的「${treasures[(i-1)%treasures.length]}」。每件寶物都有一個不願再提起它的原主人，而最後一件寶物的主人，就是黑鬍子自己。`; }
     if(type === 'priest') return `瘋狂神父殘頁 ${i}：經文被海水泡爛，只剩斷句。紙邊寫著一個名字：塞拉芬・維爾。那不是聖徒，而是曾任王室首席醫師與路西安王子導師的人。`;
     if(type === 'carnival') { const t = carnivalTitles[(i-1)%carnivalTitles.length]; return `狂歡島｜${t}。這座島原本是王室建立的晨潮療養島，聲學治療實驗失控後，悲傷被換成永不停止的狂歡，名字則成了代價。`; }
-    if(type === 'turtle') return `海龜湯 ${i}：一名船員每天都把晚餐倒進海裡，直到某天他終於把湯喝完，卻立刻要求船長返航。為什麼？瓶中沒有答案，只有一句提示：他不是第一次喝到那個味道。`;
+    if(type === 'turtle') return `【上一湯謎底】答案藏在上一個瓶子留下的線索裡。\n\n【本湯謎面】海龜湯 ${pad(i)} 尚未載入完整故事，請稍後再查看。\n\n每一題的答案都會出現在下一種海龜湯中，第 10 題的答案則回到第 1 題。`;
     return '這是一封被海水泡皺的漂流瓶，文字仍然清楚，像剛剛才有人寫完。';
   }
   function inferType(key, entry){
