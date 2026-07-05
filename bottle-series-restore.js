@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_BOTTLE_RESTORE_V3__) return;
-  window.__COFFEE_SHIP_BOTTLE_RESTORE_V3__ = true;
+  if (window.__COFFEE_SHIP_BOTTLE_RESTORE_V4__) return;
+  window.__COFFEE_SHIP_BOTTLE_RESTORE_V4__ = true;
 
   const STORE = {
     joke:'coffeeShipBottleLetters',lanar:'coffeeShipLanarLetters',ariel:'coffeeShipArielLetters',
@@ -52,14 +52,14 @@
   }
 
   function fallbackText(type, number) {
-    const index = clamp(number,META[type]?.count || 10);
+    const index = clamp(number, META[type]?.count || 10);
     if (type === 'joke') return JOKES[(index - 1) % JOKES.length];
     return `${META[type]?.series || '漂流瓶'}第 ${index} 封。海水泡皺了紙張，但故事仍然清楚。`;
   }
 
   function getEntry(type, number) {
     const meta = META[type] || META.joke;
-    const index = clamp(number,meta.count);
+    const index = clamp(number, meta.count);
     const provider = providerFor(type);
     const provided = provider?.getEntry?.(index);
     return {
@@ -79,10 +79,11 @@
     const provider = providerFor(safeType);
     if (provider?.create) return provider.create();
     const key = STORE[safeType];
-    const list = read(key,[]);
-    const entry = getEntry(safeType,list.length + 1);
+    const list = read(key, []);
+    const entry = getEntry(safeType, list.length + 1);
     list.push(entry);
-    save(key,list.slice(-120));
+    save(key, list.slice(-120));
+    window.dispatchEvent(new CustomEvent('coffee-ship:bag-changed',{detail:{source:'bottle',entry}}));
     return entry;
   }
 
@@ -98,7 +99,7 @@
 
   function normalizeAll() {
     Object.entries(STORE).forEach(([type,key]) => {
-      const list = read(key,[]);
+      const list = read(key, []);
       if (!Array.isArray(list)) return;
       const meta = META[type];
       const repaired = list.map((entry,index) => ({
@@ -115,20 +116,26 @@
   }
 
   function patchDatabase() {
-    if (window.COFFEE_SHIP_DB) {
-      window.COFFEE_SHIP_DB.bottles = Object.keys(META).map(type => [type,META[type].icon,META[type].series,META[type].rarity,getEntry(type,1).text]);
-      window.COFFEE_SHIP_DB.pickBottle = () => {
-        const type = pickType();
-        const entry = getEntry(type,1);
-        return {id:type,icon:entry.icon,title:entry.series,text:entry.text,rarity:entry.rarity,group:'bottle',at:Date.now()};
-      };
-    }
+    if (!window.COFFEE_SHIP_DB) return;
+    window.COFFEE_SHIP_DB.bottles = Object.keys(META).map(type => [type,META[type].icon,META[type].series,META[type].rarity,getEntry(type,1).text]);
+    window.COFFEE_SHIP_DB.pickBottle = () => {
+      const type = pickType();
+      const entry = getEntry(type,1);
+      return {id:type,icon:entry.icon,title:entry.series,text:entry.text,rarity:entry.rarity,group:'bottle',at:Date.now()};
+    };
   }
 
-  function onFishingResult() {
-    if (Math.random() > .075) return;
+  function bottleChance() {
+    return window.COFFEE_SHIP_ECONOMY?.eventChance?.(.075,'bottle')
+      ?? Math.min(.7, .075 + Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.bottleLuck || 0));
+  }
+
+  function onFishingResult(event) {
+    if (Math.random() > bottleChance()) return;
     const entry = createFullBottle(pickType());
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
+      castId:event.detail?.castId,
+      eventKind:'bottle',
       title:entry.title,
       icon:entry.icon || '🍾',
       accent:'#d7bb79',
@@ -152,7 +159,9 @@
     textOf:(type,number) => getEntry(type,number).text,
     titleOf:(type,number) => getEntry(type,number).title,
     createFullBottle,
-    normalizeAll
+    normalizeAll,
+    bottleChance,
+    version:4
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
