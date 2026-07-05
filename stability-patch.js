@@ -1,11 +1,11 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V2__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V2__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V3__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V3__ = true;
 
-  let heavyLoaded = false;
-  let heavyRetry = 0;
   let controlsBound = false;
+  let deckModulesStarted = false;
+  let storyModulesStarted = false;
 
   function isDeckOpen() {
     const api = window.COFFEE_SHIP_DECK;
@@ -105,17 +105,16 @@
     updateStatusBadge();
     window.addEventListener('coffee-ship:entered', updateStatusBadge);
     window.addEventListener('coffee-ship:scene', updateStatusBadge);
-    setInterval(updateStatusBadge, 1200);
   }
 
-  function normalizedPath(src) {
+  function fileName(src) {
     try { return new URL(src, location.href).pathname.split('/').pop(); }
     catch { return String(src).split('?')[0].split('/').pop(); }
   }
 
   function alreadyLoaded(src) {
-    const target = normalizedPath(src);
-    return Array.from(document.scripts).some(script => normalizedPath(script.src || script.getAttribute('src') || '') === target);
+    const target = fileName(src);
+    return Array.from(document.scripts).some(script => fileName(script.src || script.getAttribute('src') || '') === target);
   }
 
   function loadScript(src, flag) {
@@ -125,91 +124,119 @@
       script.src = src;
       script.async = false;
       script.dataset[flag] = 'true';
-      script.onload = () => resolve();
+      script.onload = resolve;
       script.onerror = () => { console.warn(`Optional module failed: ${src}`); resolve(); };
       document.body.appendChild(script);
     });
   }
 
-  async function loadSequence(entries) {
-    for (const [src, flag] of entries) await loadScript(src, flag);
-  }
+  function pause(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-  function schedule(callback) {
-    if ('requestIdleCallback' in window) requestIdleCallback(callback, { timeout:1200 });
-    else setTimeout(callback, 220);
-  }
-
-  async function loadCoreEnhancements() {
-    await loadSequence([
-      ['role-sprites.js?v=boot-v2','roleSprites'],
-      ['role-mobile-ability.js?v=boot-v2','roleAbility'],
-      ['change-character.js?v=boot-v2','changeCharacter'],
-      ['mobile-home-safe.js?v=boot-v2','mobileHomeSafe'],
-      ['mobile-game-layout.js?v=boot-v2','mobileGameLayout'],
-      ['quality-polish.js?v=boot-v2','qualityPolish'],
-      ['black-cat-nox.js?v=boot-v2','blackCatNox'],
-      ['mobile-deck-fix.js?v=boot-v2','mobileDeckFix'],
-      ['deck-role-fix.js?v=boot-v2','deckRoleFix'],
-      ['npc-behavior-polish.js?v=boot-v2','npcBehaviorPolish'],
-      ['port.js?v=boot-v2','portScene']
-    ]);
-  }
-
-  async function loadHeavyGameplay() {
-    if (heavyLoaded) return;
-    heavyLoaded = true;
-    await loadSequence([
-      ['carnival-loot-pool.js?v=boot-v2','carnivalLootPool'],
-      ['carnival-loot-upgrade.js?v=boot-v2','carnivalLootUpgrade'],
-      ['loot-bottle-core.js?v=boot-v2','lootBottleCore'],
-      ['bottle-series-restore.js?v=boot-v2','bottleSeriesRestore'],
-      ['lanar-bottles.js?v=boot-v2','lanarBottles'],
-      ['ariel-chapter1-bottles.js?v=boot-v2','arielBottles'],
-      ['coco-bottles.js?v=boot-v2','cocoBottles'],
-      ['blackbeard-bottles.js?v=boot-v2','blackbeardBottles'],
-      ['mad-priest-bottles.js?v=boot-v2','madPriestBottles'],
-      ['carnival-island-bottles.js?v=boot-v2','carnivalIslandBottles'],
-      ['original-emoji-restore.js?v=boot-v2','originalEmojiRestore'],
-      ['ocean-friends-events.js?v=boot-v2','oceanFriendsEvents'],
-      ['single-fishing-result.js?v=boot-v2','singleFishingResult'],
-      ['mermaid-event.js?v=boot-v2','mermaidEvent'],
-      ['deck-fishing.js?v=boot-v2','deckFishing'],
-      ['fishing-cast-animation.js?v=boot-v2','fishingCastAnimation'],
-      ['deck-fishing-specials.js?v=boot-v2','deckFishingSpecials'],
-      ['extra-fish-50.js?v=boot-v2','extraFish50'],
-      ['deck-shark-event.js?v=boot-v2','deckSharkEvent'],
-      ['mutant-creatures.js?v=boot-v2','mutantCreatures'],
-      ['mobile-mutant-modal-fix.js?v=boot-v2','mobileMutantModalFix'],
-      ['lanar-bottle-letters.js?v=boot-v2','lanarBottleLetters'],
-      ['ariel-bottle-letters.js?v=boot-v2','arielBottleLetters'],
-      ['island-triangle-letters.js?v=boot-v2','islandTriangleLetters'],
-      ['blackbeard-treasure-letters.js?v=boot-v2','blackbeardTreasureLetters'],
-      ['story-modal-fix.js?v=boot-v2','storyModalFix'],
-      ['animation-overlap-guard.js?v=boot-v2','animationOverlapGuard'],
-      ['bottle-dex-patch.js?v=boot-v2','bottleDexPatch'],
-      ['fishing-rare-animation.js?v=boot-v2','fishingRareAnimation'],
-      ['mobile-modal-fix.js?v=boot-v2','mobileModalFix'],
-      ['mobile-shark-modal-fix.js?v=boot-v2','mobileSharkModalFix']
-    ]);
-    window.dispatchEvent(new CustomEvent('coffee-ship:modules-ready'));
-  }
-
-  function triggerHeavyLoad() {
-    if (heavyLoaded) return;
-    if (!isGameActive()) {
-      if (heavyRetry < 10) { heavyRetry += 1; setTimeout(triggerHeavyLoad, 250); }
-      return;
+  async function loadSequence(entries, gap=120) {
+    for (const [src, flag] of entries) {
+      if (document.hidden) await pause(500);
+      await loadScript(src, flag);
+      if (gap) await pause(gap);
     }
-    schedule(loadHeavyGameplay);
+  }
+
+  function idle(callback, timeout=1200) {
+    if ('requestIdleCallback' in window) requestIdleCallback(callback, { timeout });
+    else setTimeout(callback, 260);
+  }
+
+  async function loadCafeEnhancements() {
+    await loadSequence([
+      ['role-sprites.js?v=stable-npc-1','roleSprites'],
+      ['role-mobile-ability.js?v=stable-npc-1','roleAbility'],
+      ['change-character.js?v=stable-npc-1','changeCharacter'],
+      ['mobile-home-safe.js?v=stable-npc-1','mobileHomeSafe'],
+      ['mobile-game-layout.js?v=stable-npc-1','mobileGameLayout'],
+      ['quality-polish.js?v=stable-npc-1','qualityPolish'],
+      ['black-cat-nox.js?v=stable-npc-1','blackCatNox'],
+      ['mobile-deck-fix.js?v=stable-npc-1','mobileDeckFix'],
+      ['deck-role-fix.js?v=stable-npc-1','deckRoleFix'],
+      ['port.js?v=stable-npc-1','portScene']
+    ], 80);
+  }
+
+  async function loadStoryModules() {
+    if (storyModulesStarted) return;
+    storyModulesStarted = true;
+    await loadSequence([
+      ['carnival-loot-pool.js?v=stable-npc-1','carnivalLootPool'],
+      ['carnival-loot-upgrade.js?v=stable-npc-1','carnivalLootUpgrade'],
+      ['loot-bottle-core.js?v=stable-npc-1','lootBottleCore'],
+      ['bottle-series-restore.js?v=stable-npc-1','bottleSeriesRestore'],
+      ['lanar-bottles.js?v=stable-npc-1','lanarBottles'],
+      ['ariel-chapter1-bottles.js?v=stable-npc-1','arielBottles'],
+      ['coco-bottles.js?v=stable-npc-1','cocoBottles'],
+      ['blackbeard-bottles.js?v=stable-npc-1','blackbeardBottles'],
+      ['mad-priest-bottles.js?v=stable-npc-1','madPriestBottles'],
+      ['carnival-island-bottles.js?v=stable-npc-1','carnivalIslandBottles'],
+      ['original-emoji-restore.js?v=stable-npc-1','originalEmojiRestore'],
+      ['ocean-friends-events.js?v=stable-npc-1','oceanFriendsEvents'],
+      ['single-fishing-result.js?v=stable-npc-1','singleFishingResult'],
+      ['lanar-bottle-letters.js?v=stable-npc-1','lanarBottleLetters'],
+      ['ariel-bottle-letters.js?v=stable-npc-1','arielBottleLetters'],
+      ['island-triangle-letters.js?v=stable-npc-1','islandTriangleLetters'],
+      ['blackbeard-treasure-letters.js?v=stable-npc-1','blackbeardTreasureLetters'],
+      ['story-modal-fix.js?v=stable-npc-1','storyModalFix'],
+      ['bottle-dex-patch.js?v=stable-npc-1','bottleDexPatch']
+    ], 420);
+    window.dispatchEvent(new CustomEvent('coffee-ship:story-ready'));
+  }
+
+  async function loadDeckModules() {
+    if (deckModulesStarted) return;
+    deckModulesStarted = true;
+    await loadSequence([
+      ['deck-fishing.js?v=stable-npc-1','deckFishing'],
+      ['fishing-cast-animation.js?v=stable-npc-1','fishingCastAnimation'],
+      ['deck-fishing-specials.js?v=stable-npc-1','deckFishingSpecials'],
+      ['extra-fish-50.js?v=stable-npc-1','extraFish50'],
+      ['mermaid-event.js?v=stable-npc-1','mermaidEvent'],
+      ['deck-shark-event.js?v=stable-npc-1','deckSharkEvent'],
+      ['mutant-creatures.js?v=stable-npc-1','mutantCreatures'],
+      ['mobile-mutant-modal-fix.js?v=stable-npc-1','mobileMutantModalFix'],
+      ['animation-overlap-guard.js?v=stable-npc-1','animationOverlapGuard'],
+      ['fishing-rare-animation.js?v=stable-npc-1','fishingRareAnimation'],
+      ['mobile-modal-fix.js?v=stable-npc-1','mobileModalFix'],
+      ['mobile-shark-modal-fix.js?v=stable-npc-1','mobileSharkModalFix']
+    ], 260);
+    idle(loadStoryModules, 2000);
+    window.dispatchEvent(new CustomEvent('coffee-ship:deck-modules-ready'));
+  }
+
+  function requestDeckModules() {
+    if (deckModulesStarted) return;
+    idle(loadDeckModules, 900);
+  }
+
+  function bindLazyTriggers() {
+    const watch = setInterval(() => {
+      updateStatusBadge();
+      if (isDeckOpen()) {
+        clearInterval(watch);
+        requestDeckModules();
+      }
+    }, 900);
+
+    document.addEventListener('click', event => {
+      if (event.target.closest?.('#backpackSafeOpenBtn, #fishDexBtn')) idle(loadStoryModules, 1200);
+    }, true);
+
+    window.addEventListener('keydown', event => {
+      const key = event.key?.length===1 ? event.key.toLowerCase() : event.key;
+      if ((key==='f'||key==='g') && isDeckOpen()) requestDeckModules();
+    }, true);
   }
 
   function init() {
     bindMobileDeckControls();
     addStatusBadge();
-    schedule(loadCoreEnhancements);
-    window.addEventListener('coffee-ship:entered', triggerHeavyLoad);
-    if (isGameActive()) triggerHeavyLoad();
+    idle(loadCafeEnhancements, 700);
+    bindLazyTriggers();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
