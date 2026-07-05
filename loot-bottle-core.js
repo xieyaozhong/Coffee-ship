@@ -55,7 +55,7 @@
     ['🏅','狂歡節勳章','史詩','飾品',.08,'獎給最會笑的人。'],
     ['💠','狂歡節水晶胸針','傳說','飾品',.06,'水晶中有舞會倒影。'],
     ['✨','狂歡節金色耳環','稀有','飾品',.02,'晃動時會灑出金粉。'],
-    ['🔔','狂歡節銀鈴腳環','史詩','飾品',.07,'鈴聲只在夜裡響起。'}
+    ['🔔','狂歡節銀鈴腳環','史詩','飾品',.07,'鈴聲只在夜裡響起。']
   ].map(([icon,name,rarity,quality,weight,note]) => ({ icon, name, rarity, quality, weight, note, zone:'狂歡島遺失物', kind:'treasure' }));
 
   const BOTTLE_SERIES = {
@@ -78,7 +78,7 @@
   ];
 
   function read(k, fb){ try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(fb)); } catch(e) { return fb; } }
-  function save(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+  function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
   function iconForItem(item){
     const name = item?.name || item?.title || '';
     const rule = itemRules.find(([re]) => re.test(name));
