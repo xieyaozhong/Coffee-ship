@@ -113,7 +113,10 @@
   }
 
   function loadSupportScript(src, dataKey, readyCheck) {
-    if (readyCheck?.() || document.querySelector(`script[data-${dataKey}="true"]`)) return;
+    if (readyCheck?.()) return;
+    const selector = `script[data-${dataKey}="true"]`;
+    const existing = document.querySelector(selector);
+    if (existing) existing.remove();
     const script = document.createElement('script');
     script.src = `${src}?v=${dataKey}-${Date.now()}`;
     script.dataset[dataKey] = 'true';
@@ -124,8 +127,8 @@
   function loadDeckEntryFix() {
     loadSupportScript(
       'deck-entry-fix.js',
-      'deckEntryFix',
-      () => !!window.__COFFEE_SHIP_DECK_ENTRY_FIX__
+      'deckEntryFixV5',
+      () => !!window.__COFFEE_SHIP_DECK_ENTRY_FIX_V5__
     );
   }
 
