@@ -112,7 +112,17 @@
     }
   }
 
+  function loadDeckEntryFix() {
+    if (window.__COFFEE_SHIP_DECK_ENTRY_FIX__ || document.querySelector('script[data-deck-entry-fix="true"]')) return;
+    const script = document.createElement('script');
+    script.src = `deck-entry-fix.js?v=deck-entry-1-${Date.now()}`;
+    script.dataset.deckEntryFix = 'true';
+    script.async = false;
+    document.body.appendChild(script);
+  }
+
   function init() {
+    loadDeckEntryFix();
     sync();
     setInterval(sync, 800);
   }
