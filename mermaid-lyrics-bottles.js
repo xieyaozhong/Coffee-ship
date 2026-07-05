@@ -8,46 +8,16 @@
   const SERIES = '美人魚歌詞漂流瓶';
 
   const LYRICS = [
-    {
-      id:'pearl_moonlight',number:1,icon:'💎',title:'月光珍珠',rarity:'史詩',sellPrice:110,
-      text:'當月光沉入藍色海面\n我把願望藏進一顆珍珠\n即使潮汐將我們帶向遠方\n歌聲仍會沿著星光找到你'
-    },
-    {
-      id:'seven_tides',number:2,icon:'🌈',title:'七色潮聲',rarity:'史詩',sellPrice:115,
-      text:'七道浪花在夜裡點亮\n每一種顏色都是夥伴的名字\n當我們把心跳唱成同一拍\n沉默的海也會為希望鼓掌'
-    },
-    {
-      id:'bubbles_return',number:3,icon:'🫧',title:'泡沫不說再見',rarity:'史詩',sellPrice:118,
-      text:'泡沫升起不是告別\n只是把思念送往更高的天空\n等晨風吹回熟悉的旋律\n我會在浪尖重新與你相逢'
-    },
-    {
-      id:'deepsea_promise',number:4,icon:'🔷',title:'深海的約定',rarity:'史詩',sellPrice:120,
-      text:'在無光的海底握住彼此\n微弱的聲音也能成為燈塔\n只要記得最初交換的約定\n黑暗就沒有辦法奪走方向'
-    },
-    {
-      id:'coral_kingdom',number:5,icon:'🪸',title:'珊瑚王國的夢',rarity:'傳說',sellPrice:145,
-      text:'珊瑚城門在夢中打開\n魚群披著銀色花瓣起舞\n我不是等待被拯救的公主\n我要唱著自己的名字回家'
-    },
-    {
-      id:'stardust_wish',number:6,icon:'⭐',title:'星砂心願',rarity:'史詩',sellPrice:122,
-      text:'我將一粒星砂放進掌心\n請它替我守護遙遠的人\n若你在夜裡聽見海潮回應\n那是我的心願抵達你身旁'
-    },
-    {
-      id:'dawn_song',number:7,icon:'🌅',title:'破曉之歌',rarity:'傳說',sellPrice:150,
-      text:'天空還未亮，我先唱出第一個音\n讓受傷的浪重新學會前進\n當太陽越過最後一道風暴\n我們會看見新的海正在誕生'
-    },
-    {
-      id:'guardian_pearl',number:8,icon:'🛡️',title:'守護珍珠',rarity:'傳說',sellPrice:155,
-      text:'珍珠不是王冠也不是眼淚\n是我選擇守護世界的證明\n每一次顫抖都能化成勇氣\n每一句歌都能讓孤單被聽見'
-    },
-    {
-      id:'sea_wind_reply',number:9,icon:'💌',title:'海風的回信',rarity:'傳說',sellPrice:160,
-      text:'我把問題寫給遠方海風\n它帶回你沒有說完的回答\n原來真正的愛不是佔有\n是願意讓彼此自由地發光'
-    },
-    {
-      id:'eternal_chorus',number:10,icon:'🎼',title:'永恆合唱',rarity:'神話',sellPrice:220,
-      text:'當十道歌聲越過暴雨相遇\n海面會綻放無數透明花朵\n即使故事終有一天寫到最後\n我們的合唱仍在潮汐裡繼續'
-    }
+    {id:'pearl_moonlight',number:1,icon:'💎',title:'月光珍珠',rarity:'史詩',sellPrice:110,text:'當月光沉入藍色海面\n我把願望藏進一顆珍珠\n即使潮汐將我們帶向遠方\n歌聲仍會沿著星光找到你'},
+    {id:'seven_tides',number:2,icon:'🌈',title:'七色潮聲',rarity:'史詩',sellPrice:115,text:'七道浪花在夜裡點亮\n每一種顏色都是夥伴的名字\n當我們把心跳唱成同一拍\n沉默的海也會為希望鼓掌'},
+    {id:'bubbles_return',number:3,icon:'🫧',title:'泡沫不說再見',rarity:'史詩',sellPrice:118,text:'泡沫升起不是告別\n只是把思念送往更高的天空\n等晨風吹回熟悉的旋律\n我會在浪尖重新與你相逢'},
+    {id:'deepsea_promise',number:4,icon:'🔷',title:'深海的約定',rarity:'史詩',sellPrice:120,text:'在無光的海底握住彼此\n微弱的聲音也能成為燈塔\n只要記得最初交換的約定\n黑暗就沒有辦法奪走方向'},
+    {id:'coral_kingdom',number:5,icon:'🪸',title:'珊瑚王國的夢',rarity:'傳說',sellPrice:145,text:'珊瑚城門在夢中打開\n魚群披著銀色花瓣起舞\n我不是等待被拯救的公主\n我要唱著自己的名字回家'},
+    {id:'stardust_wish',number:6,icon:'⭐',title:'星砂心願',rarity:'史詩',sellPrice:122,text:'我將一粒星砂放進掌心\n請它替我守護遙遠的人\n若你在夜裡聽見海潮回應\n那是我的心願抵達你身旁'},
+    {id:'dawn_song',number:7,icon:'🌅',title:'破曉之歌',rarity:'傳說',sellPrice:150,text:'天空還未亮，我先唱出第一個音\n讓受傷的浪重新學會前進\n當太陽越過最後一道風暴\n我們會看見新的海正在誕生'},
+    {id:'guardian_pearl',number:8,icon:'🛡️',title:'守護珍珠',rarity:'傳說',sellPrice:155,text:'珍珠不是王冠也不是眼淚\n是我選擇守護世界的證明\n每一次顫抖都能化成勇氣\n每一句歌都能讓孤單被聽見'},
+    {id:'sea_wind_reply',number:9,icon:'💌',title:'海風的回信',rarity:'傳說',sellPrice:160,text:'我把問題寫給遠方海風\n它帶回你沒有說完的回答\n原來真正的愛不是佔有\n是願意讓彼此自由地發光'},
+    {id:'eternal_chorus',number:10,icon:'🎼',title:'永恆合唱',rarity:'神話',sellPrice:220,text:'當十道歌聲越過暴雨相遇\n海面會綻放無數透明花朵\n即使故事終有一天寫到最後\n我們的合唱仍在潮汐裡繼續'}
   ];
 
   function read(key, fallback) {
@@ -115,8 +85,7 @@
     const owned = new Set(current.map(entry => entry.id));
     const missing = LYRICS.filter(entry => !owned.has(entry.id));
     const pool = missing.length ? missing : LYRICS;
-    const selected = pool[Math.floor(Math.random() * pool.length)];
-    return createById(selected.id, options);
+    return createById(pool[Math.floor(Math.random() * pool.length)].id, options);
   }
 
   function migrateLegacyItems() {
@@ -169,18 +138,24 @@
     const panel = document.getElementById('backpackPanel');
     if (!panel || panel.classList.contains('hidden')) return;
     const tab = panel.querySelector('[data-bp-tab="letter"]');
-    const active = tab?.classList.contains('active');
-    if (!active) return;
+    if (!tab?.classList.contains('active')) return;
 
     const rows = lyricCards();
-    if (tab && !tab.dataset.mermaidBaseCount) {
+    if (!tab.dataset.mermaidBaseCount) {
       const match = tab.textContent.match(/(\d+)/);
       tab.dataset.mermaidBaseCount = match ? match[1] : '0';
     }
-    if (tab) tab.textContent = `信件 ${Number(tab.dataset.mermaidBaseCount || 0) + rows.length}`;
+    tab.textContent = `信件 ${Number(tab.dataset.mermaidBaseCount || 0) + rows.length}`;
 
-    panel.querySelector('[data-mermaid-lyrics-section]')?.remove();
-    if (!rows.length) return;
+    const existing = panel.querySelector('[data-mermaid-lyrics-section]');
+    if (!rows.length) {
+      existing?.remove();
+      return;
+    }
+
+    const signature = rows.map(entry => `${entry.id}:${entry.at}`).join('|');
+    if (existing?.dataset.signature === signature) return;
+    existing?.remove();
 
     panel.querySelector('.bp-content > .bp-empty')?.remove();
     const content = panel.querySelector('.bp-content');
@@ -189,6 +164,7 @@
     const section = document.createElement('section');
     section.className = 'mermaid-lyrics-section';
     section.dataset.mermaidLyricsSection = 'true';
+    section.dataset.signature = signature;
     section.innerHTML = `
       <div class="mermaid-lyrics-heading"><span>🎼 美人魚歌詞漂流瓶</span><small>${new Set(rows.map(entry => entry.id)).size}/10 已收集</small></div>
       <div class="bp-list">${rows.map((entry,index) => `
@@ -247,7 +223,15 @@
       if (event.target.closest('[data-bp-clear]')) save(STORE_KEY,[]);
     },true);
 
-    const observer = new MutationObserver(() => requestAnimationFrame(injectBackpack));
+    let queued = false;
+    const observer = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        injectBackpack();
+      });
+    });
     observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
   }
 
