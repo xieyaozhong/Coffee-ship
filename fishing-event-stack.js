@@ -1,8 +1,9 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_FISHING_EVENT_BRIDGE_V3__) return;
-  window.__COFFEE_SHIP_FISHING_EVENT_BRIDGE_V3__ = true;
+  if (window.__COFFEE_SHIP_FISHING_EVENT_BRIDGE_V4__) return;
+  window.__COFFEE_SHIP_FISHING_EVENT_BRIDGE_V4__ = true;
   window.__COFFEE_SHIP_FISHING_EVENT_STACK_V2__ = true;
+  window.__COFFEE_SHIP_FISHING_EVENT_STACK__ = true;
 
   const SELECTOR = [
     '#mermaidCard','#sharkCard','#mutantCard','#extraFish50Card','#restoredBottleCard',
@@ -21,12 +22,12 @@
 
   function metadata(element) {
     const token = `${element.id} ${element.className}`.toLowerCase();
-    if (token.includes('mermaid')) return {title:'美人魚事件',icon:'🧜‍♀️',accent:'#9ce8f0'};
-    if (token.includes('shark')) return {title:'鯊魚事件',icon:'🦈',accent:'#e9a6b0'};
-    if (token.includes('mutant')) return {title:'變異生物',icon:'🧬',accent:'#ff5f9e'};
-    if (token.includes('bottle') || token.includes('story')) return {title:'漂流瓶事件',icon:'🍾',accent:'#d7bb79'};
-    if (token.includes('rare') || token.includes('world')) return {title:'稀有事件',icon:'✨',accent:'#ffe16b'};
-    return {title:'特殊釣魚事件',icon:'🌟',accent:'#8460c8'};
+    if (token.includes('mermaid')) return {title:'美人魚事件',icon:'🧜‍♀️',accent:'#9ce8f0',eventKind:'mermaid'};
+    if (token.includes('shark')) return {title:'鯊魚事件',icon:'🦈',accent:'#e9a6b0',eventKind:'shark'};
+    if (token.includes('mutant')) return {title:'變異生物',icon:'🧬',accent:'#ff5f9e',eventKind:'mutant'};
+    if (token.includes('bottle') || token.includes('story')) return {title:'漂流瓶事件',icon:'🍾',accent:'#d7bb79',eventKind:'bottle'};
+    if (token.includes('rare') || token.includes('world')) return {title:'稀有事件',icon:'✨',accent:'#ffe16b',eventKind:'special'};
+    return {title:'特殊釣魚事件',icon:'🌟',accent:'#8460c8',eventKind:'special'};
   }
 
   function signature(element) {
@@ -34,8 +35,12 @@
   }
 
   function capture(element) {
+    if (!visible(element)) {
+      seen.delete(element);
+      return;
+    }
     const api = window.COFFEE_SHIP_FISHING_API;
-    if (!api?.pushEvent || !visible(element)) return;
+    if (!api?.pushEvent) return;
     const text = signature(element);
     if (!text || seen.get(element) === text) return;
     seen.set(element,text);
@@ -71,7 +76,8 @@
       push:options => window.COFFEE_SHIP_FISHING_API?.pushEvent?.(options),
       clear:() => {},
       sync:queue,
-      count:countHistory
+      count:countHistory,
+      version:4
     };
     queue();
   }
