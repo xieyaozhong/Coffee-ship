@@ -1,9 +1,10 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_EVENT_LOOT_NORMALIZER_V1__) return;
-  window.__COFFEE_SHIP_EVENT_LOOT_NORMALIZER_V1__ = true;
+  if (window.__COFFEE_SHIP_EVENT_LOOT_NORMALIZER_V2__) return;
+  window.__COFFEE_SHIP_EVENT_LOOT_NORMALIZER_V2__ = true;
 
   const BAG_KEY = 'coffeeShipFishBag';
+  const EXPANSION_SRC = 'fishing-adventure-expansion.js?v=adventure-expansion-1';
   const ZONES = {
     ocean:'海洋朋友事件',
     carnival:'狂歡島遺失物',
@@ -12,6 +13,7 @@
   };
 
   let normalizing = false;
+  let expansionLoading = false;
 
   function readBag() {
     try {
@@ -44,13 +46,35 @@
     }
   }
 
+  function expansionLoaded() {
+    if (window.__COFFEE_SHIP_FISHING_ADVENTURE_EXPANSION_V1__) return true;
+    return Array.from(document.scripts).some(script => String(script.src || '').includes('fishing-adventure-expansion.js'));
+  }
+
+  function loadExpansion() {
+    if (expansionLoaded() || expansionLoading) return;
+    expansionLoading = true;
+    const script = document.createElement('script');
+    script.src = EXPANSION_SRC;
+    script.async = false;
+    script.dataset.fishingAdventureExpansion = 'true';
+    script.onload = () => { expansionLoading = false; };
+    script.onerror = () => {
+      expansionLoading = false;
+      console.warn('Fishing adventure expansion failed to load.');
+    };
+    document.body.appendChild(script);
+  }
+
   function init() {
     normalize();
     window.addEventListener('coffee-ship:bag-changed', normalize);
     window.addEventListener('storage', event => {
       if (event.key === BAG_KEY) normalize();
     });
-    window.COFFEE_SHIP_EVENT_LOOT_NORMALIZER = {normalize, zones:ZONES, version:1};
+    window.addEventListener('coffee-ship:fishing-adventures-ready', loadExpansion);
+    if (window.COFFEE_SHIP_FISHING_ADVENTURES) loadExpansion();
+    window.COFFEE_SHIP_EVENT_LOOT_NORMALIZER = {normalize, zones:ZONES, loadExpansion, version:2};
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
