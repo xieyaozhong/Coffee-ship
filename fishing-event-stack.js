@@ -2,6 +2,7 @@
   'use strict';
   if (window.__COFFEE_SHIP_FISHING_EVENT_BRIDGE_V3__) return;
   window.__COFFEE_SHIP_FISHING_EVENT_BRIDGE_V3__ = true;
+  window.__COFFEE_SHIP_FISHING_EVENT_STACK_V2__ = true;
 
   const SELECTOR = [
     '#mermaidCard','#sharkCard','#mutantCard','#extraFish50Card','#restoredBottleCard',
@@ -15,8 +16,7 @@
 
   function visible(element) {
     if (!element?.isConnected || element.classList.contains('hidden')) return false;
-    const style = getComputedStyle(element);
-    return style.display !== 'none';
+    return getComputedStyle(element).display !== 'none';
   }
 
   function metadata(element) {
@@ -37,14 +37,10 @@
     const api = window.COFFEE_SHIP_FISHING_API;
     if (!api?.pushEvent || !visible(element)) return;
     const text = signature(element);
-    if (!text) return;
-    const previous = seen.get(element);
-    if (previous === text) return;
-    seen.set(element, text);
-    const meta = metadata(element);
-    api.pushEvent({...meta,text});
+    if (!text || seen.get(element) === text) return;
+    seen.set(element,text);
+    api.pushEvent({...metadata(element),text});
     element.classList.add('hidden');
-    element.style.display = 'none';
   }
 
   function sync() {
@@ -58,6 +54,15 @@
     requestAnimationFrame(sync);
   }
 
+  function countHistory() {
+    try {
+      const value = JSON.parse(localStorage.getItem('coffeeShipRecentCatches') || '[]');
+      return Array.isArray(value) ? value.length : 0;
+    } catch {
+      return 0;
+    }
+  }
+
   function init() {
     const observer = new MutationObserver(queue);
     observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
@@ -66,7 +71,7 @@
       push:options => window.COFFEE_SHIP_FISHING_API?.pushEvent?.(options),
       clear:() => {},
       sync:queue,
-      count:() => Number((JSON.parse(localStorage.getItem('coffeeShipRecentCatches') || '[]') || []).length)
+      count:countHistory
     };
     queue();
   }
