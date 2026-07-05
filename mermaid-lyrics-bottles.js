@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V6__) return;
-  window.__COFFEE_SHIP_MERMAID_LYRICS_V6__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V7__) return;
+  window.__COFFEE_SHIP_MERMAID_LYRICS_V7__ = true;
 
   const STORE_KEY = 'coffeeShipMermaidLyrics';
   const BAG_KEY = 'coffeeShipFishBag';
@@ -13,7 +13,7 @@
     {id:'bubbles_return',number:3,icon:'🎁',title:'愛的百寶箱',rarity:'史詩',sellPrice:118,text:'微微風吹起紅白的風帆\n浪漫的　自由的　幸福的　海的夢幻\n時間的魔法飄到了遠方　手一碰　就溶化\n轉眼有一道光芒\n\n明明是你　對我如影隨形\n心卻像隔著遙遠的距離\n毫無保留的你\n我該認真相信　真心　不能有懷疑\n\n百寶箱的愛能解開\n忌妒感和安全感　能給人愛的能量\n百寶箱的愛最可愛　能坦率讓我明白\n我和你有相同的愛　純真而專一的愛'},
     {id:'deepsea_promise',number:4,icon:'🥁',title:'鼓動',rarity:'史詩',sellPrice:120,text:'狂風暴雨的海誰在等待\n我們是堅強的小孩\n成功或失敗\n信心從不曾停擺\n因為擁有愛\n\n也許人生注定經歷失敗\n我會努力振作起來\n鼓動的節拍\n陽光會永遠存在\n憂鬱排除在外\n比太陽還要澎湃'},
     {id:'coral_kingdom',number:5,icon:'🎻',title:'黑暗協奏曲',rarity:'傳說',sellPrice:145,text:'如果和平只是一場夢想，為何總抵擋不住對它的渴望\n翻騰中的波浪信念還在糾纏，堅持何嘗不是希望\n軟弱有時候會躲在手掌，自卑始終迷惑傲慢的正義感\n當我勇敢的闖自始至中保持沉默！\n\nVoice In the Dark！\n黑暗將我淹沒，緩緩的唱起熟悉的旋律\n黑色的協奏曲，結束痛和原諒，開啟你的絕望\n迷失旋轉協奏曲在迴盪。\n沒有方向眼神只有冰涼'},
-    {id:'stardust_wish',number:6,icon:'⭐',title:'星砂心願',rarity:'史詩',sellPrice:122,text:'我將一粒星砂放進掌心\n請它替我守護遙遠的人\n若你在夜裡聽見海潮回應\n那是我的心願抵達你身旁'},
+    {id:'stardust_wish',number:6,icon:'🤝',title:'愛的默契',rarity:'史詩',sellPrice:122,text:'感受心中的快樂　全神貫注\n默契讓你和我不再感覺孤獨\n沒有人能更清楚　我對你有多在乎\n你的微笑透露對我的歸屬\n\n命運的牽引　用愛碰觸\n奇蹟讓你和我勇敢面對痛苦\n不論會有多辛苦　無論有多少衝突\n默契讓　友情更加　堅固'},
     {id:'dawn_song',number:7,icon:'🌅',title:'破曉之歌',rarity:'傳說',sellPrice:150,text:'天空還未亮，我先唱出第一個音\n讓受傷的浪重新學會前進\n當太陽越過最後一道風暴\n我們會看見新的海正在誕生'},
     {id:'guardian_pearl',number:8,icon:'🛡️',title:'守護珍珠',rarity:'傳說',sellPrice:155,text:'珍珠不是王冠也不是眼淚\n是我選擇守護世界的證明\n每一次顫抖都能化成勇氣\n每一句歌都能讓孤單被聽見'},
     {id:'sea_wind_reply',number:9,icon:'💌',title:'海風的回信',rarity:'傳說',sellPrice:160,text:'我把問題寫給遠方海風\n它帶回你沒有說完的回答\n原來真正的愛不是佔有\n是願意讓彼此自由地發光'},
@@ -250,7 +250,7 @@
     createById,
     collected:() => new Set(normalizeAll().map(entry => entry.id)).size,
     injectBackpack,
-    version:6
+    version:7
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
