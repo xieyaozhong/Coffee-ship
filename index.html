@@ -18,43 +18,12 @@
 <section class="hero"><div><p class="eyebrow">PIXEL CAFÉ SOCIAL GAME</p><h1>Coffee Ship</h1><p class="tagline">創造你的像素分身，登上漂浮咖啡船。</p></div><div class="status-card"><span id="moodDot"></span><p id="statusText">等待登船</p></div></section>
 <section id="creator" class="panel creator login-interface-ready">
 <div id="loginInterface" class="login-interface">
-<section class="login-visual" aria-label="角色預覽">
-<div class="login-brand"><p class="eyebrow">WELCOME ABOARD</p><h2>Coffee Ship</h2><p>建立分身，從漂浮咖啡廳開始海上故事。</p></div>
-<div class="login-preview-card"><canvas id="loginAvatarPreview" width="180" height="180" aria-label="角色外觀預覽"></canvas><strong id="loginPreviewName" class="login-preview-name">海上旅人</strong><span id="loginPreviewCaption" class="login-preview-caption">GENERAL TRAVELER</span></div>
-<div class="login-visual-footer"><span class="login-feature-chip">☕ 珍珠咖啡</span><span class="login-feature-chip">🎣 深海釣魚</span><span class="login-feature-chip">🍾 漂流故事</span></div>
-</section>
-<section class="login-controls">
-<header class="login-controls-header"><h3>選擇登船方式</h3><p>角色資料會保存在這台裝置。</p></header>
-<div class="login-mode-tabs" role="tablist" aria-label="登入方式"><button type="button" class="login-mode-tab is-active" data-login-mode="general" role="tab" aria-selected="true">🌊 一般旅人</button><button type="button" class="login-mode-tab" data-login-mode="special" role="tab" aria-selected="false">👑 特殊角色</button></div>
-<div id="loginGeneralPanel" class="login-panel login-general-panel" role="tabpanel">
-<div id="loginFormHolder"><div class="form-grid">
-<label>名字<input id="playerName" maxlength="12" autocomplete="nickname" placeholder="例如：L&J"></label>
-<label>頭髮<select id="hairColor"><option value="#2b1d16">咖啡黑</option><option value="#6d3f26">焦糖棕</option><option value="#e0b45d">拿鐵金</option><option value="#7e8ee8">星夜藍</option></select></label>
-<label>衣服<select id="shirtColor"><option value="#c96a4a">夕陽橘</option><option value="#4f8f73">森林綠</option><option value="#8460c8">薰衣草紫</option><option value="#d7bb79">奶泡米</option></select></label>
-<label class="login-legacy-field" aria-hidden="true">舊版咖啡偏好<select id="coffeeType" tabindex="-1"><option>美式</option><option>拿鐵</option><option>義式濃縮</option><option>手沖</option></select></label>
-</div></div>
-<div id="loginActions" class="login-actions"><button id="startBtn" type="button">以一般旅人登船</button></div>
-</div>
-<div id="loginSpecialPanel" class="login-panel login-special-panel" role="tabpanel" hidden>
-<div class="login-role-grid">
-<button type="button" class="login-role-card" data-role-code="VIOLIN2026"><span class="login-role-icon">🎻</span><span><strong>小提琴手</strong><small>演奏旋律</small></span></button>
-<button type="button" class="login-role-card" data-role-code="SINGER2026"><span class="login-role-icon">🎤</span><span><strong>歌手</strong><small>唱出船歌</small></span></button>
-<button type="button" class="login-role-card" data-role-code="PIRATE2026"><span class="login-role-icon">🏴‍☠️</span><span><strong>海盜</strong><small>召喚金光</small></span></button>
-<button type="button" class="login-role-card" data-role-code="MAID2026"><span class="login-role-icon">❤️</span><span><strong>女僕服務生</strong><small>散播開心</small></span></button>
-</div><div id="loginRoleHolder"><p class="login-role-loading">正在載入特殊角色登入功能……</p></div>
-</div>
-<p id="loginStatus" class="login-status" aria-live="polite">一般登船會使用目前保存的分身。</p>
-</section>
-</div>
-<p class="hint">方向鍵或 WASD 移動，靠近人物按互動。</p>
-</section>
-<section id="gamePanel" class="panel game-panel hidden">
-<div class="game-topbar"><div><strong id="avatarName">Guest</strong><span id="coffeeBadge">🦪 0 · 尚無咖啡效果</span></div><div class="controls">WASD / 方向鍵移動 · C 咖啡 · E 互動 · B 留言</div></div>
-<canvas id="game" width="960" height="576"></canvas>
-<div class="mobile-controls"><button data-move="up">▲</button><div><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div><button id="coffeeBtn">☕</button><button id="sitBtn">摸/坐</button><button id="messageBtn">留言</button><button id="emoteBtn">✨</button></div>
-<aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">MOMO'S PEARL COFFEE BAR</p><h2>Momo 的效果咖啡</h2></div><button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button></div><p class="board-note">出售漁獲獲得珍珠，再用珍珠購買限時效果咖啡。</p><div id="coffeeOptions" class="coffee-options"></div></aside>
-<aside id="messageBoard" class="message-board hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">SHIP MESSAGE BOARD</p><h2>船上留言板</h2></div><button id="closeBoardBtn" class="ghost-btn">關閉</button></div><p class="board-note">不同裝置會同步看到留言。</p><div id="messagesList" class="messages-list"></div><form id="messageForm" class="message-form"><textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea><button type="submit">貼到留言板</button></form></aside>
-</section>
+<section class="login-visual" aria-label="角色預覽"><div class="login-brand"><p class="eyebrow">WELCOME ABOARD</p><h2>Coffee Ship</h2><p>建立分身，從漂浮咖啡廳開始海上故事。</p></div><div class="login-preview-card"><canvas id="loginAvatarPreview" width="180" height="180" aria-label="角色外觀預覽"></canvas><strong id="loginPreviewName" class="login-preview-name">海上旅人</strong><span id="loginPreviewCaption" class="login-preview-caption">GENERAL TRAVELER</span></div><div class="login-visual-footer"><span class="login-feature-chip">☕ 珍珠咖啡</span><span class="login-feature-chip">🎣 深海釣魚</span><span class="login-feature-chip">🍾 漂流故事</span></div></section>
+<section class="login-controls"><header class="login-controls-header"><h3>選擇登船方式</h3><p>角色資料會保存在這台裝置。</p></header><div class="login-mode-tabs" role="tablist" aria-label="登入方式"><button type="button" class="login-mode-tab is-active" data-login-mode="general" role="tab" aria-selected="true">🌊 一般旅人</button><button type="button" class="login-mode-tab" data-login-mode="special" role="tab" aria-selected="false">👑 特殊角色</button></div>
+<div id="loginGeneralPanel" class="login-panel login-general-panel" role="tabpanel"><div id="loginFormHolder"><div class="form-grid"><label>名字<input id="playerName" maxlength="12" autocomplete="nickname" placeholder="例如：L&J"></label><label>頭髮<select id="hairColor"><option value="#2b1d16">咖啡黑</option><option value="#6d3f26">焦糖棕</option><option value="#e0b45d">拿鐵金</option><option value="#7e8ee8">星夜藍</option></select></label><label>衣服<select id="shirtColor"><option value="#c96a4a">夕陽橘</option><option value="#4f8f73">森林綠</option><option value="#8460c8">薰衣草紫</option><option value="#d7bb79">奶泡米</option></select></label><label class="login-legacy-field" aria-hidden="true">舊版咖啡偏好<select id="coffeeType" tabindex="-1"><option>美式</option><option>拿鐵</option><option>義式濃縮</option><option>手沖</option></select></label></div></div><div id="loginActions" class="login-actions"><button id="startBtn" type="button">以一般旅人登船</button></div></div>
+<div id="loginSpecialPanel" class="login-panel login-special-panel" role="tabpanel" hidden><div class="login-role-grid"><button type="button" class="login-role-card" data-role-code="VIOLIN2026"><span class="login-role-icon">🎻</span><span><strong>小提琴手</strong><small>演奏旋律</small></span></button><button type="button" class="login-role-card" data-role-code="SINGER2026"><span class="login-role-icon">🎤</span><span><strong>歌手</strong><small>唱出船歌</small></span></button><button type="button" class="login-role-card" data-role-code="PIRATE2026"><span class="login-role-icon">🏴‍☠️</span><span><strong>海盜</strong><small>召喚金光</small></span></button><button type="button" class="login-role-card" data-role-code="MAID2026"><span class="login-role-icon">❤️</span><span><strong>女僕服務生</strong><small>散播開心</small></span></button></div><div id="loginRoleHolder"><p class="login-role-loading">正在載入特殊角色登入功能……</p></div></div><p id="loginStatus" class="login-status" aria-live="polite">一般登船會使用目前保存的分身。</p></section>
+</div><p class="hint">方向鍵或 WASD 移動，靠近人物按互動。</p></section>
+<section id="gamePanel" class="panel game-panel hidden"><div class="game-topbar"><div><strong id="avatarName">Guest</strong><span id="coffeeBadge">🦪 0 · 尚無咖啡效果</span></div><div class="controls">WASD / 方向鍵移動 · C 咖啡 · E 互動 · B 留言</div></div><canvas id="game" width="960" height="576"></canvas><div class="mobile-controls"><button data-move="up">▲</button><div><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div><button id="coffeeBtn">☕</button><button id="sitBtn">摸/坐</button><button id="messageBtn">留言</button><button id="emoteBtn">✨</button></div><aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">MOMO'S PEARL COFFEE BAR</p><h2>Momo 的效果咖啡</h2></div><button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button></div><p class="board-note">出售漁獲獲得珍珠，再用珍珠購買限時效果咖啡。</p><div id="coffeeOptions" class="coffee-options"></div></aside><aside id="messageBoard" class="message-board hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">SHIP MESSAGE BOARD</p><h2>船上留言板</h2></div><button id="closeBoardBtn" class="ghost-btn">關閉</button></div><p class="board-note">不同裝置會同步看到留言。</p><div id="messagesList" class="messages-list"></div><form id="messageForm" class="message-form"><textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea><button type="submit">貼到留言板</button></form></aside></section>
 </main>
 <script src="firebase-config.js"></script>
 <script src="economy-core.js?v=economy-1"></script>
@@ -70,7 +39,7 @@
 <script src="coffee-ship-v2-bridge.js?v=core-v7"></script>
 <script src="mermaid-event.js?v=mermaid-lyrics-3"></script>
 <script src="fishing-event-stack.js?v=economy-1"></script>
-<script src="stability-patch.js?v=loader-v10"></script>
+<script src="stability-patch.js?v=loader-v11"></script>
 <script src="backpack-manager.js?v=backpack-v6"></script>
 <script src="fishing-ui-coordinator.js?v=fishing-ui-1"></script>
 <script src="multiplayer-role-sync.js?v=core-v7"></script>
