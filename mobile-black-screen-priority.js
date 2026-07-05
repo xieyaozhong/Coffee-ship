@@ -1,12 +1,11 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MOBILE_BLACK_SCREEN_PRIORITY_V2__) return;
-  window.__COFFEE_SHIP_MOBILE_BLACK_SCREEN_PRIORITY_V2__ = true;
+  if (window.__COFFEE_SHIP_MOBILE_BLACK_SCREEN_PRIORITY_V3__) return;
+  window.__COFFEE_SHIP_MOBILE_BLACK_SCREEN_PRIORITY_V3__ = true;
 
   const state = {
     entered:false,
     fallback:false,
-    lastCoreDraw:0,
     x:480,
     y:390,
     speed:2.8,
@@ -15,7 +14,9 @@
     message:'',
     messageTimer:0,
     emote:'',
-    emoteTimer:0
+    emoteTimer:0,
+    avatar:null,
+    lastFrame:0
   };
 
   let creator;
@@ -56,19 +57,6 @@
     };
   }
 
-  function installDrawProbe(){
-    if(!ctx||ctx.__coffeeShipDrawProbe)return;
-    ctx.__coffeeShipDrawProbe=true;
-    ['fillRect','strokeRect','clearRect','fillText','strokeText','drawImage'].forEach(name=>{
-      const original=ctx[name];
-      if(typeof original!=='function')return;
-      ctx[name]=function(...args){
-        if(!state.fallback)state.lastCoreDraw=performance.now();
-        return original.apply(this,args);
-      };
-    });
-  }
-
   function status(message,timeout=2200){
     let node=document.getElementById('safeCafeStatus');
     if(!node){
@@ -84,8 +72,8 @@
 
   function forceVisible(){
     if(!cache())return false;
-    const avatar=currentAvatar();
-    safeWrite('coffeeShipAvatar',avatar);
+    state.avatar=currentAvatar();
+    safeWrite('coffeeShipAvatar',state.avatar);
     creator.classList.add('hidden');
     gamePanel.classList.remove('hidden');
     gamePanel.style.removeProperty('display');
@@ -96,24 +84,45 @@
     window.COFFEE_SHIP_SCENE='cafe';
     window.COFFEE_SHIP_PLAYER_POS={x:state.x,y:state.y};
     const name=document.getElementById('avatarName');
-    if(name)name.textContent=avatar.name;
+    if(name)name.textContent=state.avatar.name;
     return true;
   }
 
   function gamePanelVisible(){
     if(!creator||!gamePanel||!canvas)return false;
     const panelStyle=getComputedStyle(gamePanel);
-    const canvasRect=canvas.getBoundingClientRect();
+    const rect=canvas.getBoundingClientRect();
     return creator.classList.contains('hidden') &&
       !gamePanel.classList.contains('hidden') &&
       panelStyle.display!=='none' &&
       panelStyle.visibility!=='hidden' &&
-      canvasRect.width>120 && canvasRect.height>70;
+      rect.width>120 && rect.height>70;
+  }
+
+  function sceneScore(){
+    if(!ctx||!canvas)return 0;
+    try{
+      const colors=new Set();
+      let opaque=0;
+      let nonBlack=0;
+      const cols=10;
+      const rows=6;
+      for(let row=0;row<rows;row++){
+        for(let col=0;col<cols;col++){
+          const x=Math.floor((col+.5)*canvas.width/cols);
+          const y=Math.floor((row+.5)*canvas.height/rows);
+          const d=ctx.getImageData(x,y,1,1).data;
+          if(d[3]>20)opaque++;
+          if(d[0]+d[1]+d[2]>45)nonBlack++;
+          colors.add(`${d[0]>>4}-${d[1]>>4}-${d[2]>>4}-${d[3]>>5}`);
+        }
+      }
+      return opaque + nonBlack + colors.size*3;
+    }catch{return 0;}
   }
 
   function coreAlive(){
-    const drawIsFresh=performance.now()-state.lastCoreDraw<700;
-    return !!window.COFFEE_SHIP_GAME_API && gamePanelVisible() && drawIsFresh;
+    return !!window.COFFEE_SHIP_GAME_API && gamePanelVisible() && sceneScore()>=55;
   }
 
   function px(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h);}
@@ -132,7 +141,6 @@
       for(let x=0;x<960;x+=48){
         ctx.fillStyle=((x/48+y/48)%2===0)?'#35243b':'#2c1e33';
         ctx.fillRect(x,y,48,48);
-        ctx.strokeStyle='rgba(255,244,216,.05)';ctx.strokeRect(x,y,48,48);
       }
     }
     px(0,0,960,66,'#0f0c1c');
@@ -173,7 +181,7 @@
   }
 
   function drawPlayer(){
-    const avatar=currentAvatar();const x=state.x,y=state.y;
+    const avatar=state.avatar||currentAvatar();const x=state.x,y=state.y;
     ctx.globalAlpha=.34;px(x-17,y+29,34,6,'#08070d');ctx.globalAlpha=1;
     px(x-11,y+18,9,17,'#191622');px(x+2,y+18,9,17,'#191622');
     px(x-16,y-8,32,31,avatar.shirt);px(x-20,y-3,7,20,'#f0c7a0');px(x+13,y-3,7,20,'#f0c7a0');
@@ -200,11 +208,14 @@
     window.COFFEE_SHIP_PLAYER_POS={x:state.x,y:state.y};
   }
 
-  function frame(){
+  function frame(now){
     if(!state.fallback)return;
+    raf=requestAnimationFrame(frame);
+    if(document.hidden||now-state.lastFrame<34)return;
+    state.lastFrame=now;
     updateFallback();drawFloor();drawCafe();
     drawNpc(292,220,'Momo','#4f8f73','☕','#f3c85a');drawNpc(672,410,'Peak','#59458a','🎻');drawNpc(532,247,'Bean','#d7bb79','🃏','#6d3f26');
-    drawMugi();drawPlayer();drawMessage();raf=requestAnimationFrame(frame);
+    drawMugi();drawPlayer();drawMessage();
   }
 
   function startFallback(reason='主遊戲沒有完成啟動'){
@@ -220,14 +231,14 @@
   function verify(attempt=1){
     if(!state.entered||state.fallback)return;
     if(coreAlive()){
-      status('Coffee Ship 已成功載入',1200);
+      status('Coffee Ship 已成功載入',1000);
       return;
     }
-    if(attempt<3){
-      setTimeout(()=>verify(attempt+1),attempt===1?350:500);
+    if(attempt<4){
+      setTimeout(()=>verify(attempt+1),attempt===1?450:650);
       return;
     }
-    startFallback(window.COFFEE_SHIP_CORE_ERROR?'主遊戲發生錯誤':'主遊戲沒有持續繪圖');
+    startFallback(window.COFFEE_SHIP_CORE_ERROR?'主遊戲發生錯誤':'主遊戲沒有完成畫面繪製');
   }
 
   function interact(){
@@ -264,17 +275,17 @@
       state.entered=true;
       document.body.classList.add('coffee-ship-entered');
       window.dispatchEvent(new CustomEvent('coffee-ship:entered',{detail:{source:'boarding'}}));
-      setTimeout(()=>verify(1),180);
+      setTimeout(()=>verify(1),260);
     },true);
   }
 
   function init(){
     if(!cache())return;
-    installDrawProbe();bindInput();bindBoarding();
+    bindInput();bindBoarding();
     window.addEventListener('error',event=>{
       if(String(event.filename||'').includes('game.js')){
         window.COFFEE_SHIP_CORE_ERROR=event.message||'game.js error';
-        if(state.entered)setTimeout(()=>startFallback('主遊戲程式發生錯誤'),60);
+        if(state.entered)setTimeout(()=>startFallback('主遊戲程式發生錯誤'),80);
       }
     },true);
     window.COFFEE_SHIP_SAFE_CORE={verify,startFallback,isActive:()=>state.fallback};
