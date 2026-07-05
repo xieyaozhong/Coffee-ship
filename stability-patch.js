@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V9__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V9__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V10__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V10__ = true;
 
   let controlsBound = false;
   let fishingCoreReady = false;
@@ -153,7 +153,7 @@
     if (fishingCoreLoading) return fishingCoreLoading;
 
     fishingCoreLoading = (async () => {
-      const ok = await loadScript('deck-fishing.js?v=unified-fishing-4f','deckFishing');
+      const ok = await loadScript('deck-fishing.js?v=unified-fishing-4g','deckFishing');
       fishingCoreReady = ok && Number(window.COFFEE_SHIP_FISHING_API?.version || 0) >= 4;
       fishingCoreLoading = null;
       window.COFFEE_SHIP_FISHING_READY = fishingCoreReady;
@@ -174,9 +174,10 @@
         ['mutant-creatures.js?v=events-1','mutantCreatures'],
         ['ocean-carnival-events.js?v=events-1','oceanCarnivalEvents'],
         ['event-loot-normalizer.js?v=events-1','eventLootNormalizer'],
+        ['fishing-adventure-events.js?v=adventure-1','fishingAdventureEvents'],
         ['fishing-event-stack.js?v=events-1','fishingEventBridge']
       ],70);
-      window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready',{detail:{version:6,economy:true,expandedEvents:true}}));
+      window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready',{detail:{version:7,economy:true,expandedEvents:true,adventureEvents:true}}));
       return true;
     })();
     return fishingExtrasPromise;
@@ -258,7 +259,8 @@
       fishDex:true,
       economy:true,
       expandedEvents:true,
-      version:9
+      adventureEvents:true,
+      version:10
     };
   }
 
