@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_EVENT_V2__) return;
-  window.__COFFEE_SHIP_MERMAID_EVENT_V2__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_EVENT_V3__) return;
+  window.__COFFEE_SHIP_MERMAID_EVENT_V3__ = true;
 
   const encounters = [
     ['月光歌聲','美人魚在月光下浮出水面，唱了一段只有海浪聽得懂的歌。','🐚','月光貝殼','treasure'],
@@ -28,6 +28,11 @@
     catch {}
   }
 
+  function chance() {
+    return window.COFFEE_SHIP_ECONOMY?.eventChance?.(.05,'special')
+      ?? Math.min(.7, .05 * Math.max(1, Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.fishingLuck || 1)));
+  }
+
   function grant(encounter) {
     if (encounter[4] === 'buff') {
       localStorage.setItem('coffeeShipMermaidBuffUntil', String(Date.now() + 10 * 60 * 1000));
@@ -37,19 +42,22 @@
     bag.push({
       name:encounter[3],zone:'美人魚事件',rarity:'傳說',quality:'祝福',
       weight:0.01 + Math.random() * 0.4,kind:encounter[4] === 'letter' ? 'letter' : 'treasure',
-      icon:encounter[2],at:Date.now()
+      icon:encounter[2],price:encounter[4] === 'treasure' ? 90 : undefined,at:Date.now()
     });
     save('coffeeShipFishBag', bag.slice(-240));
+    window.dispatchEvent(new CustomEvent('coffee-ship:bag-changed',{detail:{source:'mermaid'}}));
   }
 
-  function trigger() {
-    if (Math.random() > 0.05) return;
+  function trigger(event) {
+    if (Math.random() > chance()) return;
     const encounter = encounters[Math.floor(Math.random() * encounters.length)];
     grant(encounter);
     const log = read('coffeeShipMermaidEncounters', []);
     log.push({title:encounter[0],text:encounter[1],at:Date.now()});
     save('coffeeShipMermaidEncounters', log.slice(-30));
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
+      castId:event.detail?.castId,
+      eventKind:'mermaid',
       title:`美人魚事件｜${encounter[0]}`,
       icon:'🧜‍♀️',
       accent:'#9ce8f0',
