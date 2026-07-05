@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V4__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V4__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V5__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V5__ = true;
 
   let controlsBound = false;
   let fishingCoreReady = false;
@@ -64,7 +64,7 @@
       event.preventDefault();
       event.stopPropagation();
       keyEvent('keydown',' ','Space');
-      setTimeout(()=>keyEvent('keyup',' ','Space'),70);
+      setTimeout(() => keyEvent('keyup',' ','Space'),70);
     }, true);
   }
 
@@ -126,6 +126,15 @@
     else setTimeout(callback, 260);
   }
 
+  function removeLegacyFishingUi() {
+    document.getElementById('fishDexBtn')?.remove();
+    document.getElementById('fishingMotionCanvas')?.remove();
+    document.getElementById('fishingMotionStyle')?.remove();
+    document.body.classList.remove('fishing-motion-active','fishdex-open');
+    const panel = document.getElementById('fishDexPanel');
+    if (panel && !panel.querySelector('#backpackManagerRoot')) panel.remove();
+  }
+
   async function loadCafeEnhancements() {
     await loadSequence([
       ['role-sprites.js?v=deck-stable-1','roleSprites'],
@@ -147,20 +156,21 @@
     setTimeout(() => {
       keyEvent('keyup','f','KeyF');
       replayingFishing = false;
-    }, 70);
+    }, 50);
   }
 
   async function ensureFishingCore() {
     if (fishingCoreReady) return true;
     if (fishingCoreLoading) return fishingCoreLoading;
 
-    window.COFFEE_SHIP_DECK?.showTip?.('🎣 第一次使用，正在載入釣魚核心…', 4000);
+    window.COFFEE_SHIP_DECK?.showTip?.('🎣 正在載入釣魚功能…', 2200);
     fishingCoreLoading = (async () => {
-      const ok = await loadScript('deck-fishing.js?v=deck-stable-1','deckFishing');
+      const ok = await loadScript('deck-fishing.js?v=simple-fishing-2','deckFishing');
       fishingCoreReady = ok;
       window.COFFEE_SHIP_FISHING_READY = ok;
       fishingCoreLoading = null;
-      if (ok) window.COFFEE_SHIP_DECK?.showTip?.('🎣 釣魚功能已準備完成', 1300);
+      removeLegacyFishingUi();
+      if (ok) idle(loadFishingExtras, 2000);
       else window.COFFEE_SHIP_DECK?.showTip?.('釣魚功能載入失敗，請稍後重試', 2200);
       return ok;
     })();
@@ -178,11 +188,10 @@
     if (fishingExtrasStarted) return;
     fishingExtrasStarted = true;
     await loadSequence([
-      ['extra-fish-50.js?v=deck-stable-1','extraFish50'],
-      ['deck-fishing-specials.js?v=deck-stable-1','deckFishingSpecials'],
-      ['fishing-cast-animation.js?v=deck-stable-1','fishingCastAnimation'],
-      ['animation-overlap-guard.js?v=deck-stable-1','animationOverlapGuard']
+      ['extra-fish-50.js?v=simple-fishing-2','extraFish50'],
+      ['deck-fishing-specials.js?v=simple-fishing-2','deckFishingSpecials']
     ], 900);
+    removeLegacyFishingUi();
     window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready'));
   }
 
@@ -214,26 +223,40 @@
     window.addEventListener('coffee-ship:request-fishing', handleFishingRequest);
 
     document.addEventListener('click', event => {
-      if (event.target.closest?.('#fishDexBtn')) idle(loadFishingExtras, 1500);
+      if (event.target.closest?.('#fishDexBtn')) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        removeLegacyFishingUi();
+        return;
+      }
       if (event.target.closest?.('#backpackSafeOpenBtn')) idle(loadStoryModules, 1800);
     }, true);
 
     window.addEventListener('keydown', event => {
-      const key = event.key?.length===1 ? event.key.toLowerCase() : event.key;
-      if (key==='g' && isDeckOpen()) idle(loadFishingExtras, 1200);
+      const key = event.key?.length === 1 ? event.key.toLowerCase() : event.key;
+      if (key === 'g' && isDeckOpen()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        removeLegacyFishingUi();
+      }
     }, true);
   }
 
   function init() {
+    removeLegacyFishingUi();
     bindMobileControls();
     addStatusBadge();
     idle(loadCafeEnhancements, 800);
     bindLazyTriggers();
+    const observer = new MutationObserver(removeLegacyFishingUi);
+    observer.observe(document.body,{subtree:true,childList:true});
     window.COFFEE_SHIP_FEATURE_LOADER = {
       ensureFishingCore,
       loadFishingExtras,
       loadStoryModules,
-      fishingReady:() => fishingCoreReady
+      fishingReady:() => fishingCoreReady,
+      fishingAnimation:false,
+      fishDex:false
     };
   }
 
