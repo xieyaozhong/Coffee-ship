@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_SHARK_EVENT_V3__) return;
-  window.__COFFEE_SHIP_SHARK_EVENT_V3__ = true;
+  if (window.__COFFEE_SHIP_SHARK_EVENT_V4__) return;
+  window.__COFFEE_SHIP_SHARK_EVENT_V4__ = true;
 
   const sharks = [
     ['黑鰭礁鯊','常見',18,42,1],['護士鯊','常見',25,80,1],['雙髻鯊','稀有',80,230,2],['虎鯊','稀有',150,520,3],['大白鯊','史詩',420,1100,5],['深海幽影鯊','史詩',260,900,4],['巨齒鯊','傳說',9000,52000,9],['星海巨齒鯊','傳說',12000,88000,12]
@@ -25,9 +25,9 @@
   }
 
   function pickShark() {
-    const luck = window.COFFEE_SHIP_ECONOMY?.fishingModifiers?.().fishingLuck
-      ?? Math.max(1, Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.fishingLuck || 1));
-    const roll = Math.min(.999, Math.random() * (1 / Math.min(1.8, luck)));
+    const luck = Math.min(1.8, window.COFFEE_SHIP_ECONOMY?.fishingModifiers?.().fishingLuck
+      ?? Math.max(1, Number(window.COFFEE_SHIP_COFFEE_EFFECT?.bonuses?.fishingLuck || 1)));
+    const roll = Math.min(.999, 1 - Math.pow(1 - Math.random(), luck));
     let pool = sharks.filter(shark => shark[1] === '常見');
     if (roll > .55) pool = sharks.filter(shark => shark[1] === '稀有');
     if (roll > .84) pool = sharks.filter(shark => shark[1] === '史詩');
