@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V5__) return;
-  window.__COFFEE_SHIP_MERMAID_LYRICS_V5__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V6__) return;
+  window.__COFFEE_SHIP_MERMAID_LYRICS_V6__ = true;
 
   const STORE_KEY = 'coffeeShipMermaidLyrics';
   const BAG_KEY = 'coffeeShipFishBag';
@@ -11,8 +11,8 @@
     {id:'pearl_moonlight',number:1,icon:'🎹',title:'黑暗巴洛克',rarity:'史詩',sellPrice:110,text:'沒有光的世界巴洛克\n變成動人的那美妙聲音\n黑暗陷阱中的秘密聲音\n沉睡搖籃中一直到永遠不醒\n\n看慢慢的向前方邁進\n為最終時刻來臨齊聲歡呼\n充滿冰冷的微笑沒有光\n就將真珠 變成灰燼\n來吧朋友們 如果有希望的光在前方\n讓我們唱出 那首叫絕望的美麗讚歌'},
     {id:'seven_tides',number:2,icon:'🌄',title:'全世界最早的早晨出現的地方',rarity:'史詩',sellPrice:115,text:'思念全世界最早的早晨出現的地方\n思念是道光芒 圍著白雲綻放\n許願火孤單 這場夢依舊燦爛\n\n那段時光 那段過往\n心情擺盪 回憶兩端\n風還微涼 你在身旁\n甜甜的佔據夜晚\n\n如果是你在我的心上\n請你也停止悲傷\n期待眼淚沖淡你的傷\n我永遠在你身旁'},
     {id:'bubbles_return',number:3,icon:'🎁',title:'愛的百寶箱',rarity:'史詩',sellPrice:118,text:'微微風吹起紅白的風帆\n浪漫的　自由的　幸福的　海的夢幻\n時間的魔法飄到了遠方　手一碰　就溶化\n轉眼有一道光芒\n\n明明是你　對我如影隨形\n心卻像隔著遙遠的距離\n毫無保留的你\n我該認真相信　真心　不能有懷疑\n\n百寶箱的愛能解開\n忌妒感和安全感　能給人愛的能量\n百寶箱的愛最可愛　能坦率讓我明白\n我和你有相同的愛　純真而專一的愛'},
-    {id:'deepsea_promise',number:4,icon:'🔷',title:'深海的約定',rarity:'史詩',sellPrice:120,text:'在無光的海底握住彼此\n微弱的聲音也能成為燈塔\n只要記得最初交換的約定\n黑暗就沒有辦法奪走方向'},
-    {id:'coral_kingdom',number:5,icon:'🪸',title:'珊瑚王國的夢',rarity:'傳說',sellPrice:145,text:'珊瑚城門在夢中打開\n魚群披著銀色花瓣起舞\n我不是等待被拯救的公主\n我要唱著自己的名字回家'},
+    {id:'deepsea_promise',number:4,icon:'🥁',title:'鼓動',rarity:'史詩',sellPrice:120,text:'狂風暴雨的海誰在等待\n我們是堅強的小孩\n成功或失敗\n信心從不曾停擺\n因為擁有愛\n\n也許人生注定經歷失敗\n我會努力振作起來\n鼓動的節拍\n陽光會永遠存在\n憂鬱排除在外\n比太陽還要澎湃'},
+    {id:'coral_kingdom',number:5,icon:'🎻',title:'黑暗協奏曲',rarity:'傳說',sellPrice:145,text:'如果和平只是一場夢想，為何總抵擋不住對它的渴望\n翻騰中的波浪信念還在糾纏，堅持何嘗不是希望\n軟弱有時候會躲在手掌，自卑始終迷惑傲慢的正義感\n當我勇敢的闖自始至中保持沉默！\n\nVoice In the Dark！\n黑暗將我淹沒，緩緩的唱起熟悉的旋律\n黑色的協奏曲，結束痛和原諒，開啟你的絕望\n迷失旋轉協奏曲在迴盪。\n沒有方向眼神只有冰涼'},
     {id:'stardust_wish',number:6,icon:'⭐',title:'星砂心願',rarity:'史詩',sellPrice:122,text:'我將一粒星砂放進掌心\n請它替我守護遙遠的人\n若你在夜裡聽見海潮回應\n那是我的心願抵達你身旁'},
     {id:'dawn_song',number:7,icon:'🌅',title:'破曉之歌',rarity:'傳說',sellPrice:150,text:'天空還未亮，我先唱出第一個音\n讓受傷的浪重新學會前進\n當太陽越過最後一道風暴\n我們會看見新的海正在誕生'},
     {id:'guardian_pearl',number:8,icon:'🛡️',title:'守護珍珠',rarity:'傳說',sellPrice:155,text:'珍珠不是王冠也不是眼淚\n是我選擇守護世界的證明\n每一次顫抖都能化成勇氣\n每一句歌都能讓孤單被聽見'},
@@ -250,7 +250,7 @@
     createById,
     collected:() => new Set(normalizeAll().map(entry => entry.id)).size,
     injectBackpack,
-    version:5
+    version:6
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
