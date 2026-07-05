@@ -5,7 +5,7 @@
   let lastVisible = false;
 
   function read(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (e) { return fallback; } }
-  function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+  function save(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
   function bag() { return read('coffeeShipFishBag', []); }
   function setBag(items) { save('coffeeShipFishBag', items.slice(-180)); }
 
@@ -82,7 +82,13 @@
     root.innerHTML = `<div class="backpack-head"><h3>🎒 背包管理</h3><button class="backpack-close" data-close-backpack="1">關閉</button></div><div class="backpack-tools"><button class="backpack-tool" data-organize-pearls="1">整理珍珠：${pearlTotal}</button><button class="backpack-tool" data-clear-current="1">清空目前分類</button></div><div class="backpack-tabs"><button class="backpack-tab ${activeTab==='fish'?'active':''}" data-tab="fish">魚類 ${counts.fish}</button><button class="backpack-tab ${activeTab==='item'?'active':''}" data-tab="item">物品 ${counts.item}</button><button class="backpack-tab ${activeTab==='letter'?'active':''}" data-tab="letter">信件 ${counts.letter}</button></div><div class="backpack-content">${activeTab === 'fish' ? renderFish(items) : activeTab === 'item' ? renderItems(items) : renderLetters()}</div>`;
     p.insertBefore(root, p.firstChild);
   }
+  function isGameActive() {
+    const creator = document.getElementById('creator');
+    const game = document.getElementById('gamePanel');
+    return !!game && !game.classList.contains('hidden') && (!creator || creator.classList.contains('hidden'));
+  }
   function openBackpack() {
+    if (!isGameActive()) return;
     const p = ensurePanel();
     p.classList.remove('hidden');
     p.classList.add('backpack-safe-panel');
@@ -97,10 +103,23 @@
     btn.id = 'backpackSafeOpenBtn';
     btn.type = 'button';
     btn.textContent = '📖 背包';
+    btn.style.display = 'none';
     btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openBackpack(); }, true);
     document.body.appendChild(btn);
   }
-  function sync() { ensureOpenButton(); const p = panel(); const visible = !!p && !p.classList.contains('hidden'); if (visible && !lastVisible) setTimeout(forceBuild, 60); if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild(); if (visible) cleanupLegacyButtons(p); lastVisible = visible; }
+  function sync() {
+    ensureOpenButton();
+    const button = document.getElementById('backpackSafeOpenBtn');
+    const active = isGameActive();
+    if (button) button.style.display = active ? 'block' : 'none';
+    if (!active) { closeBackpack(); return; }
+    const p = panel();
+    const visible = !!p && !p.classList.contains('hidden');
+    if (visible && !lastVisible) setTimeout(forceBuild, 60);
+    if (visible && !p.querySelector('#backpackManagerRoot')) forceBuild();
+    if (visible) cleanupLegacyButtons(p);
+    lastVisible = visible;
+  }
 
   function bind() {
     document.addEventListener('click', e => {
@@ -115,6 +134,19 @@
     }, true);
   }
 
-  function init() { addStyle(); ensureOpenButton(); bind(); setInterval(sync, 120); }
+  function init() {
+    addStyle();
+    ensureOpenButton();
+    bind();
+    sync();
+    const observer = new MutationObserver(sync);
+    const creator = document.getElementById('creator');
+    const game = document.getElementById('gamePanel');
+    if (creator) observer.observe(creator, { attributes:true, attributeFilter:['class'] });
+    if (game) observer.observe(game, { attributes:true, attributeFilter:['class'] });
+    window.addEventListener('coffee-ship:entered', sync);
+    window.addEventListener('coffee-ship:scene', sync);
+    setInterval(sync, 1200);
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
