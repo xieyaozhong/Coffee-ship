@@ -192,6 +192,7 @@
     await loadSequence([
       ['loot-bottle-core.js?v=deck-stable-1','lootBottleCore'],
       ['bottle-series-restore.js?v=deck-stable-1','bottleSeriesRestore'],
+      ['turtle-soup-bottles.js?v=turtle-soup-10','turtleSoupBottles'],
       ['lanar-bottles.js?v=deck-stable-1','lanarBottles'],
       ['ariel-chapter1-bottles.js?v=deck-stable-1','arielBottles'],
       ['coco-bottles.js?v=deck-stable-1','cocoBottles'],
