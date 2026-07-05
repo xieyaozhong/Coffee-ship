@@ -1,14 +1,14 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V2__) return;
-  window.__COFFEE_SHIP_MERMAID_LYRICS_V2__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_LYRICS_V3__) return;
+  window.__COFFEE_SHIP_MERMAID_LYRICS_V3__ = true;
 
   const STORE_KEY = 'coffeeShipMermaidLyrics';
   const BAG_KEY = 'coffeeShipFishBag';
   const SERIES = '美人魚歌詞漂流瓶';
 
   const LYRICS = [
-    {id:'pearl_moonlight',number:1,icon:'💎',title:'月光珍珠',rarity:'史詩',sellPrice:110,text:'當月光沉入藍色海面\n我把願望藏進一顆珍珠\n即使潮汐將我們帶向遠方\n歌聲仍會沿著星光找到你'},
+    {id:'pearl_moonlight',number:1,icon:'🎹',title:'黑暗巴洛克',rarity:'史詩',sellPrice:110,text:'沒有光的世界巴洛克\n變成動人的那美妙聲音\n黑暗陷阱中的秘密聲音\n沉睡搖籃中一直到永遠不醒\n\n看慢慢的向前方邁進\n為最終時刻來臨齊聲歡呼\n充滿冰冷的微笑沒有光\n就將真珠 變成灰燼\n來吧朋友們 如果有希望的光在前方\n讓我們唱出 那首叫絕望的美麗讚歌'},
     {id:'seven_tides',number:2,icon:'🌈',title:'七色潮聲',rarity:'史詩',sellPrice:115,text:'七道浪花在夜裡點亮\n每一種顏色都是夥伴的名字\n當我們把心跳唱成同一拍\n沉默的海也會為希望鼓掌'},
     {id:'bubbles_return',number:3,icon:'🫧',title:'泡沫不說再見',rarity:'史詩',sellPrice:118,text:'泡沫升起不是告別\n只是把思念送往更高的天空\n等晨風吹回熟悉的旋律\n我會在浪尖重新與你相逢'},
     {id:'deepsea_promise',number:4,icon:'🔷',title:'深海的約定',rarity:'史詩',sellPrice:120,text:'在無光的海底握住彼此\n微弱的聲音也能成為燈塔\n只要記得最初交換的約定\n黑暗就沒有辦法奪走方向'},
@@ -250,7 +250,7 @@
     createById,
     collected:() => new Set(normalizeAll().map(entry => entry.id)).size,
     injectBackpack,
-    version:2
+    version:3
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
