@@ -4,6 +4,7 @@
   window.__COFFEE_SHIP_STAGED_LOADER_V2__ = true;
 
   let heavyLoaded = false;
+  let heavyRetry = 0;
   let controlsBound = false;
 
   function isDeckOpen() {
@@ -195,7 +196,11 @@
   }
 
   function triggerHeavyLoad() {
-    if (!isGameActive()) return;
+    if (heavyLoaded) return;
+    if (!isGameActive()) {
+      if (heavyRetry < 10) { heavyRetry += 1; setTimeout(triggerHeavyLoad, 250); }
+      return;
+    }
     schedule(loadHeavyGameplay);
   }
 
@@ -203,7 +208,7 @@
     bindMobileDeckControls();
     addStatusBadge();
     schedule(loadCoreEnhancements);
-    window.addEventListener('coffee-ship:entered', triggerHeavyLoad, { once:true });
+    window.addEventListener('coffee-ship:entered', triggerHeavyLoad);
     if (isGameActive()) triggerHeavyLoad();
   }
 
