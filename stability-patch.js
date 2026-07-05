@@ -1,11 +1,14 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V3__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V3__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V4__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V4__ = true;
 
   let controlsBound = false;
-  let deckModulesStarted = false;
+  let fishingCoreReady = false;
+  let fishingCoreLoading = null;
+  let fishingExtrasStarted = false;
   let storyModulesStarted = false;
+  let replayingFishing = false;
 
   function isDeckOpen() {
     const api = window.COFFEE_SHIP_DECK;
@@ -25,8 +28,8 @@
     return !!game && !game.classList.contains('hidden') && (!creator || creator.classList.contains('hidden'));
   }
 
-  function keyEvent(type, key) {
-    window.dispatchEvent(new KeyboardEvent(type, { key, code:key, bubbles:true, cancelable:true }));
+  function keyEvent(type, key, code=key) {
+    window.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles:true, cancelable:true }));
   }
 
   function holdKey(button, key) {
@@ -50,40 +53,18 @@
     button.addEventListener('pointercancel', end, true);
   }
 
-  function bindMobileDeckControls() {
+  function bindMobileControls() {
     if (controlsBound) return;
     controlsBound = true;
     const map = { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight' };
     document.querySelectorAll('[data-move]').forEach(button => holdKey(button, map[button.dataset.move]));
 
-    document.getElementById('sitBtn')?.addEventListener('click', event => {
-      if (isDeckOpen() && !isPortOpen()) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const api = window.COFFEE_SHIP_DECK;
-        if (api && typeof api.handleAction === 'function') api.handleAction();
-        else { keyEvent('keydown','e'); setTimeout(()=>keyEvent('keyup','e'),80); }
-        return;
-      }
-      if (!isPortOpen()) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      keyEvent('keydown','e');
-      setTimeout(()=>keyEvent('keyup','e'),80);
-    }, true);
-
     document.getElementById('emoteBtn')?.addEventListener('click', event => {
       if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
-      keyEvent('keydown',' ');
-      setTimeout(()=>keyEvent('keyup',' '),80);
-    }, true);
-
-    window.addEventListener('keydown', event => {
-      if (!isDeckOpen() && !isPortOpen()) return;
-      const key = event.key && event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','e',' '].includes(key)) event.stopPropagation();
+      keyEvent('keydown',' ','Space');
+      setTimeout(()=>keyEvent('keyup',' ','Space'),70);
     }, true);
   }
 
@@ -118,23 +99,23 @@
   }
 
   function loadScript(src, flag) {
-    if (alreadyLoaded(src) || document.querySelector(`script[data-${flag}="true"]`)) return Promise.resolve();
+    if (alreadyLoaded(src) || document.querySelector(`script[data-${flag}="true"]`)) return Promise.resolve(true);
     return new Promise(resolve => {
       const script = document.createElement('script');
       script.src = src;
       script.async = false;
       script.dataset[flag] = 'true';
-      script.onload = resolve;
-      script.onerror = () => { console.warn(`Optional module failed: ${src}`); resolve(); };
+      script.onload = () => resolve(true);
+      script.onerror = () => { console.warn(`Optional module failed: ${src}`); resolve(false); };
       document.body.appendChild(script);
     });
   }
 
   function pause(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-  async function loadSequence(entries, gap=120) {
+  async function loadSequence(entries, gap=180) {
     for (const [src, flag] of entries) {
-      if (document.hidden) await pause(500);
+      while (document.hidden) await pause(500);
       await loadScript(src, flag);
       if (gap) await pause(gap);
     }
@@ -147,96 +128,112 @@
 
   async function loadCafeEnhancements() {
     await loadSequence([
-      ['role-sprites.js?v=stable-npc-1','roleSprites'],
-      ['role-mobile-ability.js?v=stable-npc-1','roleAbility'],
-      ['change-character.js?v=stable-npc-1','changeCharacter'],
-      ['mobile-home-safe.js?v=stable-npc-1','mobileHomeSafe'],
-      ['mobile-game-layout.js?v=stable-npc-1','mobileGameLayout'],
-      ['quality-polish.js?v=stable-npc-1','qualityPolish'],
-      ['black-cat-nox.js?v=stable-npc-1','blackCatNox'],
-      ['mobile-deck-fix.js?v=stable-npc-1','mobileDeckFix'],
-      ['deck-role-fix.js?v=stable-npc-1','deckRoleFix'],
-      ['port.js?v=stable-npc-1','portScene']
-    ], 80);
+      ['role-sprites.js?v=deck-stable-1','roleSprites'],
+      ['role-mobile-ability.js?v=deck-stable-1','roleAbility'],
+      ['change-character.js?v=deck-stable-1','changeCharacter'],
+      ['mobile-home-safe.js?v=deck-stable-1','mobileHomeSafe'],
+      ['mobile-game-layout.js?v=deck-stable-1','mobileGameLayout'],
+      ['quality-polish.js?v=deck-stable-1','qualityPolish'],
+      ['black-cat-nox.js?v=deck-stable-1','blackCatNox'],
+      ['npc-behavior-polish.js?v=deck-stable-1','npcBehaviorPolish'],
+      ['port.js?v=deck-stable-1','portScene']
+    ], 100);
+  }
+
+  function replayFishingKey() {
+    if (!isDeckOpen()) return;
+    replayingFishing = true;
+    keyEvent('keydown','f','KeyF');
+    setTimeout(() => {
+      keyEvent('keyup','f','KeyF');
+      replayingFishing = false;
+    }, 70);
+  }
+
+  async function ensureFishingCore() {
+    if (fishingCoreReady) return true;
+    if (fishingCoreLoading) return fishingCoreLoading;
+
+    window.COFFEE_SHIP_DECK?.showTip?.('🎣 第一次使用，正在載入釣魚核心…', 4000);
+    fishingCoreLoading = (async () => {
+      const ok = await loadScript('deck-fishing.js?v=deck-stable-1','deckFishing');
+      fishingCoreReady = ok;
+      window.COFFEE_SHIP_FISHING_READY = ok;
+      fishingCoreLoading = null;
+      if (ok) window.COFFEE_SHIP_DECK?.showTip?.('🎣 釣魚功能已準備完成', 1300);
+      else window.COFFEE_SHIP_DECK?.showTip?.('釣魚功能載入失敗，請稍後重試', 2200);
+      return ok;
+    })();
+
+    return fishingCoreLoading;
+  }
+
+  async function handleFishingRequest() {
+    if (replayingFishing || !isDeckOpen()) return;
+    const ready = await ensureFishingCore();
+    if (ready) replayFishingKey();
+  }
+
+  async function loadFishingExtras() {
+    if (fishingExtrasStarted) return;
+    fishingExtrasStarted = true;
+    await loadSequence([
+      ['extra-fish-50.js?v=deck-stable-1','extraFish50'],
+      ['deck-fishing-specials.js?v=deck-stable-1','deckFishingSpecials'],
+      ['fishing-cast-animation.js?v=deck-stable-1','fishingCastAnimation'],
+      ['animation-overlap-guard.js?v=deck-stable-1','animationOverlapGuard']
+    ], 900);
+    window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready'));
   }
 
   async function loadStoryModules() {
     if (storyModulesStarted) return;
     storyModulesStarted = true;
     await loadSequence([
-      ['carnival-loot-pool.js?v=stable-npc-1','carnivalLootPool'],
-      ['carnival-loot-upgrade.js?v=stable-npc-1','carnivalLootUpgrade'],
-      ['loot-bottle-core.js?v=stable-npc-1','lootBottleCore'],
-      ['bottle-series-restore.js?v=stable-npc-1','bottleSeriesRestore'],
-      ['lanar-bottles.js?v=stable-npc-1','lanarBottles'],
-      ['ariel-chapter1-bottles.js?v=stable-npc-1','arielBottles'],
-      ['coco-bottles.js?v=stable-npc-1','cocoBottles'],
-      ['blackbeard-bottles.js?v=stable-npc-1','blackbeardBottles'],
-      ['mad-priest-bottles.js?v=stable-npc-1','madPriestBottles'],
-      ['carnival-island-bottles.js?v=stable-npc-1','carnivalIslandBottles'],
-      ['original-emoji-restore.js?v=stable-npc-1','originalEmojiRestore'],
-      ['ocean-friends-events.js?v=stable-npc-1','oceanFriendsEvents'],
-      ['single-fishing-result.js?v=stable-npc-1','singleFishingResult'],
-      ['lanar-bottle-letters.js?v=stable-npc-1','lanarBottleLetters'],
-      ['ariel-bottle-letters.js?v=stable-npc-1','arielBottleLetters'],
-      ['island-triangle-letters.js?v=stable-npc-1','islandTriangleLetters'],
-      ['blackbeard-treasure-letters.js?v=stable-npc-1','blackbeardTreasureLetters'],
-      ['story-modal-fix.js?v=stable-npc-1','storyModalFix'],
-      ['bottle-dex-patch.js?v=stable-npc-1','bottleDexPatch']
-    ], 420);
+      ['loot-bottle-core.js?v=deck-stable-1','lootBottleCore'],
+      ['bottle-series-restore.js?v=deck-stable-1','bottleSeriesRestore'],
+      ['lanar-bottles.js?v=deck-stable-1','lanarBottles'],
+      ['ariel-chapter1-bottles.js?v=deck-stable-1','arielBottles'],
+      ['coco-bottles.js?v=deck-stable-1','cocoBottles'],
+      ['blackbeard-bottles.js?v=deck-stable-1','blackbeardBottles'],
+      ['mad-priest-bottles.js?v=deck-stable-1','madPriestBottles'],
+      ['carnival-island-bottles.js?v=deck-stable-1','carnivalIslandBottles'],
+      ['original-emoji-restore.js?v=deck-stable-1','originalEmojiRestore'],
+      ['lanar-bottle-letters.js?v=deck-stable-1','lanarBottleLetters'],
+      ['ariel-bottle-letters.js?v=deck-stable-1','arielBottleLetters'],
+      ['island-triangle-letters.js?v=deck-stable-1','islandTriangleLetters'],
+      ['blackbeard-treasure-letters.js?v=deck-stable-1','blackbeardTreasureLetters'],
+      ['story-modal-fix.js?v=deck-stable-1','storyModalFix'],
+      ['bottle-dex-patch.js?v=deck-stable-1','bottleDexPatch']
+    ], 850);
     window.dispatchEvent(new CustomEvent('coffee-ship:story-ready'));
   }
 
-  async function loadDeckModules() {
-    if (deckModulesStarted) return;
-    deckModulesStarted = true;
-    await loadSequence([
-      ['deck-fishing.js?v=stable-npc-1','deckFishing'],
-      ['fishing-cast-animation.js?v=stable-npc-1','fishingCastAnimation'],
-      ['deck-fishing-specials.js?v=stable-npc-1','deckFishingSpecials'],
-      ['extra-fish-50.js?v=stable-npc-1','extraFish50'],
-      ['mermaid-event.js?v=stable-npc-1','mermaidEvent'],
-      ['deck-shark-event.js?v=stable-npc-1','deckSharkEvent'],
-      ['mutant-creatures.js?v=stable-npc-1','mutantCreatures'],
-      ['mobile-mutant-modal-fix.js?v=stable-npc-1','mobileMutantModalFix'],
-      ['animation-overlap-guard.js?v=stable-npc-1','animationOverlapGuard'],
-      ['fishing-rare-animation.js?v=stable-npc-1','fishingRareAnimation'],
-      ['mobile-modal-fix.js?v=stable-npc-1','mobileModalFix'],
-      ['mobile-shark-modal-fix.js?v=stable-npc-1','mobileSharkModalFix']
-    ], 260);
-    idle(loadStoryModules, 2000);
-    window.dispatchEvent(new CustomEvent('coffee-ship:deck-modules-ready'));
-  }
-
-  function requestDeckModules() {
-    if (deckModulesStarted) return;
-    idle(loadDeckModules, 900);
-  }
-
   function bindLazyTriggers() {
-    const watch = setInterval(() => {
-      updateStatusBadge();
-      if (isDeckOpen()) {
-        clearInterval(watch);
-        requestDeckModules();
-      }
-    }, 900);
+    window.addEventListener('coffee-ship:request-fishing', handleFishingRequest);
 
     document.addEventListener('click', event => {
-      if (event.target.closest?.('#backpackSafeOpenBtn, #fishDexBtn')) idle(loadStoryModules, 1200);
+      if (event.target.closest?.('#fishDexBtn')) idle(loadFishingExtras, 1500);
+      if (event.target.closest?.('#backpackSafeOpenBtn')) idle(loadStoryModules, 1800);
     }, true);
 
     window.addEventListener('keydown', event => {
       const key = event.key?.length===1 ? event.key.toLowerCase() : event.key;
-      if ((key==='f'||key==='g') && isDeckOpen()) requestDeckModules();
+      if (key==='g' && isDeckOpen()) idle(loadFishingExtras, 1200);
     }, true);
   }
 
   function init() {
-    bindMobileDeckControls();
+    bindMobileControls();
     addStatusBadge();
-    idle(loadCafeEnhancements, 700);
+    idle(loadCafeEnhancements, 800);
     bindLazyTriggers();
+    window.COFFEE_SHIP_FEATURE_LOADER = {
+      ensureFishingCore,
+      loadFishingExtras,
+      loadStoryModules,
+      fishingReady:() => fishingCoreReady
+    };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
