@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MERMAID_EVENT_V5__) return;
-  window.__COFFEE_SHIP_MERMAID_EVENT_V5__ = true;
+  if (window.__COFFEE_SHIP_MERMAID_EVENT_V6__) return;
+  window.__COFFEE_SHIP_MERMAID_EVENT_V6__ = true;
 
   const encounters = [
     ['月光歌聲','美人魚在月光下浮出水面，唱了一段只有海浪聽得懂的歌。','🐚','月光貝殼','treasure'],
@@ -65,6 +65,7 @@
     const api = window.COFFEE_SHIP_MERMAID_LYRICS;
     const entry = api?.createRandom?.();
     if (!entry) return null;
+    const total = Number(api.total || api.entries?.length || 0);
 
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
@@ -72,7 +73,7 @@
       title:entry.title,
       icon:entry.icon,
       accent:'#9ce8f0',
-      text:`系列：${entry.series}｜稀有度：${entry.rarity}\n${entry.text}\n收集進度：${api.collected?.() || 0}/10`
+      text:`系列：${entry.series}｜稀有度：${entry.rarity}\n${entry.text}\n收集進度：${api.collected?.() || 0}/${total}`
     });
     return entry;
   }
@@ -116,7 +117,7 @@
       chance,
       lyricDropChance,
       encounters,
-      version:5
+      version:6
     };
   }
 
