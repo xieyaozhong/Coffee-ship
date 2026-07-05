@@ -1,20 +1,16 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V5__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V5__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V6__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V6__ = true;
 
   let controlsBound = false;
   let fishingCoreReady = false;
   let fishingCoreLoading = null;
   let fishingExtrasStarted = false;
   let storyModulesStarted = false;
-  let replayingFishing = false;
 
   function isDeckOpen() {
-    const api = window.COFFEE_SHIP_DECK;
-    if (api && typeof api.isDeckOpen === 'function') return api.isDeckOpen();
-    const deck = document.getElementById('deckOverlay');
-    return !!deck && !deck.classList.contains('hidden');
+    return !!window.COFFEE_SHIP_DECK?.isDeckOpen?.();
   }
 
   function isPortOpen() {
@@ -28,51 +24,53 @@
     return !!game && !game.classList.contains('hidden') && (!creator || creator.classList.contains('hidden'));
   }
 
-  function keyEvent(type, key, code=key) {
-    window.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles:true, cancelable:true }));
+  function keyEvent(type, key, code = key) {
+    window.dispatchEvent(new KeyboardEvent(type,{key,code,bubbles:true,cancelable:true}));
   }
 
   function holdKey(button, key) {
     if (!button || !key || button.dataset.sceneHoldBound === 'true') return;
     button.dataset.sceneHoldBound = 'true';
-    let down = false;
+    let pressed = false;
     const start = event => {
       if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
-      if (!down) { down = true; keyEvent('keydown', key); }
+      if (!pressed) {
+        pressed = true;
+        keyEvent('keydown',key);
+      }
     };
     const end = () => {
-      if (!down) return;
-      down = false;
-      keyEvent('keyup', key);
+      if (!pressed) return;
+      pressed = false;
+      keyEvent('keyup',key);
     };
-    button.addEventListener('pointerdown', start, true);
-    button.addEventListener('pointerup', end, true);
-    button.addEventListener('pointerleave', end, true);
-    button.addEventListener('pointercancel', end, true);
+    button.addEventListener('pointerdown',start,true);
+    button.addEventListener('pointerup',end,true);
+    button.addEventListener('pointerleave',end,true);
+    button.addEventListener('pointercancel',end,true);
   }
 
   function bindMobileControls() {
     if (controlsBound) return;
     controlsBound = true;
-    const map = { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight' };
-    document.querySelectorAll('[data-move]').forEach(button => holdKey(button, map[button.dataset.move]));
-
-    document.getElementById('emoteBtn')?.addEventListener('click', event => {
+    const map = {up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'};
+    document.querySelectorAll('[data-move]').forEach(button => holdKey(button,map[button.dataset.move]));
+    document.getElementById('emoteBtn')?.addEventListener('click',event => {
       if (!isDeckOpen() && !isPortOpen()) return;
       event.preventDefault();
       event.stopPropagation();
       keyEvent('keydown',' ','Space');
       setTimeout(() => keyEvent('keyup',' ','Space'),70);
-    }, true);
+    },true);
   }
 
   function updateStatusBadge() {
     const badge = document.getElementById('sceneStatusBadge');
     if (!badge) return;
     badge.style.display = isGameActive() ? 'block' : 'none';
-    badge.textContent = isPortOpen() ? '⚓ Port' : (isDeckOpen() ? '🌊 Deck' : '☕ Cafe');
+    badge.textContent = isPortOpen() ? '⚓ Port' : isDeckOpen() ? '🌊 Deck' : '☕ Cafe';
   }
 
   function addStatusBadge() {
@@ -84,12 +82,12 @@
     badge.textContent = '☕ Cafe';
     panel.appendChild(badge);
     updateStatusBadge();
-    window.addEventListener('coffee-ship:entered', updateStatusBadge);
-    window.addEventListener('coffee-ship:scene', updateStatusBadge);
+    window.addEventListener('coffee-ship:entered',updateStatusBadge);
+    window.addEventListener('coffee-ship:scene',updateStatusBadge);
   }
 
   function fileName(src) {
-    try { return new URL(src, location.href).pathname.split('/').pop(); }
+    try { return new URL(src,location.href).pathname.split('/').pop(); }
     catch { return String(src).split('?')[0].split('/').pop(); }
   }
 
@@ -106,92 +104,78 @@
       script.async = false;
       script.dataset[flag] = 'true';
       script.onload = () => resolve(true);
-      script.onerror = () => { console.warn(`Optional module failed: ${src}`); resolve(false); };
+      script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
   }
 
-  function pause(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+  function pause(ms) {
+    return new Promise(resolve => setTimeout(resolve,ms));
+  }
 
-  async function loadSequence(entries, gap=180) {
+  async function loadSequence(entries, gap = 180) {
     for (const [src, flag] of entries) {
       while (document.hidden) await pause(500);
-      await loadScript(src, flag);
+      await loadScript(src,flag);
       if (gap) await pause(gap);
     }
   }
 
-  function idle(callback, timeout=1200) {
-    if ('requestIdleCallback' in window) requestIdleCallback(callback, { timeout });
-    else setTimeout(callback, 260);
-  }
-
-  function removeLegacyFishingUi() {
-    document.getElementById('fishDexBtn')?.remove();
-    document.getElementById('fishingMotionCanvas')?.remove();
-    document.getElementById('fishingMotionStyle')?.remove();
-    document.body.classList.remove('fishing-motion-active','fishdex-open');
-    const panel = document.getElementById('fishDexPanel');
-    if (panel && !panel.querySelector('#backpackManagerRoot')) panel.remove();
+  function idle(callback, timeout = 1200) {
+    if ('requestIdleCallback' in window) requestIdleCallback(callback,{timeout});
+    else setTimeout(callback,260);
   }
 
   async function loadCafeEnhancements() {
     await loadSequence([
-      ['role-sprites.js?v=deck-stable-1','roleSprites'],
-      ['role-mobile-ability.js?v=deck-stable-1','roleAbility'],
-      ['change-character.js?v=deck-stable-1','changeCharacter'],
-      ['mobile-home-safe.js?v=deck-stable-1','mobileHomeSafe'],
-      ['mobile-game-layout.js?v=deck-stable-1','mobileGameLayout'],
-      ['quality-polish.js?v=deck-stable-1','qualityPolish'],
-      ['black-cat-nox.js?v=deck-stable-1','blackCatNox'],
-      ['npc-behavior-polish.js?v=deck-stable-1','npcBehaviorPolish'],
-      ['port.js?v=deck-stable-1','portScene']
-    ], 100);
-  }
-
-  function replayFishingKey() {
-    if (!isDeckOpen()) return;
-    replayingFishing = true;
-    keyEvent('keydown','f','KeyF');
-    setTimeout(() => {
-      keyEvent('keyup','f','KeyF');
-      replayingFishing = false;
-    }, 50);
+      ['role-sprites.js?v=stable-6','roleSprites'],
+      ['role-mobile-ability.js?v=stable-6','roleAbility'],
+      ['change-character.js?v=stable-6','changeCharacter'],
+      ['mobile-home-safe.js?v=stable-6','mobileHomeSafe'],
+      ['mobile-game-layout.js?v=stable-6','mobileGameLayout'],
+      ['quality-polish.js?v=stable-6','qualityPolish'],
+      ['black-cat-nox.js?v=stable-6','blackCatNox'],
+      ['npc-behavior-polish.js?v=stable-6','npcBehaviorPolish'],
+      ['port.js?v=stable-6','portScene']
+    ],100);
   }
 
   async function ensureFishingCore() {
-    if (fishingCoreReady) return true;
+    if (fishingCoreReady && window.COFFEE_SHIP_FISHING_API) return true;
     if (fishingCoreLoading) return fishingCoreLoading;
-
-    window.COFFEE_SHIP_DECK?.showTip?.('🎣 正在載入釣魚功能…', 2200);
+    window.COFFEE_SHIP_DECK?.showTip?.('🎣 正在準備釣魚系統…',2200);
     fishingCoreLoading = (async () => {
-      const ok = await loadScript('deck-fishing.js?v=simple-fishing-2','deckFishing');
-      fishingCoreReady = ok;
-      window.COFFEE_SHIP_FISHING_READY = ok;
+      const ok = await loadScript('deck-fishing.js?v=unified-fishing-3','deckFishing');
+      fishingCoreReady = ok && !!window.COFFEE_SHIP_FISHING_API;
       fishingCoreLoading = null;
-      removeLegacyFishingUi();
-      if (ok) idle(loadFishingExtras, 2000);
-      else window.COFFEE_SHIP_DECK?.showTip?.('釣魚功能載入失敗，請稍後重試', 2200);
-      return ok;
+      window.COFFEE_SHIP_FISHING_READY = fishingCoreReady;
+      if (fishingCoreReady) idle(loadFishingExtras,1000);
+      return fishingCoreReady;
     })();
-
     return fishingCoreLoading;
   }
 
   async function handleFishingRequest() {
-    if (replayingFishing || !isDeckOpen()) return;
+    if (!isDeckOpen()) return;
     const ready = await ensureFishingCore();
-    if (ready) replayFishingKey();
+    if (!ready) {
+      window.COFFEE_SHIP_DECK?.showTip?.('釣魚功能載入失敗，請重新整理後再試',2200);
+      return;
+    }
+    window.COFFEE_SHIP_FISHING_API.startFishing();
   }
 
   async function loadFishingExtras() {
     if (fishingExtrasStarted) return;
     fishingExtrasStarted = true;
     await loadSequence([
-      ['extra-fish-50.js?v=simple-fishing-2','extraFish50'],
-      ['deck-fishing-specials.js?v=simple-fishing-2','deckFishingSpecials']
-    ], 900);
-    removeLegacyFishingUi();
+      ['extra-fish-50.js?v=unified-fishing-3','extraFish50'],
+      ['deck-fishing-specials.js?v=unified-fishing-3','deckFishingSpecials'],
+      ['mermaid-event.js?v=unified-fishing-3','mermaidEvent'],
+      ['deck-shark-event.js?v=unified-fishing-3','deckSharkEvent'],
+      ['mutant-creatures.js?v=unified-fishing-3','mutantCreatures'],
+      ['fishing-event-stack.js?v=unified-fishing-3','fishingEventBridge']
+    ],260);
     window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready'));
   }
 
@@ -199,67 +183,48 @@
     if (storyModulesStarted) return;
     storyModulesStarted = true;
     await loadSequence([
-      ['loot-bottle-core.js?v=deck-stable-1','lootBottleCore'],
-      ['bottle-series-restore.js?v=deck-stable-1','bottleSeriesRestore'],
-      ['turtle-soup-bottles.js?v=turtle-soup-10','turtleSoupBottles'],
-      ['lanar-bottles.js?v=deck-stable-1','lanarBottles'],
-      ['ariel-chapter1-bottles.js?v=deck-stable-1','arielBottles'],
-      ['coco-bottles.js?v=deck-stable-1','cocoBottles'],
-      ['blackbeard-bottles.js?v=deck-stable-1','blackbeardBottles'],
-      ['mad-priest-bottles.js?v=deck-stable-1','madPriestBottles'],
-      ['carnival-island-bottles.js?v=deck-stable-1','carnivalIslandBottles'],
-      ['original-emoji-restore.js?v=deck-stable-1','originalEmojiRestore'],
-      ['lanar-bottle-letters.js?v=deck-stable-1','lanarBottleLetters'],
-      ['ariel-bottle-letters.js?v=deck-stable-1','arielBottleLetters'],
-      ['island-triangle-letters.js?v=deck-stable-1','islandTriangleLetters'],
-      ['blackbeard-treasure-letters.js?v=deck-stable-1','blackbeardTreasureLetters'],
-      ['story-modal-fix.js?v=deck-stable-1','storyModalFix'],
-      ['bottle-dex-patch.js?v=deck-stable-1','bottleDexPatch']
-    ], 850);
+      ['loot-bottle-core.js?v=story-6','lootBottleCore'],
+      ['bottle-series-restore.js?v=story-6','bottleSeriesRestore'],
+      ['turtle-soup-bottles.js?v=story-6','turtleSoupBottles'],
+      ['lanar-bottles.js?v=story-6','lanarBottles'],
+      ['ariel-chapter1-bottles.js?v=story-6','arielBottles'],
+      ['coco-bottles.js?v=story-6','cocoBottles'],
+      ['blackbeard-bottles.js?v=story-6','blackbeardBottles'],
+      ['mad-priest-bottles.js?v=story-6','madPriestBottles'],
+      ['carnival-island-bottles.js?v=story-6','carnivalIslandBottles'],
+      ['original-emoji-restore.js?v=story-6','originalEmojiRestore'],
+      ['lanar-bottle-letters.js?v=story-6','lanarBottleLetters'],
+      ['ariel-bottle-letters.js?v=story-6','arielBottleLetters'],
+      ['island-triangle-letters.js?v=story-6','islandTriangleLetters'],
+      ['blackbeard-treasure-letters.js?v=story-6','blackbeardTreasureLetters'],
+      ['story-modal-fix.js?v=story-6','storyModalFix'],
+      ['bottle-dex-patch.js?v=story-6','bottleDexPatch']
+    ],600);
     window.dispatchEvent(new CustomEvent('coffee-ship:story-ready'));
   }
 
   function bindLazyTriggers() {
-    window.addEventListener('coffee-ship:request-fishing', handleFishingRequest);
-
-    document.addEventListener('click', event => {
-      if (event.target.closest?.('#fishDexBtn')) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        removeLegacyFishingUi();
-        return;
-      }
-      if (event.target.closest?.('#backpackSafeOpenBtn')) idle(loadStoryModules, 1800);
-    }, true);
-
-    window.addEventListener('keydown', event => {
-      const key = event.key?.length === 1 ? event.key.toLowerCase() : event.key;
-      if (key === 'g' && isDeckOpen()) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        removeLegacyFishingUi();
-      }
-    }, true);
+    window.addEventListener('coffee-ship:request-fishing',handleFishingRequest);
+    document.addEventListener('click',event => {
+      if (event.target.closest?.('#backpackSafeOpenBtn')) idle(loadStoryModules,1000);
+    },true);
   }
 
   function init() {
-    removeLegacyFishingUi();
     bindMobileControls();
     addStatusBadge();
-    idle(loadCafeEnhancements, 800);
+    idle(loadCafeEnhancements,800);
     bindLazyTriggers();
-    const observer = new MutationObserver(removeLegacyFishingUi);
-    observer.observe(document.body,{subtree:true,childList:true});
     window.COFFEE_SHIP_FEATURE_LOADER = {
       ensureFishingCore,
       loadFishingExtras,
       loadStoryModules,
       fishingReady:() => fishingCoreReady,
       fishingAnimation:false,
-      fishDex:false
+      fishDex:true
     };
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
   else init();
 })();
