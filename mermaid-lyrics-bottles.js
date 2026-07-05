@@ -193,14 +193,6 @@
     requestAnimationFrame(injectBackpack);
   }
 
-  function sellAllLyrics() {
-    const rows = normalizeAll();
-    if (!rows.length) return;
-    const total = rows.reduce((sum,entry) => sum + Number(entry.sellPrice || 0),0);
-    save(STORE_KEY,[]);
-    if (window.COFFEE_SHIP_ECONOMY?.earn) window.COFFEE_SHIP_ECONOMY.earn(total,`批次販售 ${rows.length} 個美人魚歌詞漂流瓶`,{source:'mermaid-lyrics'});
-  }
-
   function bindBackpack() {
     document.addEventListener('click',event => {
       const sell = event.target.closest?.('[data-mermaid-lyric-sell]');
@@ -215,12 +207,7 @@
         event.preventDefault();
         event.stopImmediatePropagation();
         removeAt(Number(remove.dataset.mermaidLyricDelete),false);
-        return;
       }
-      const panel = event.target.closest?.('#backpackPanel');
-      if (!panel || !panel.querySelector('[data-bp-tab="letter"].active')) return;
-      if (event.target.closest('[data-bp-sell-all]')) sellAllLyrics();
-      if (event.target.closest('[data-bp-clear]')) save(STORE_KEY,[]);
     },true);
 
     let queued = false;
