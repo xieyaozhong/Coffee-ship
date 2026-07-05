@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_BACKPACK_MANAGER_V4__) return;
-  window.__COFFEE_SHIP_BACKPACK_MANAGER_V4__ = true;
+  if (window.__COFFEE_SHIP_BACKPACK_MANAGER_V5__) return;
+  window.__COFFEE_SHIP_BACKPACK_MANAGER_V5__ = true;
 
   const PANEL_ID = 'backpackPanel';
   const BUTTON_ID = 'backpackSafeOpenBtn';
@@ -37,13 +37,23 @@
     return escapeHtml(value).replace(/\n/g, '<br>');
   }
 
+  function economy() {
+    return window.COFFEE_SHIP_ECONOMY || null;
+  }
+
+  function walletBalance() {
+    return economy()?.balance?.() ?? Math.max(0, Number(localStorage.getItem('coffeeShipPearls') || 0));
+  }
+
   function bag() {
+    economy()?.absorbBagPearls?.();
     const value = read(BAG_KEY, []);
-    return Array.isArray(value) ? value : [];
+    return Array.isArray(value) ? value.filter(item => item?.kind !== 'currency') : [];
   }
 
   function setBag(items) {
-    save(BAG_KEY, items.slice(-240));
+    save(BAG_KEY, items.filter(item => item?.kind !== 'currency').slice(-240));
+    window.dispatchEvent(new CustomEvent('coffee-ship:bag-changed', {detail:{source:'backpack'}}));
   }
 
   function isCurrency(item) {
@@ -57,16 +67,18 @@
   }
 
   function isItem(item) {
-    return !!item && !isFish(item);
+    return !!item && !isCurrency(item) && !isFish(item);
+  }
+
+  function fallbackPrice(item) {
+    if (!item || item.kind === 'trash') return 0;
+    const rarity = {普通:2,常見:4,稀有:10,史詩:28,傳說:120,神話:500,世界級:5000}[item.rarity] || 3;
+    const quality = {普通:1,優秀:1.4,完美:2,閃亮:3.5,神話:6,拾獲:1.15,遺失物:1.4,變異:3,祝福:2}[item.quality] || 1;
+    return Math.max(1, Math.round(Math.max(.1, Number(item.weight || 1)) * rarity * quality * Math.max(1, Number(item.coffeePearlBonus || 1))));
   }
 
   function priceOf(item) {
-    if (!item) return 1;
-    if (isCurrency(item)) return Math.max(1, Number(item.amount || 1));
-    const rarity = {普通:4,常見:7,稀有:18,史詩:55,傳說:180,神話:520,世界級:3000}[item.rarity] || 10;
-    const quality = {普通:1,優秀:1.25,完美:1.7,閃亮:2.4,神話:4,拾獲:1.1,遺失物:1.4,變異:3,祝福:2}[item.quality] || 1;
-    const weight = Math.max(.1, Number(item.weight || 1));
-    return Math.max(1, Math.round(weight * rarity * quality));
+    return economy()?.sellPrice?.(item) ?? fallbackPrice(item);
   }
 
   function letterPrice(letter) {
@@ -86,36 +98,27 @@
       if (!Array.isArray(list)) return;
       list.forEach((entry, index) => {
         if (!entry || typeof entry !== 'object') return;
-        result.push({
-          ...entry,
-          key,
-          index,
-          icon:meta.icon,
-          series:meta.series,
-          rarity:meta.rarity,
-          at:Number(entry.at || 0)
-        });
+        result.push({...entry,key,index,icon:meta.icon,series:meta.series,rarity:meta.rarity,at:Number(entry.at || 0)});
       });
     });
     return result.sort((a, b) => b.at - a.at);
   }
 
   function addStyle() {
-    if (document.getElementById('backpackManagerStyleV4')) return;
+    if (document.getElementById('backpackManagerStyleV5')) return;
+    document.getElementById('backpackManagerStyleV4')?.remove();
     const style = document.createElement('style');
-    style.id = 'backpackManagerStyleV4';
+    style.id = 'backpackManagerStyleV5';
     style.textContent = `
-      #${BUTTON_ID}{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:17000;border:2px solid #76536a;border-radius:18px;padding:12px 15px;background:#3a263f;color:#fff4d8;font-size:17px;font-weight:1000;box-shadow:0 8px 0 rgba(0,0,0,.3);cursor:pointer}
+      #${BUTTON_ID}{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:17000;border:2px solid #76536a;border-radius:18px;padding:11px 14px;background:#3a263f;color:#fff4d8;font-size:16px;font-weight:1000;box-shadow:0 8px 0 rgba(0,0,0,.3);cursor:pointer}
       #${PANEL_ID}{position:fixed;inset:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));z-index:30000;display:flex;flex-direction:column;overflow:hidden;padding:14px;border:3px solid #76536a;border-radius:24px;background:rgba(15,10,24,.985);color:#fff4d8;box-sizing:border-box;box-shadow:0 18px 48px rgba(0,0,0,.5)}
       #${PANEL_ID}.hidden{display:none!important}
-      .bp-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.bp-head h3{margin:0;font-size:22px}.bp-close{border:0;border-radius:14px;padding:10px 15px;background:#493249;color:#fff4d8;font-weight:1000;box-shadow:0 5px 0 rgba(0,0,0,.28)}
-      .bp-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.bp-tool{border:0;border-radius:13px;padding:10px;background:#f2a957;color:#211728;font-weight:1000}
+      .bp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.bp-head-main{display:flex;align-items:center;gap:10px;min-width:0}.bp-head h3{margin:0;font-size:22px}.bp-wallet{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:2px solid #d7bb79;border-radius:999px;background:#2b2030;color:#ffe16b;font-weight:1000;white-space:nowrap}.bp-close{border:0;border-radius:14px;padding:10px 15px;background:#493249;color:#fff4d8;font-weight:1000;box-shadow:0 5px 0 rgba(0,0,0,.28)}
+      .bp-tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.bp-tool{border:0;border-radius:13px;padding:10px;background:#f2a957;color:#211728;font-weight:1000}.bp-tool.secondary{background:#4f8f73;color:#fff4d8}.bp-tool.danger{background:#8f4f4b;color:#fff4d8}
       .bp-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.bp-tab{border:2px solid #76536a;border-radius:999px;padding:8px 12px;background:#211728;color:#fff4d8;font-weight:1000}.bp-tab.active{background:#ffe16b;color:#211728;border-color:#ffe16b}
-      .bp-content{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px}
-      .bp-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.bp-card{border:2px solid #76536a;border-radius:16px;padding:12px;background:#181020;overflow-wrap:anywhere}.bp-title{display:flex;gap:8px;align-items:flex-start;font-size:17px}.bp-meta{display:block;margin-top:7px;line-height:1.55;opacity:.92}.bp-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.bp-sell,.bp-delete{border:0;border-radius:11px;padding:9px;color:#fff4d8;font-weight:1000}.bp-sell{background:#4f8f73}.bp-delete{background:#c96a4a}.bp-empty{padding:20px;border:2px dashed #76536a;border-radius:16px;text-align:center;color:#d7bb79;font-weight:1000}.bp-price{color:#ffe16b;font-weight:1000}
-      body.backpack-open{overflow:hidden!important}
-      body.backpack-open .mobile-controls,body.backpack-open #fishingHub,body.backpack-open #fishingEventStack{visibility:hidden!important;pointer-events:none!important}
-      @media(max-width:760px){#${BUTTON_ID}{right:14px;bottom:calc(108px + env(safe-area-inset-bottom));font-size:18px}#${PANEL_ID}{inset:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));padding:12px}.bp-tools{grid-template-columns:1fr}.bp-list{grid-template-columns:1fr}.bp-actions{grid-template-columns:1fr 1fr}}
+      .bp-content{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px}.bp-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.bp-card{border:2px solid #76536a;border-radius:16px;padding:12px;background:#181020;overflow-wrap:anywhere}.bp-title{display:flex;gap:8px;align-items:flex-start;font-size:17px}.bp-meta{display:block;margin-top:7px;line-height:1.55;opacity:.92}.bp-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.bp-sell,.bp-delete{border:0;border-radius:11px;padding:9px;color:#fff4d8;font-weight:1000}.bp-sell{background:#4f8f73}.bp-delete{background:#c96a4a}.bp-empty{padding:20px;border:2px dashed #76536a;border-radius:16px;text-align:center;color:#d7bb79;font-weight:1000}.bp-price{color:#ffe16b;font-weight:1000}
+      body.backpack-open{overflow:hidden!important}body.backpack-open .mobile-controls,body.backpack-open #fishingHub,body.backpack-open #fishingEventStack{visibility:hidden!important;pointer-events:none!important}
+      @media(max-width:760px){#${BUTTON_ID}{right:14px;bottom:calc(108px + env(safe-area-inset-bottom));font-size:15px}#${PANEL_ID}{inset:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));padding:12px}.bp-head-main{flex-direction:column;align-items:flex-start;gap:5px}.bp-wallet{font-size:13px;padding:5px 8px}.bp-tools{grid-template-columns:1fr}.bp-list{grid-template-columns:1fr}.bp-actions{grid-template-columns:1fr 1fr}}
     `;
     document.head.appendChild(style);
   }
@@ -137,7 +140,6 @@
     button = document.createElement('button');
     button.id = BUTTON_ID;
     button.type = 'button';
-    button.textContent = '📖 背包';
     button.addEventListener('click', event => {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -153,9 +155,10 @@
     if (item.rarity) lines.push(`稀有度：${escapeHtml(item.rarity)}`);
     if (item.quality) lines.push(`品質：${escapeHtml(item.quality)}`);
     if (item.weight) lines.push(`重量：${Number(item.weight).toFixed(2)} kg`);
-    if (item.amount) lines.push(`數量：${Number(item.amount)} 珍珠`);
     if (item.trait) lines.push(`特性：${formatText(item.trait)}`);
-    lines.push(`<span class="bp-price">售價：${priceOf(item)} 珍珠</span>`);
+    if (item.coffeeEffectName) lines.push(`咖啡加成：${escapeHtml(item.coffeeEffectName)}`);
+    const price = priceOf(item);
+    lines.push(`<span class="bp-price">售價：${price > 0 ? price + ' 珍珠' : '不可販售'}</span>`);
     return lines.join('<br>');
   }
 
@@ -164,9 +167,9 @@
     if (!rows.length) return '<div class="bp-empty">目前沒有內容。</div>';
     return `<div class="bp-list">${rows.map(({item,index}) => `
       <article class="bp-card">
-        <strong class="bp-title"><span>${escapeHtml(item.icon || (isFish(item) ? '🐟' : isCurrency(item) ? '🦪' : '📦'))}</span><span>${escapeHtml(`${item.quality && !isCurrency(item) ? item.quality + ' ' : ''}${item.name || '未知物品'}`)}</span></strong>
+        <strong class="bp-title"><span>${escapeHtml(item.icon || (isFish(item) ? '🐟' : '📦'))}</span><span>${escapeHtml(`${item.quality ? item.quality + ' ' : ''}${item.name || '未知物品'}`)}</span></strong>
         <small class="bp-meta">${itemMeta(item)}</small>
-        <div class="bp-actions"><button class="bp-sell" data-bp-sell="${index}">販售</button><button class="bp-delete" data-bp-delete="${index}">丟棄</button></div>
+        <div class="bp-actions"><button class="bp-sell" data-bp-sell="${index}" ${priceOf(item) <= 0 ? 'disabled' : ''}>販售</button><button class="bp-delete" data-bp-delete="${index}">丟棄</button></div>
       </article>`).join('')}</div>`;
   }
 
@@ -181,19 +184,28 @@
       </article>`).join('')}</div>`;
   }
 
+  function currentRows() {
+    const items = bag();
+    if (activeTab === 'fish') return items.map((item,index) => ({item,index})).filter(row => isFish(row.item));
+    if (activeTab === 'item') return items.map((item,index) => ({item,index})).filter(row => isItem(row.item));
+    return letters();
+  }
+
   function render() {
+    economy()?.absorbBagPearls?.();
     const panel = ensurePanel();
     const items = bag();
     const fishCount = items.filter(isFish).length;
     const itemCount = items.filter(isItem).length;
     const letterCount = letters().length;
-    const pearlTotal = items.filter(isCurrency).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const balance = walletBalance();
     const content = activeTab === 'fish' ? renderItems(items, isFish) : activeTab === 'item' ? renderItems(items, isItem) : renderLetters();
     panel.innerHTML = `
-      <div class="bp-head"><h3>🎒 背包管理</h3><button class="bp-close" type="button">關閉</button></div>
-      <div class="bp-tools"><button class="bp-tool" data-bp-organize="1">整理珍珠：${pearlTotal}</button><button class="bp-tool" data-bp-clear="1">清空目前分類</button></div>
+      <div class="bp-head"><div class="bp-head-main"><h3>🎒 背包管理</h3><span class="bp-wallet">🦪 ${balance} 珍珠</span></div><button class="bp-close" type="button">關閉</button></div>
+      <div class="bp-tools"><button class="bp-tool" data-bp-absorb="1">合併舊珍珠</button><button class="bp-tool secondary" data-bp-sell-all="1">販售目前分類</button><button class="bp-tool danger" data-bp-clear="1">清空目前分類</button></div>
       <div class="bp-tabs"><button class="bp-tab ${activeTab==='fish'?'active':''}" data-bp-tab="fish">魚類 ${fishCount}</button><button class="bp-tab ${activeTab==='item'?'active':''}" data-bp-tab="item">物品 ${itemCount}</button><button class="bp-tab ${activeTab==='letter'?'active':''}" data-bp-tab="letter">信件 ${letterCount}</button></div>
       <div class="bp-content">${content}</div>`;
+    syncButton();
   }
 
   function isGameActive() {
@@ -204,9 +216,9 @@
 
   function open() {
     if (!isGameActive()) return false;
-    const panel = ensurePanel();
+    economy()?.absorbBagPearls?.();
     render();
-    panel.classList.remove('hidden');
+    ensurePanel().classList.remove('hidden');
     document.body.classList.add('backpack-open');
     return true;
   }
@@ -217,9 +229,14 @@
   }
 
   function addPearls(amount, source) {
-    const items = bag();
-    items.push({name:`${amount} 珍珠`,kind:'currency',icon:'🦪',amount,zone:source || '販售所得',rarity:'常見',quality:'貨幣',at:Date.now()});
-    setBag(items);
+    const value = Math.max(0, Math.floor(Number(amount) || 0));
+    if (!value) return;
+    if (economy()?.earn) economy().earn(value, source || '販售所得', {source:'backpack'});
+    else {
+      const next = walletBalance() + value;
+      localStorage.setItem('coffeeShipPearls', String(next));
+      window.dispatchEvent(new CustomEvent('coffeeShipPearlsChanged',{detail:{pearls:next}}));
+    }
   }
 
   function sellBag(index) {
@@ -227,6 +244,7 @@
     const item = items[index];
     if (!item) return;
     const price = priceOf(item);
+    if (price <= 0) return;
     items.splice(index, 1);
     setBag(items);
     addPearls(price, `販售：${item.name || '物品'}`);
@@ -258,21 +276,38 @@
     render();
   }
 
-  function organizePearls() {
-    const items = bag();
-    const total = items.filter(isCurrency).reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const others = items.filter(item => !isCurrency(item));
-    if (total > 0) others.push({name:`${total} 珍珠`,kind:'currency',icon:'🦪',amount:total,zone:'整理珍珠',rarity:'常見',quality:'貨幣',at:Date.now()});
-    setBag(others);
-    activeTab = 'item';
+  function sellAllCurrent() {
+    if (!confirm('確定要販售目前分類中的所有可販售內容嗎？')) return;
+    let total = 0;
+    let count = 0;
+
+    if (activeTab === 'letter') {
+      Object.entries(LETTER_STORES).forEach(([key,meta]) => {
+        const list = read(key, []);
+        if (!Array.isArray(list)) return;
+        list.forEach(letter => { total += letterPrice({...letter,series:meta.series}); count += 1; });
+        save(key, []);
+      });
+    } else {
+      const items = bag();
+      const remaining = [];
+      items.forEach(item => {
+        const inCurrent = activeTab === 'fish' ? isFish(item) : isItem(item);
+        const price = inCurrent ? priceOf(item) : 0;
+        if (inCurrent && price > 0) { total += price; count += 1; }
+        else remaining.push(item);
+      });
+      setBag(remaining);
+    }
+
+    if (total > 0) addPearls(total, `批次販售 ${count} 件內容`);
     render();
   }
 
   function clearCurrent() {
-    if (!confirm('確定要清空目前分類嗎？')) return;
-    if (activeTab === 'letter') {
-      Object.keys(LETTER_STORES).forEach(key => save(key, []));
-    } else {
+    if (!confirm('確定要清空目前分類嗎？這不會影響珍珠錢包。')) return;
+    if (activeTab === 'letter') Object.keys(LETTER_STORES).forEach(key => save(key, []));
+    else {
       const items = bag();
       setBag(items.filter(item => activeTab === 'fish' ? !isFish(item) : !isItem(item)));
     }
@@ -282,14 +317,12 @@
   function bind() {
     document.addEventListener('click', event => {
       if (!event.target.closest?.(`#${PANEL_ID}`)) return;
-      const closeButton = event.target.closest('.bp-close');
-      if (closeButton) { close(); return; }
+      if (event.target.closest('.bp-close')) { close(); return; }
       const tab = event.target.closest('[data-bp-tab]');
       if (tab) { activeTab = tab.dataset.bpTab; render(); return; }
-      const organize = event.target.closest('[data-bp-organize]');
-      if (organize) { organizePearls(); return; }
-      const clearButton = event.target.closest('[data-bp-clear]');
-      if (clearButton) { clearCurrent(); return; }
+      if (event.target.closest('[data-bp-absorb]')) { economy()?.absorbBagPearls?.('手動合併舊珍珠'); render(); return; }
+      if (event.target.closest('[data-bp-sell-all]')) { sellAllCurrent(); return; }
+      if (event.target.closest('[data-bp-clear]')) { clearCurrent(); return; }
       const sell = event.target.closest('[data-bp-sell]');
       if (sell) { sellBag(Number(sell.dataset.bpSell)); return; }
       const remove = event.target.closest('[data-bp-delete]');
@@ -302,24 +335,35 @@
   }
 
   function syncButton() {
-    ensureButton().style.display = isGameActive() ? 'block' : 'none';
+    const button = ensureButton();
+    button.style.display = isGameActive() ? 'block' : 'none';
+    button.textContent = `🎒 背包 · 🦪 ${walletBalance()}`;
     if (!isGameActive()) close();
+  }
+
+  function refreshOpenPanel() {
+    syncButton();
+    if (!ensurePanel().classList.contains('hidden')) render();
   }
 
   function init() {
     addStyle();
     ensurePanel();
     ensureButton();
+    economy()?.absorbBagPearls?.();
     bind();
     syncButton();
     window.addEventListener('coffee-ship:entered', syncButton);
     window.addEventListener('coffee-ship:scene', syncButton);
+    window.addEventListener('coffee-ship:economy-changed', refreshOpenPanel);
+    window.addEventListener('coffee-ship:bag-changed', refreshOpenPanel);
+    window.addEventListener('coffeeShipPearlsChanged', syncButton);
     const observer = new MutationObserver(syncButton);
     const creator = document.getElementById('creator');
     const game = document.getElementById('gamePanel');
     if (creator) observer.observe(creator,{attributes:true,attributeFilter:['class']});
     if (game) observer.observe(game,{attributes:true,attributeFilter:['class']});
-    window.COFFEE_SHIP_BACKPACK_MANAGER = {open,close,rebuild:render,panel:ensurePanel};
+    window.COFFEE_SHIP_BACKPACK_MANAGER = {open,close,rebuild:render,panel:ensurePanel,sellAll:sellAllCurrent,version:5};
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
