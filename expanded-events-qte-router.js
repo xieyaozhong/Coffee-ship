@@ -49,10 +49,10 @@
   function patch() {
     const api = window.COFFEE_SHIP_EXPANDED_EVENTS;
     if (!api || typeof api.trigger !== 'function' || typeof api.runCategory !== 'function') return false;
-    if (patchedApi === api && api.__expandedQteRouterV1) return true;
+    if (patchedApi === api && api.__expandedQteRouterV1 && api.trigger === replacement) return true;
 
     if (patchedApi && replacement) window.removeEventListener('coffee-ship:fishing-result',replacement);
-    window.removeEventListener('coffee-ship:fishing-result',api.trigger);
+    if (typeof api.trigger === 'function') window.removeEventListener('coffee-ship:fishing-result',api.trigger);
 
     const previousTrigger = api.trigger;
     replacement = event => {
@@ -92,7 +92,7 @@
     const timer = setInterval(() => {
       attempts += 1;
       patch();
-      if (attempts >= 300 && patchedApi) clearInterval(timer);
+      if (attempts >= 300 && patchedApi && patchedApi.trigger === replacement) clearInterval(timer);
     },500);
   }
 
