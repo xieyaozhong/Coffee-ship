@@ -1,10 +1,10 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_CORAL_ROULETTE_V1__) return;
-  window.__COFFEE_SHIP_CORAL_ROULETTE_V1__ = true;
+  if (window.__COFFEE_SHIP_CORAL_ROULETTE_V2__) return;
+  window.__COFFEE_SHIP_CORAL_ROULETTE_V2__ = true;
 
   const PANEL_ID = 'coralRouletteEvent';
-  const STYLE_ID = 'coralRouletteStyleV1';
+  const STYLE_ID = 'coralRouletteStyleV2';
   const BAG_KEY = 'coffeeShipFishBag';
   const ADVENTURE_STATE_KEY = 'coffeeShipFishingAdventureState';
   const ROULETTE_STATE_KEY = 'coffeeShipCoralRouletteState';
@@ -151,8 +151,8 @@
     style.id = STYLE_ID;
     style.textContent = `
       #${PANEL_ID}{position:fixed;inset:0;z-index:48000;display:grid;place-items:center;padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(4,7,13,.86);backdrop-filter:blur(10px);color:#fff8df}
-      #${PANEL_ID}.hidden{display:none!important}.cr-shell{width:min(760px,100%);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;border:3px solid #ef819b;border-radius:24px;background:radial-gradient(circle at 50% 0,rgba(255,120,164,.17),transparent 35%),linear-gradient(160deg,#342440,#11101c 72%);box-shadow:0 25px 80px rgba(0,0,0,.64),0 8px 0 #06070c}.cr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.1)}.cr-head h3{margin:0;font-size:21px}.cr-head p{margin:4px 0 0;color:#efadc0;font-size:12px}.cr-close{border:0;border-radius:11px;padding:9px 12px;background:#493249;color:#fff8df;font-weight:1000}.cr-body{min-height:0;overflow:auto;padding:14px 16px 18px;text-align:center;-webkit-overflow-scrolling:touch}.cr-copy{max-width:580px;margin:0 auto 12px;color:#dbcbdc;line-height:1.55}.cr-wheel-wrap{position:relative;width:min(390px,84vw);aspect-ratio:1;margin:0 auto 13px;display:grid;place-items:center}.cr-pointer{position:absolute;z-index:5;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:0;border-bottom:36px solid #fff1aa;filter:drop-shadow(0 5px 2px rgba(0,0,0,.45))}.cr-wheel{position:relative;width:90%;aspect-ratio:1;border:8px solid #f4d27b;border-radius:50%;background:conic-gradient(from -15deg,${colors});box-shadow:0 0 0 5px #6e3c55,0 17px 35px rgba(0,0,0,.42),inset 0 0 32px rgba(0,0,0,.25);transition:transform ${SPIN_MS}ms cubic-bezier(.12,.72,.13,1);will-change:transform}.cr-wheel::after{content:'';position:absolute;inset:42%;border:5px solid #f4d27b;border-radius:50%;background:radial-gradient(circle,#fff1aa,#d77b91 55%,#5a304c 58%);box-shadow:0 4px 12px rgba(0,0,0,.45)}.cr-label{position:absolute;left:50%;top:50%;width:58px;margin-left:-29px;margin-top:-13px;text-align:center;font-weight:1000;font-size:11px;line-height:1.05;text-shadow:0 2px 2px rgba(0,0,0,.75);transform:rotate(var(--angle)) translateY(calc(clamp(118px,34vw,156px) * -1)) rotate(calc(var(--angle) * -1));pointer-events:none}.cr-label b{display:block;font-size:18px}.cr-spin{min-width:190px;border:0;border-radius:14px;padding:12px 18px;background:linear-gradient(180deg,#ffe987,#e9ac4e);color:#24131d;font-size:16px;font-weight:1000;box-shadow:0 6px 0 #86512f}.cr-spin:disabled{filter:grayscale(.4);opacity:.62;box-shadow:0 3px 0 #573822}.cr-wallet{margin:10px 0 0;color:#ffe16b;font-weight:1000}.cr-result{max-width:590px;margin:13px auto 0;padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:rgba(0,0,0,.24);color:#9ce8f0;font-weight:900;line-height:1.55}.cr-result.win{color:#ffe16b}.cr-result.loss{color:#ff9fa8}.cr-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-width:620px;margin:14px auto 0}.cr-legend span{padding:7px 5px;border-radius:10px;background:rgba(255,255,255,.055);font-size:10px;color:#cfc0d0}.cr-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.1);color:#c9b9c9;font-size:12px}.coral-roulette-open .mobile-controls,.coral-roulette-open #backpackSafeOpenBtn,.coral-roulette-open #fishingHub,.coral-roulette-open #seaMerchantEvent,.coral-roulette-open #pirateGamblingEvent{visibility:hidden!important;pointer-events:none!important}
-      @media(max-width:700px){.cr-shell{border-radius:18px}.cr-head{padding:11px 12px}.cr-head h3{font-size:18px}.cr-body{padding:10px 10px 14px}.cr-wheel-wrap{width:min(330px,82vw)}.cr-label{transform:rotate(var(--angle)) translateY(calc(clamp(102px,33vw,132px) * -1)) rotate(calc(var(--angle) * -1));font-size:9px}.cr-label b{font-size:15px}.cr-legend{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-footer{padding:9px 12px}}
+      #${PANEL_ID}.hidden{display:none!important}.cr-shell{width:min(760px,100%);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;border:3px solid #ef819b;border-radius:24px;background:radial-gradient(circle at 50% 0,rgba(255,120,164,.17),transparent 35%),linear-gradient(160deg,#342440,#11101c 72%);box-shadow:0 25px 80px rgba(0,0,0,.64),0 8px 0 #06070c}.cr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.1)}.cr-head h3{margin:0;font-size:21px}.cr-head p{margin:4px 0 0;color:#efadc0;font-size:12px}.cr-close{border:0;border-radius:11px;padding:9px 12px;background:#493249;color:#fff8df;font-weight:1000}.cr-body{min-height:0;overflow:auto;padding:14px 16px 18px;text-align:center;-webkit-overflow-scrolling:touch}.cr-copy{max-width:580px;margin:0 auto 12px;color:#dbcbdc;line-height:1.55}.cr-wheel-wrap{position:relative;width:min(390px,84vw);aspect-ratio:1;margin:0 auto 13px;display:grid;place-items:center}.cr-pointer{position:absolute;z-index:5;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:36px solid #fff1aa;border-bottom:0;filter:drop-shadow(0 5px 2px rgba(0,0,0,.45))}.cr-wheel{position:relative;width:90%;aspect-ratio:1;border:8px solid #f4d27b;border-radius:50%;background:conic-gradient(from -15deg,${colors});box-shadow:0 0 0 5px #6e3c55,0 17px 35px rgba(0,0,0,.42),inset 0 0 32px rgba(0,0,0,.25);transition:transform ${SPIN_MS}ms cubic-bezier(.12,.72,.13,1);will-change:transform}.cr-wheel::after{content:'';position:absolute;inset:42%;border:5px solid #f4d27b;border-radius:50%;background:radial-gradient(circle,#fff1aa,#d77b91 55%,#5a304c 58%);box-shadow:0 4px 12px rgba(0,0,0,.45)}.cr-label{position:absolute;left:50%;top:50%;width:58px;margin-left:-29px;margin-top:-13px;text-align:center;font-weight:1000;font-size:11px;line-height:1.05;text-shadow:0 2px 2px rgba(0,0,0,.75);transform:rotate(var(--angle)) translateY(clamp(-156px,-34vw,-118px)) rotate(var(--counter-angle));pointer-events:none}.cr-label b{display:block;font-size:18px}.cr-spin{min-width:190px;border:0;border-radius:14px;padding:12px 18px;background:linear-gradient(180deg,#ffe987,#e9ac4e);color:#24131d;font-size:16px;font-weight:1000;box-shadow:0 6px 0 #86512f}.cr-spin:disabled{filter:grayscale(.4);opacity:.62;box-shadow:0 3px 0 #573822}.cr-wallet{margin:10px 0 0;color:#ffe16b;font-weight:1000}.cr-result{max-width:590px;margin:13px auto 0;padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:rgba(0,0,0,.24);color:#9ce8f0;font-weight:900;line-height:1.55}.cr-result.win{color:#ffe16b}.cr-result.loss{color:#ff9fa8}.cr-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-width:620px;margin:14px auto 0}.cr-legend span{padding:7px 5px;border-radius:10px;background:rgba(255,255,255,.055);font-size:10px;color:#cfc0d0}.cr-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.1);color:#c9b9c9;font-size:12px}.coral-roulette-open .mobile-controls,.coral-roulette-open #backpackSafeOpenBtn,.coral-roulette-open #fishingHub,.coral-roulette-open #seaMerchantEvent,.coral-roulette-open #pirateGamblingEvent{visibility:hidden!important;pointer-events:none!important}
+      @media(max-width:700px){.cr-shell{border-radius:18px}.cr-head{padding:11px 12px}.cr-head h3{font-size:18px}.cr-body{padding:10px 10px 14px}.cr-wheel-wrap{width:min(330px,82vw)}.cr-label{transform:rotate(var(--angle)) translateY(clamp(-132px,-33vw,-102px)) rotate(var(--counter-angle));font-size:9px}.cr-label b{font-size:15px}.cr-legend{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-footer{padding:9px 12px}}
       @media(prefers-reduced-motion:reduce){.cr-wheel{transition-duration:1200ms!important}}
     `;
     document.head.appendChild(style);
@@ -172,7 +172,10 @@
   }
 
   function labelsHtml() {
-    return SEGMENTS.map((segment,index) => `<span class="cr-label" style="--angle:${index*SEGMENT_DEGREES}deg"><b>${segment.icon}</b>${escapeHtml(segment.short)}</span>`).join('');
+    return SEGMENTS.map((segment,index) => {
+      const angle = index*SEGMENT_DEGREES;
+      return `<span class="cr-label" style="--angle:${angle}deg;--counter-angle:${-angle}deg"><b>${segment.icon}</b>${escapeHtml(segment.short)}</span>`;
+    }).join('');
   }
 
   function legendHtml() {
@@ -234,13 +237,18 @@
     if (!active || active.spinning || active.spun) return;
     active.spinning = true;
     const index = randomIndex();
-    const target = (360 - index*SEGMENT_DEGREES) % 360;
-    active.rotation = 360*7 + target;
+    const startRotation = active.rotation;
+    const currentAngle = ((startRotation % 360) + 360) % 360;
+    const desiredAngle = (360 - index*SEGMENT_DEGREES) % 360;
+    const alignment = (desiredAngle - currentAngle + 360) % 360;
+    const finalRotation = startRotation + 360*7 + alignment;
     render();
-    requestAnimationFrame(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (!active) return;
       const wheel = document.getElementById('coralRouletteWheel');
-      if (wheel) wheel.style.transform = `rotate(${active.rotation}deg)`;
-    });
+      active.rotation = finalRotation;
+      if (wheel) wheel.style.transform = `rotate(${finalRotation}deg)`;
+    }));
     clearTimeout(spinTimer);
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     spinTimer = setTimeout(() => settle(SEGMENTS[index]),reduced?1300:SPIN_MS+120);
@@ -256,8 +264,8 @@
   }
 
   function closeCompetingEvents() {
-    try { window.COFFEE_SHIP_SEA_MERCHANT?.close?.(''); } catch {}
-    try { window.COFFEE_SHIP_PIRATE_GAMBLING?.close?.(''); } catch {}
+    try { if (document.body.classList.contains('sea-merchant-open')) window.COFFEE_SHIP_SEA_MERCHANT?.close?.('珊瑚輪盤浮上海面'); } catch {}
+    try { if (document.body.classList.contains('pirate-gambling-open')) window.COFFEE_SHIP_PIRATE_GAMBLING?.close?.('珊瑚輪盤浮上海面'); } catch {}
   }
 
   function open(castId,forced=false) {
@@ -267,6 +275,7 @@
     render();
     ensurePanel().classList.remove('hidden');
     document.body.classList.add('coral-roulette-open');
+    [350,700,1050].forEach(delay => setTimeout(() => { if (active) closeCompetingEvents(); },delay));
     if (forced) {
       active.resultHtml = '測試模式：輪盤由系統手動開啟。';
       render();
@@ -282,7 +291,7 @@
     event.actions = [];
     event.text = '古老珊瑚輪盤浮上海面，等待你親手啟動並接受指針決定的結果。';
     event.interactive = true;
-    event.rouletteVersion = 1;
+    event.rouletteVersion = 2;
     return true;
   }
 
@@ -329,8 +338,8 @@
       attempts += 1;
       if (installEventPatch() || attempts > 24) clearInterval(timer);
     },250);
-    window.COFFEE_SHIP_CORAL_ROULETTE = {open:() => open(window.COFFEE_SHIP_FISHING_API?.getCurrentCastId?.() || `coral_test_${Date.now()}`,true),close,state:rouletteState,segments:SEGMENTS,drops:UNIQUE_DROPS,version:1};
-    window.dispatchEvent(new CustomEvent('coffee-ship:coral-roulette-ready',{detail:{segments:SEGMENTS.length,drops:Object.keys(UNIQUE_DROPS).length,version:1}}));
+    window.COFFEE_SHIP_CORAL_ROULETTE = {open:() => open(window.COFFEE_SHIP_FISHING_API?.getCurrentCastId?.() || `coral_test_${Date.now()}`,true),close,state:rouletteState,segments:SEGMENTS,drops:UNIQUE_DROPS,version:2};
+    window.dispatchEvent(new CustomEvent('coffee-ship:coral-roulette-ready',{detail:{segments:SEGMENTS.length,drops:Object.keys(UNIQUE_DROPS).length,version:2}}));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init,{once:true});
