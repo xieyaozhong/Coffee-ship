@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_STAGED_LOADER_V12__) return;
-  window.__COFFEE_SHIP_STAGED_LOADER_V12__ = true;
+  if (window.__COFFEE_SHIP_STAGED_LOADER_V13__) return;
+  window.__COFFEE_SHIP_STAGED_LOADER_V13__ = true;
 
   let controlsBound=false, fishingCoreReady=false, fishingCoreLoading=null;
   let fishingExtrasPromise=null, storyModulesPromise=null, deckPreloadStarted=false;
@@ -83,9 +83,10 @@
         ['fishing-adventure-events.js?v=adventure-1','fishingAdventureEvents'],
         ['fishing-adventure-expansion.js?v=adventure-expansion-1','fishingAdventureExpansion'],
         ['sea-merchant-event.js?v=merchant-1','seaMerchantEvent'],
+        ['pirate-gambling-event.js?v=pirate-gambling-1','pirateGamblingEvent'],
         ['fishing-event-stack.js?v=events-1','fishingEventBridge']
       ],65);
-      window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready',{detail:{version:9,economy:true,expandedEvents:true,adventureEvents:true,seaMerchant:true,totalAdventureEvents:121}}));
+      window.dispatchEvent(new CustomEvent('coffee-ship:fishing-extras-ready',{detail:{version:10,economy:true,expandedEvents:true,adventureEvents:true,seaMerchant:true,pirateGambling:true,totalAdventureEvents:122}}));
       return true;
     })();return fishingExtrasPromise;
   }
@@ -125,7 +126,7 @@
     bindMobileControls();addBadge();idle(loadCafeEnhancements,800);bindTriggers();if(isDeck())preloadDeckSystems();
     window.COFFEE_SHIP_FEATURE_LOADER={ensureFishingCore,loadFishingExtras,loadStoryModules,preloadDeckSystems,
       fishingReady:()=>fishingCoreReady,fishingAnimation:false,fishDex:true,economy:true,expandedEvents:true,
-      adventureEvents:true,seaMerchant:true,totalAdventureEvents:121,version:12};
+      adventureEvents:true,seaMerchant:true,pirateGambling:true,totalAdventureEvents:122,version:13};
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
