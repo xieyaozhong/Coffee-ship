@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_MOBILE_CONTROLS_RUNTIME_FIX_V2__) return;
-  window.__COFFEE_SHIP_MOBILE_CONTROLS_RUNTIME_FIX_V2__ = true;
+  if (window.__COFFEE_SHIP_MOBILE_CONTROLS_RUNTIME_FIX_V3__) return;
+  window.__COFFEE_SHIP_MOBILE_CONTROLS_RUNTIME_FIX_V3__ = true;
 
   const ACTIONS = {
     coffeeBtn: { icon: '☕', label: '咖啡', aria: '開啟咖啡選單' },
@@ -48,7 +48,7 @@
 
     button.setAttribute('aria-label', config.aria);
     button.setAttribute('title', config.aria);
-    button.dataset.mobileControlFixed = '2';
+    button.dataset.mobileControlFixed = '3';
 
     button.style.setProperty('display', 'flex', 'important');
     button.style.setProperty('align-items', 'center', 'important');
@@ -69,9 +69,25 @@
     });
   }
 
+  function cleanBackpackToolbar() {
+    const panel = document.getElementById('backpackPanel');
+    if (!panel) return;
+
+    panel.querySelector('[data-bp-absorb]')?.remove();
+
+    const tools = panel.querySelector('.bp-tools');
+    if (tools) {
+      const columns = window.matchMedia('(max-width: 760px)').matches
+        ? '1fr'
+        : 'repeat(2, minmax(0, 1fr))';
+      tools.style.setProperty('grid-template-columns', columns, 'important');
+    }
+  }
+
   function fixAllButtons() {
     fixDirectionButtons();
     Object.entries(ACTIONS).forEach(([id, config]) => fixActionButton(id, config));
+    cleanBackpackToolbar();
   }
 
   function queueFix() {
@@ -101,6 +117,7 @@
     window.addEventListener('coffee-ship:entered', queueFix);
     window.addEventListener('coffee-ship:scene', queueFix);
     window.addEventListener('resize', queueFix, { passive: true });
+    window.addEventListener('coffee-ship:bag-changed', queueFix);
 
     setTimeout(fixAllButtons, 0);
     setTimeout(fixAllButtons, 250);
