@@ -7,7 +7,7 @@
   function guardedTimeout(callback, delay, ...args) {
     const source = typeof callback === 'function' ? Function.prototype.toString.call(callback) : '';
     if (Number(delay) === 0 && source.includes('window.addEventListener !== nativeAdd')) {
-      return nativeTimeout.call(window, callback, 3000, ...args);
+      return nativeTimeout.call(window, callback, 10000, ...args);
     }
     return nativeTimeout.call(window, callback, delay, ...args);
   }
