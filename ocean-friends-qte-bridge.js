@@ -1,7 +1,14 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_OCEAN_FRIENDS_QTE_BRIDGE_V1__) return;
-  window.__COFFEE_SHIP_OCEAN_FRIENDS_QTE_BRIDGE_V1__ = true;
+  if (window.__COFFEE_SHIP_OCEAN_FRIENDS_QTE_BRIDGE_V2__) return;
+  window.__COFFEE_SHIP_OCEAN_FRIENDS_QTE_BRIDGE_V2__ = true;
+
+  const CATEGORY_WEIGHTS = Object.freeze({
+    ocean:18,
+    salvage:20,
+    carnival:42,
+    world:20
+  });
 
   function modifiers() {
     return window.COFFEE_SHIP_ECONOMY?.fishingModifiers?.() || {
@@ -17,7 +24,7 @@
   }
 
   function chooseCategory(exclude='') {
-    const rows = [['ocean',34],['salvage',35],['carnival',23],['world',8]].filter(row => row[0] !== exclude);
+    const rows = Object.entries(CATEGORY_WEIGHTS).filter(row => row[0] !== exclude);
     let roll = Math.random()*rows.reduce((sum,row) => sum+row[1],0);
     for (const [name,weight] of rows) {
       roll -= weight;
@@ -37,7 +44,8 @@
   function patch() {
     const api = window.COFFEE_SHIP_EXPANDED_EVENTS;
     if (!api || typeof api.trigger !== 'function' || typeof api.runCategory !== 'function') return false;
-    if (api.__oceanFriendsQtePatched) return true;
+    if (api.__expandedQteRouterV2) return true;
+    if (api.__oceanFriendsQteBridgeV2) return true;
 
     const originalTrigger = api.trigger;
     const runCategory = api.runCategory.bind(api);
@@ -63,9 +71,11 @@
     api.trigger = replacement;
     api.runOceanQte = () => openOcean(0);
     api.__oceanFriendsQtePatched = true;
+    api.__oceanFriendsQteBridgeV2 = true;
+    api.categoryWeights = {...CATEGORY_WEIGHTS};
     api.version = Math.max(2,Number(api.version || 0));
     window.addEventListener('coffee-ship:fishing-result',replacement);
-    window.dispatchEvent(new CustomEvent('coffee-ship:ocean-friends-qte-bridge-ready',{detail:{version:1}}));
+    window.dispatchEvent(new CustomEvent('coffee-ship:ocean-friends-qte-bridge-ready',{detail:{weights:{...CATEGORY_WEIGHTS},version:2}}));
     return true;
   }
 
