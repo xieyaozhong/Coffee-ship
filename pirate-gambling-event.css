@@ -1,1 +1,305 @@
-#pirateGamblingEvent{position:fixed;inset:0;z-index:47000;display:grid;place-items:center;padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));box-sizing:border-box;background:rgba(5,4,10,.84);backdrop-filter:blur(9px);color:#fff4d8}#pirateGamblingEvent.hidden{display:none!important}.pg-shell{width:min(820px,100%);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;border:3px solid #d96b72;border-radius:23px;background:linear-gradient(155deg,#34243d,#120d19 72%);box-shadow:0 24px 75px rgba(0,0,0,.62),0 8px 0 #07040b}.pg-head,.pg-bar,.pg-shell footer{display:flex;align-items:center;justify-content:space-between;gap:10px}.pg-head{padding:14px 16px;background:rgba(217,107,114,.12);border-bottom:1px solid rgba(255,255,255,.1)}.pg-head b{display:block;font-size:20px}.pg-head small{display:block;margin-top:4px;color:#e9a6b0}.pg-head button,.pg-shell footer button{border:0;border-radius:11px;padding:9px 12px;background:#493249;color:#fff4d8;font-weight:1000}.pg-bar{padding:9px 16px;background:#17101f;color:#d8c8b4;font-weight:900}.pg-bar strong{color:#ffe16b}.pg-body{min-height:0;overflow:auto;padding:14px 16px 18px;-webkit-overflow-scrolling:touch}.pg-copy{margin:0 0 12px;color:#e8dccb}.pg-bets{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}.pg-bets button{border:2px solid #76536a;border-radius:999px;padding:7px 11px;background:#211728;color:#fff4d8;font-weight:1000}.pg-bets button.active{border-color:#ffe16b;background:#ffe16b;color:#211728}.pg-games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.pg-games article{display:flex;flex-direction:column;min-height:185px;padding:14px;border:2px solid #76536a;border-radius:17px;background:linear-gradient(155deg,#382840,#18101f);box-shadow:0 7px 0 rgba(0,0,0,.28)}.pg-games i{font-style:normal;font-size:34px}.pg-games h4{margin:7px 0 5px;font-size:18px}.pg-games p{flex:1;margin:0;color:#d8c8b4;line-height:1.5}.pg-games button,.pg-actions button,.pg-result button{margin-top:11px;border:0;border-radius:11px;padding:10px;background:#d96b72;color:#17101f;font-weight:1000;box-shadow:0 5px 0 rgba(0,0,0,.34)}.pg-note{padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.23);color:#9ce8f0;font-weight:900}.pg-note.bad{color:#ff9b9b}.pg-table{padding:15px;border:2px solid #d96b72;border-radius:18px;background:#17101f;box-shadow:0 8px 0 rgba(0,0,0,.3)}.pg-table h3{margin:0 0 5px;font-size:21px}.pg-table>p{margin:0;color:#d8c8b4}.pg-choices,.pg-chests{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}.pg-choices.two{grid-template-columns:repeat(2,minmax(0,1fr))}.pg-choices button,.pg-chests button{min-height:76px;border:2px solid rgba(255,255,255,.14);border-radius:14px;background:linear-gradient(180deg,#4b3653,#2c2033);color:#fff4d8;font-size:16px;font-weight:1000;box-shadow:0 5px 0 rgba(0,0,0,.32)}.pg-chests button{min-height:112px;background:linear-gradient(180deg,#72502f,#382617);font-size:40px}.pg-chests small{display:block;font-size:10px}.pg-hand{margin-top:10px;padding:10px;border-radius:13px;background:rgba(0,0,0,.2)}.pg-hand>div{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.pg-card{display:grid;place-items:center;width:50px;height:68px;border:2px solid #fff4d8;border-radius:8px;background:#fff8df;color:#17101f;font-weight:1000}.pg-card.red{color:#c44752}.pg-card.back{background:repeating-linear-gradient(45deg,#4d2944 0 6px,#271728 6px 12px);color:#ffe16b}.pg-actions{display:flex;gap:9px}.pg-actions button{flex:1;background:#4f8f73;color:#fff4d8}.pg-result{text-align:center;padding:18px;border:2px solid #ffe16b;border-radius:18px;background:#17101f}.pg-result i{font-style:normal;font-size:50px}.pg-result h3{margin:7px 0}.pg-result p{color:#d8c8b4;white-space:pre-line}.pg-result strong{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);color:#ffe16b}.pg-shell footer{padding:10px 16px;border-top:1px solid rgba(255,255,255,.1);color:#c9b9c9;font-size:12px}.pirate-gambling-open .mobile-controls,.pirate-gambling-open #backpackSafeOpenBtn,.pirate-gambling-open #fishingHub,.pirate-gambling-open #seaMerchantEvent{visibility:hidden!important;pointer-events:none!important}@media(max-width:700px){.pg-shell{border-radius:18px}.pg-head{padding:11px 12px}.pg-head b{font-size:17px}.pg-bar{padding:8px 12px}.pg-body{padding:11px 12px 14px}.pg-games{grid-template-columns:1fr}.pg-games article{min-height:0}.pg-choices,.pg-chests{gap:6px}.pg-shell footer{padding:9px 12px}}
+#pirateGamblingEvent{
+  position:fixed;
+  inset:0;
+  z-index:47000;
+  display:grid;
+  place-items:center;
+  padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
+  box-sizing:border-box;
+  background:rgba(5,4,10,.86);
+  backdrop-filter:blur(10px);
+  color:#fff4d8;
+}
+
+#pirateGamblingEvent.hidden{display:none!important}
+#pirateGamblingEvent *{box-sizing:border-box}
+#pirateGamblingEvent button::before,
+#pirateGamblingEvent button::after{display:none!important;content:none!important}
+
+.pg-shell{
+  width:min(560px,100%);
+  max-height:calc(100vh - 16px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border:3px solid #d96b72;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 85% 0,rgba(217,107,114,.16),transparent 34%),
+    linear-gradient(155deg,#34243d,#120d19 72%);
+  box-shadow:0 24px 75px rgba(0,0,0,.62),0 8px 0 #07040b;
+}
+
+.pg-head,
+.pg-bar,
+.pg-shell footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.pg-head{
+  padding:12px 14px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,rgba(217,107,114,.18),rgba(217,107,114,.03));
+}
+
+.pg-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.pg-skull{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  flex:0 0 auto;
+  border:2px solid #d96b72;
+  border-radius:13px;
+  background:#211728;
+  font-size:22px;
+  box-shadow:0 4px 0 rgba(0,0,0,.3);
+}
+
+.pg-head b{display:block;font-size:18px;line-height:1.1}
+.pg-head small{display:block;margin-top:4px;color:#e9a6b0;font-size:11px;line-height:1.3}
+
+#pirateGamblingEvent .pg-head button,
+#pirateGamblingEvent .pg-shell footer button{
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:8px 10px!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:10px!important;
+  background:#493249!important;
+  color:#fff4d8!important;
+  font-size:13px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.32)!important;
+}
+
+.pg-bar{
+  padding:8px 14px;
+  background:#17101f;
+  color:#d8c8b4;
+  font-size:13px;
+  font-weight:900;
+}
+
+.pg-bar strong{color:#ffe16b;white-space:nowrap}
+.pg-body{min-height:0;overflow:auto;padding:13px 14px 16px;-webkit-overflow-scrolling:touch}
+
+.pg-feature{
+  padding:15px;
+  border:2px solid #d96b72;
+  border-radius:18px;
+  background:linear-gradient(155deg,rgba(60,41,67,.96),rgba(24,16,31,.99));
+  box-shadow:0 7px 0 rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.03);
+}
+
+.pg-feature-top{display:flex;align-items:flex-start;gap:12px}
+.pg-feature-icon{
+  display:grid;
+  place-items:center;
+  width:56px;
+  height:56px;
+  flex:0 0 auto;
+  border:2px solid rgba(255,225,107,.34);
+  border-radius:16px;
+  background:#211728;
+  font-size:31px;
+  box-shadow:0 5px 0 rgba(0,0,0,.3);
+}
+
+.pg-tag{
+  display:inline-flex;
+  margin-bottom:5px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:rgba(255,225,107,.1);
+  color:#ffe16b;
+  font-size:10px;
+  font-weight:1000;
+}
+
+.pg-feature h3{margin:0;font-size:21px}
+.pg-feature p{margin:5px 0 0;color:#d8c8b4;font-size:13px;line-height:1.5}
+.pg-bet-label{margin:15px 0 8px;color:#fff4d8;font-size:13px;font-weight:1000}
+
+.pg-bets{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  margin-bottom:12px;
+}
+
+#pirateGamblingEvent .pg-bets button{
+  width:100%!important;
+  min-width:0!important;
+  height:42px!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:5px 4px!important;
+  border:2px solid #76536a!important;
+  border-radius:11px!important;
+  background:#211728!important;
+  color:#fff4d8!important;
+  font-size:13px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.25)!important;
+}
+
+#pirateGamblingEvent .pg-bets button.active{
+  border-color:#ffe16b!important;
+  background:#ffe16b!important;
+  color:#211728!important;
+  box-shadow:0 4px 0 #805d28!important;
+}
+
+#pirateGamblingEvent .pg-primary{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  height:48px!important;
+  min-height:48px!important;
+  margin:0!important;
+  padding:8px 10px!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  border-radius:13px!important;
+  background:linear-gradient(180deg,#f2ad62,#d87854)!important;
+  color:#21120f!important;
+  font-size:14px!important;
+  font-weight:1000!important;
+  line-height:1.15!important;
+  box-shadow:0 5px 0 #854532!important;
+}
+
+.pg-note{
+  min-height:0;
+  margin:10px 0 0!important;
+  padding:8px 10px;
+  border-radius:10px;
+  background:rgba(0,0,0,.23);
+  color:#9ce8f0!important;
+  font-size:11px!important;
+  font-weight:900;
+  line-height:1.45!important;
+}
+
+.pg-note.bad{color:#ff9b9b!important}
+
+.pg-table{
+  padding:15px;
+  border:2px solid #d96b72;
+  border-radius:18px;
+  background:linear-gradient(155deg,#2a1d31,#17101f);
+  box-shadow:0 8px 0 rgba(0,0,0,.3);
+}
+
+.pg-table h3{margin:0 0 5px;font-size:20px}
+.pg-table>p{margin:0;color:#d8c8b4;font-size:12px;line-height:1.45}
+.pg-choices,.pg-chests{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.pg-choices.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+#pirateGamblingEvent .pg-choices button,
+#pirateGamblingEvent .pg-chests button{
+  width:100%!important;
+  min-width:0!important;
+  min-height:76px!important;
+  height:auto!important;
+  margin:0!important;
+  padding:9px 5px!important;
+  border:2px solid rgba(255,255,255,.14)!important;
+  border-radius:13px!important;
+  background:linear-gradient(180deg,#4b3653,#2c2033)!important;
+  color:#fff4d8!important;
+  font-size:15px!important;
+  font-weight:1000!important;
+  line-height:1.2!important;
+  box-shadow:0 5px 0 rgba(0,0,0,.32)!important;
+}
+
+#pirateGamblingEvent .pg-choices button small,
+#pirateGamblingEvent .pg-chests button small{display:block;margin-top:4px;font-size:9px;opacity:.75}
+
+#pirateGamblingEvent .pg-chests button{
+  min-height:100px!important;
+  background:linear-gradient(180deg,#72502f,#382617)!important;
+  font-size:34px!important;
+}
+
+.pg-hand{margin-top:10px;padding:10px;border-radius:13px;background:rgba(0,0,0,.2)}
+.pg-hand>div{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.pg-card{display:grid;place-items:center;width:48px;height:66px;border:2px solid #fff4d8;border-radius:8px;background:#fff8df;color:#17101f;font-weight:1000}
+.pg-card.red{color:#c44752}
+.pg-card.back{background:repeating-linear-gradient(45deg,#4d2944 0 6px,#271728 6px 12px);color:#ffe16b}
+.pg-actions{display:flex;gap:8px;margin-top:12px}
+
+#pirateGamblingEvent .pg-actions button,
+#pirateGamblingEvent .pg-result button{
+  flex:1!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:44px!important;
+  height:auto!important;
+  margin:0!important;
+  padding:9px 10px!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-radius:11px!important;
+  background:#4f8f73!important;
+  color:#fff4d8!important;
+  font-size:13px!important;
+  font-weight:1000!important;
+  line-height:1.2!important;
+  box-shadow:0 5px 0 #254c3c!important;
+}
+
+.pg-result{text-align:center;padding:18px;border:2px solid #ffe16b;border-radius:18px;background:#17101f}
+.pg-result i{font-style:normal;font-size:48px}
+.pg-result h3{margin:7px 0;font-size:21px}
+.pg-result p{margin:0;color:#d8c8b4;white-space:pre-line;line-height:1.55}
+.pg-result strong{display:inline-block;margin:10px 0;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);color:#ffe16b}
+
+.pg-shell footer{
+  padding:9px 14px;
+  border-top:1px solid rgba(255,255,255,.1);
+  color:#c9b9c9;
+  font-size:11px;
+}
+
+.pirate-gambling-open .mobile-controls,
+.pirate-gambling-open #backpackSafeOpenBtn,
+.pirate-gambling-open #fishingHub,
+.pirate-gambling-open #seaMerchantEvent{visibility:hidden!important;pointer-events:none!important}
+
+@media(max-width:700px){
+  #pirateGamblingEvent{padding:calc(5px + env(safe-area-inset-top)) 5px calc(5px + env(safe-area-inset-bottom))}
+  .pg-shell{max-height:calc(100vh - 10px);border-radius:18px}
+  .pg-head{padding:9px 10px}
+  .pg-skull{width:38px;height:38px;font-size:20px}
+  .pg-head b{font-size:16px}
+  .pg-head small{max-width:235px;font-size:9px}
+  .pg-bar{padding:7px 10px;font-size:12px}
+  .pg-body{padding:9px 10px 12px}
+  .pg-feature{padding:12px;border-radius:15px}
+  .pg-feature-icon{width:48px;height:48px;font-size:27px}
+  .pg-feature h3{font-size:18px}
+  .pg-feature p{font-size:12px}
+  .pg-bet-label{margin-top:12px}
+  .pg-bets{gap:6px}
+  #pirateGamblingEvent .pg-bets button{height:39px!important;min-height:39px!important;font-size:12px!important}
+  .pg-table{padding:12px}
+  .pg-choices,.pg-chests{gap:6px}
+  #pirateGamblingEvent .pg-choices button{min-height:69px!important;font-size:13px!important}
+  #pirateGamblingEvent .pg-chests button{min-height:86px!important;font-size:30px!important}
+  .pg-card{width:43px;height:60px}
+  .pg-shell footer{padding:8px 10px}
+}
+
+@media(max-width:360px){
+  .pg-head small{display:none}
+  .pg-bets{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
