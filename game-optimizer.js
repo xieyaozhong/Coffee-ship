@@ -7,6 +7,7 @@
   const body = document.body;
   const coarsePointer = window.matchMedia?.('(pointer: coarse)');
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const pressedElements = new Set();
   let resizeFrame = 0;
 
   function updateViewportHeight() {
@@ -60,6 +61,11 @@
     });
   }
 
+  function clearPressedElements() {
+    pressedElements.forEach(element => element.classList.remove('is-pressed'));
+    pressedElements.clear();
+  }
+
   function enablePressFeedback() {
     const selector = 'button, [role="button"]';
 
@@ -67,16 +73,12 @@
       const button = event.target.closest?.(selector);
       if (!button || button.disabled) return;
       button.classList.add('is-pressed');
+      pressedElements.add(button);
     }, { passive: true });
 
-    const clearPressed = event => {
-      const button = event.target.closest?.(selector);
-      if (button) button.classList.remove('is-pressed');
-    };
-
-    document.addEventListener('pointerup', clearPressed, { passive: true });
-    document.addEventListener('pointercancel', clearPressed, { passive: true });
-    document.addEventListener('pointerleave', clearPressed, { passive: true, capture: true });
+    document.addEventListener('pointerup', clearPressedElements, { passive: true });
+    document.addEventListener('pointercancel', clearPressedElements, { passive: true });
+    window.addEventListener('blur', clearPressedElements, { passive: true });
   }
 
   function watchDynamicUi() {
@@ -95,6 +97,7 @@
 
   function handleVisibility() {
     body.classList.toggle('cs-page-hidden', document.hidden);
+    if (document.hidden) clearPressedElements();
   }
 
   function init() {
