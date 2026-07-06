@@ -99,7 +99,7 @@
       ['ariel-chapter1-bottles.js?v=story-9','arielBottles'],['coco-bottles.js?v=story-9','cocoBottles'],
       ['blackbeard-bottles.js?v=story-9','blackbeardBottles'],['mad-priest-bottles.js?v=story-9','madPriestBottles'],
       ['carnival-island-bottles.js?v=story-9','carnivalIslandBottles'],['original-emoji-restore.js?v=story-9','originalEmojiRestore'],
-      ['lanar-bottle-letters.js?v=story-9','lanarBottleLetters'],['ariel-bottle-letters.js?v=story-9','arielBottles'],
+      ['lanar-bottle-letters.js?v=story-9','lanarBottleLetters'],['ariel-bottle-letters.js?v=story-9','arielBottleLetters'],
       ['island-triangle-letters.js?v=story-9','islandTriangleLetters'],['blackbeard-treasure-letters.js?v=story-9','blackbeardTreasureLetters'],
       ['story-modal-fix.js?v=story-9','storyModalFix'],['bottle-dex-patch.js?v=story-9','bottleDexPatch']
     ],420);window.dispatchEvent(new CustomEvent('coffee-ship:story-ready',{detail:{version:9}}));return true;})();
