@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#120d1b">
+<meta name="color-scheme" content="dark">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -12,6 +14,7 @@
 <link rel="stylesheet" href="login-interface-fix.css?v=login-v7&restore=1">
 <link rel="stylesheet" href="login-interface-hotfix.css?v=login-v7&restore=1">
 <link rel="stylesheet" href="mobile-black-screen-priority.css?v=priority-3&restore=1">
+<link rel="stylesheet" href="game-polish.css?v=visual-polish-1">
 </head>
 <body>
 <main class="shell">
@@ -25,6 +28,7 @@
 </div><p class="hint">方向鍵或 WASD 移動，靠近人物按互動。</p></section>
 <section id="gamePanel" class="panel game-panel hidden"><div class="game-topbar"><div><strong id="avatarName">Guest</strong><span id="coffeeBadge">🦪 0 · 尚無咖啡效果</span></div><div class="controls">WASD / 方向鍵移動 · C 咖啡 · E 互動 · B 留言</div></div><canvas id="game" width="960" height="576"></canvas><div class="mobile-controls"><button data-move="up">▲</button><div><button data-move="left">◀</button><button data-move="down">▼</button><button data-move="right">▶</button></div><button id="coffeeBtn">☕</button><button id="sitBtn">摸/坐</button><button id="messageBtn">留言</button><button id="emoteBtn">✨</button></div><aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">MOMO'S PEARL COFFEE BAR</p><h2>Momo 的效果咖啡</h2></div><button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button></div><p class="board-note">出售漁獲獲得珍珠，再用珍珠購買限時效果咖啡。</p><div id="coffeeOptions" class="coffee-options"></div></aside><aside id="messageBoard" class="message-board hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">SHIP MESSAGE BOARD</p><h2>船上留言板</h2></div><button id="closeBoardBtn" class="ghost-btn">關閉</button></div><p class="board-note">不同裝置會同步看到留言。</p><div id="messagesList" class="messages-list"></div><form id="messageForm" class="message-form"><textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea><button type="submit">貼到留言板</button></form></aside></section>
 </main>
+<script src="game-optimizer.js?v=optimizer-1"></script>
 <script src="firebase-config.js"></script>
 <script src="economy-core.js?v=economy-1"></script>
 <script src="mermaid-lyrics-bottles.js?v=lyrics-8"></script>
