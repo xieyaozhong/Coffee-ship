@@ -1,7 +1,14 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_EXPANDED_EVENTS_QTE_ROUTER_V1__) return;
-  window.__COFFEE_SHIP_EXPANDED_EVENTS_QTE_ROUTER_V1__ = true;
+  if (window.__COFFEE_SHIP_EXPANDED_EVENTS_QTE_ROUTER_V2__) return;
+  window.__COFFEE_SHIP_EXPANDED_EVENTS_QTE_ROUTER_V2__ = true;
+
+  const CATEGORY_WEIGHTS = Object.freeze({
+    ocean:18,
+    salvage:20,
+    carnival:42,
+    world:20
+  });
 
   let patchedApi = null;
   let replacement = null;
@@ -20,7 +27,7 @@
   }
 
   function chooseCategory(exclude='') {
-    const rows = [['ocean',34],['salvage',35],['carnival',23],['world',8]].filter(row => row[0] !== exclude);
+    const rows = Object.entries(CATEGORY_WEIGHTS).filter(row => row[0] !== exclude);
     let roll = Math.random()*rows.reduce((sum,row) => sum+row[1],0);
     for (const [name,weight] of rows) {
       roll -= weight;
@@ -49,7 +56,7 @@
   function patch() {
     const api = window.COFFEE_SHIP_EXPANDED_EVENTS;
     if (!api || typeof api.trigger !== 'function' || typeof api.runCategory !== 'function') return false;
-    if (patchedApi === api && api.__expandedQteRouterV1 && api.trigger === replacement) return true;
+    if (patchedApi === api && api.__expandedQteRouterV2 && api.trigger === replacement) return true;
 
     if (patchedApi && replacement) window.removeEventListener('coffee-ship:fishing-result',replacement);
     if (typeof api.trigger === 'function') window.removeEventListener('coffee-ship:fishing-result',api.trigger);
@@ -73,10 +80,12 @@
     api.trigger = replacement;
     api.runSalvageQte = castId => window.COFFEE_SHIP_SALVAGE_QTE?.schedule?.(castId || `salvage_qte_${Date.now()}`);
     api.__expandedQteRouterV1 = true;
-    api.version = Math.max(3,Number(api.version || 0));
+    api.__expandedQteRouterV2 = true;
+    api.categoryWeights = {...CATEGORY_WEIGHTS};
+    api.version = Math.max(4,Number(api.version || 0));
     window.addEventListener('coffee-ship:fishing-result',replacement);
     patchedApi = api;
-    window.dispatchEvent(new CustomEvent('coffee-ship:expanded-qte-router-ready',{detail:{ocean:'horizontal',salvage:'vertical',version:1}}));
+    window.dispatchEvent(new CustomEvent('coffee-ship:expanded-qte-router-ready',{detail:{ocean:'horizontal',salvage:'vertical',weights:{...CATEGORY_WEIGHTS},version:2}}));
     return true;
   }
 
