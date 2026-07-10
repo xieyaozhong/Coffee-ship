@@ -143,8 +143,8 @@ async function runCase(browser,config) {
     await checkpoint('enter game',`loginVisible=${loginVisible}`);
     const testerName = config.mobile ? 'Mobile Tester' : 'Desktop Tester';
     if (loginVisible) {
-      await page.locator('#playerName').fill(testerName);
-      await page.locator('#startBtn').click();
+      await page.locator('#playerName').fill(testerName,{force:true});
+      await page.locator('#startBtn').click({force:true});
     } else {
       await page.evaluate(name => {
         const input = document.getElementById('playerName');
