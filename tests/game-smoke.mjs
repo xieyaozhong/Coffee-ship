@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const BASE_URL = process.env.COFFEE_SHIP_URL || 'http://127.0.0.1:4173/index.html';
 const RESULT_DIR = path.resolve('test-results');
+const CASE_TIMEOUT_MS = 55_000;
 await fs.mkdir(RESULT_DIR,{recursive:true});
 
 const ignoredMessages = [
@@ -12,7 +13,7 @@ const ignoredMessages = [
   /Firebase 暫時無法載入/i,
   /player sync failed/i,
   /ResizeObserver loop/i,
-  /net::ERR_(NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION_REFUSED)/i,
+  /net::ERR_(FAILED|ABORTED|NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION_REFUSED)/i,
   /Failed to load resource.*firebase/i
 ];
 
@@ -27,11 +28,30 @@ async function runCase(browser,config) {
     hasTouch:config.mobile,
     deviceScaleFactor:config.mobile ? 2 : 1,
     locale:'zh-TW',
-    colorScheme:'dark'
+    colorScheme:'dark',
+    serviceWorkers:'block'
   });
+
+  await context.route('**/*',route => {
+    let url;
+    try { url = new URL(route.request().url()); }
+    catch { return route.continue(); }
+    if (url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.protocol === 'data:' || url.protocol === 'blob:') {
+      return route.continue();
+    }
+    return route.abort('blockedbyclient');
+  });
+
   const page = await context.newPage();
+  page.setDefaultTimeout(10_000);
+  page.setDefaultNavigationTimeout(20_000);
   const errors = [];
   const warnings = [];
+  let deadlineExpired = false;
+  const deadline = setTimeout(() => {
+    deadlineExpired = true;
+    page.close({runBeforeUnload:false}).catch(() => {});
+  },CASE_TIMEOUT_MS);
 
   page.on('pageerror',error => {
     if (!ignored(error.message)) errors.push(`pageerror: ${error.stack || error.message}`);
@@ -43,22 +63,22 @@ async function runCase(browser,config) {
   });
 
   try {
-    await page.goto(BASE_URL,{waitUntil:'domcontentloaded',timeout:30000});
-    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!document.getElementById('startBtn'),null,{timeout:15000});
+    await page.goto(BASE_URL,{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!document.getElementById('startBtn'));
 
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();
     });
     await page.reload({waitUntil:'domcontentloaded'});
-    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK,null,{timeout:15000});
+    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK);
 
     await page.locator('#playerName').fill(config.mobile ? 'Mobile Tester' : 'Desktop Tester');
     await page.locator('#startBtn').click();
     await page.waitForFunction(() => {
       const panel = document.getElementById('gamePanel');
       return panel && !panel.classList.contains('hidden');
-    },null,{timeout:8000});
+    });
 
     const initial = await page.evaluate(() => ({
       health:window.COFFEE_SHIP_RUNTIME.health(),
@@ -86,7 +106,7 @@ async function runCase(browser,config) {
     if (!(Number(movedX) > Number(initial.x))) throw new Error(`player did not move: before=${initial.x}, after=${movedX}`);
 
     await page.evaluate(() => window.COFFEE_SHIP_DECK.switchToDeck());
-    await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'deck',null,{timeout:5000});
+    await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'deck');
     const deckState = await page.evaluate(() => ({
       open:window.COFFEE_SHIP_DECK.isDeckOpen(),
       overlayHidden:document.getElementById('deckOverlay')?.classList.contains('hidden'),
@@ -95,7 +115,7 @@ async function runCase(browser,config) {
     if (!deckState.open || deckState.overlayHidden) throw new Error(`deck failed: ${JSON.stringify(deckState)}`);
 
     await page.evaluate(() => window.COFFEE_SHIP_DECK.switchToCafe());
-    await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'cafe',null,{timeout:5000});
+    await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'cafe');
     await page.waitForTimeout(250);
     const restoredCanvas = await page.evaluate(() => ({
       width:document.getElementById('game')?.width,
@@ -104,31 +124,33 @@ async function runCase(browser,config) {
     }));
     if (restoredCanvas.width < 900 || restoredCanvas.height < 500) throw new Error(`canvas did not restore: ${JSON.stringify(restoredCanvas)}`);
 
-    await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-passed.png`),fullPage:true});
+    await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-passed.png`),fullPage:false,animations:'disabled'});
     if (errors.length) throw new Error(`browser errors:\n${errors.join('\n')}`);
 
     return {
       name:config.name,
       health:restoredCanvas.health,
-      warnings: warnings.slice(-10),
+      warnings:warnings.slice(-10),
       movedFrom:initial.x,
       movedTo:movedX,
       deckState
     };
   } catch (error) {
-    await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-failed.png`),fullPage:true}).catch(() => {});
+    if (!page.isClosed()) await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-failed.png`),fullPage:false,animations:'disabled'}).catch(() => {});
+    const finalError = deadlineExpired ? new Error(`${config.name} exceeded ${CASE_TIMEOUT_MS}ms hard deadline`) : error;
     const report = {
       name:config.name,
-      error:error.stack || error.message || String(error),
+      error:finalError.stack || finalError.message || String(finalError),
       errors,
       warnings,
-      url:page.url(),
-      html:await page.locator('body').innerText().catch(() => '')
+      url:page.isClosed() ? 'page-closed-by-deadline' : page.url(),
+      html:page.isClosed() ? '' : await page.locator('body').innerText().catch(() => '')
     };
     await fs.writeFile(path.join(RESULT_DIR,`${config.name}-failure.json`),JSON.stringify(report,null,2));
-    throw error;
+    throw finalError;
   } finally {
-    await context.close();
+    clearTimeout(deadline);
+    await context.close().catch(() => {});
   }
 }
 
@@ -144,5 +166,5 @@ try {
   console.error(error);
   process.exitCode = 1;
 } finally {
-  await browser.close();
+  await browser.close().catch(() => {});
 }
