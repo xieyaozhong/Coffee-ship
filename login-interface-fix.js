@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_LOGIN_INTERFACE_V4__) return;
-  window.__COFFEE_SHIP_LOGIN_INTERFACE_V4__ = true;
+  if (window.__COFFEE_SHIP_LOGIN_INTERFACE_V5__) return;
+  window.__COFFEE_SHIP_LOGIN_INTERFACE_V5__ = true;
 
   const ANIMALS = {
     human:{emoji:'🙂',body:'#c96a4a',face:'#f0c7a0',accent:'#2b1d16'},
@@ -82,15 +82,17 @@
     const animal=currentAnimal();
     if(animal==='human')drawHuman(previewCtx,hair,shirt);else drawAnimal(previewCtx,animal,shirt);
     const previewName=document.getElementById('loginPreviewName');
-    if(previewName)previewName.textContent=(nameInput?.value||'').trim()||'海上旅人';
+    const nextName=(nameInput?.value||'').trim()||'海上旅人';
+    if(previewName&&previewName.textContent!==nextName)previewName.textContent=nextName;
     const caption=document.getElementById('loginPreviewCaption');
-    if(caption)caption.textContent=animal==='human'?'GENERAL TRAVELER':`${ANIMALS[animal]?.emoji||'🎲'} RANDOM ADVENTURER`;
+    const nextCaption=animal==='human'?'GENERAL TRAVELER':`${ANIMALS[animal]?.emoji||'🎲'} RANDOM ADVENTURER`;
+    if(caption&&caption.textContent!==nextCaption)caption.textContent=nextCaption;
   }
 
   function setStatus(text,type=''){
     const status=document.getElementById('loginStatus');
     if(!status)return;
-    status.textContent=text||'';
+    if(status.textContent!==String(text||''))status.textContent=text||'';
     status.classList.toggle('is-error',type==='error');
     status.classList.toggle('is-ok',type==='ok');
   }
@@ -122,9 +124,9 @@
     if(roleBox.parentElement!==holder)holder.appendChild(roleBox);
     holder.querySelector('.login-role-loading')?.remove();
     const enter=document.getElementById('roleEnterBtn');
-    if(enter)enter.textContent='特殊角色登船';
+    if(enter&&enter.textContent!=='特殊角色登船')enter.textContent='特殊角色登船';
     const input=document.getElementById('roleCode');
-    if(input)input.placeholder='輸入角色編號';
+    if(input&&input.placeholder!=='輸入角色編號')input.placeholder='輸入角色編號';
     return true;
   }
 
@@ -133,7 +135,10 @@
     const actions=document.getElementById('loginActions');
     const random=document.getElementById('randomAnimalBtn');
     if(actions&&random&&random.parentElement!==actions)actions.appendChild(random);
-    if(random){random.textContent='🎲 隨機動物冒險';random.style.marginLeft='0';}
+    if(random){
+      if(random.textContent!=='🎲 隨機動物冒險')random.textContent='🎲 隨機動物冒險';
+      if(random.style.marginLeft!=='0px')random.style.marginLeft='0';
+    }
     document.getElementById('animalHint')?.remove();
     moveRoleBox();
   }
@@ -162,7 +167,8 @@
       const element=document.getElementById(id);
       if(!element||element.dataset.previewBound)return;
       element.dataset.previewBound='true';
-      element.addEventListener('input',drawPreview);
+      element.addEventListener('input',drawPreview,{passive:true});
+      element.addEventListener('change',drawPreview,{passive:true});
     });
     const nameInput=document.getElementById('playerName');
     if(nameInput&&!nameInput.dataset.enterBound){
@@ -170,7 +176,7 @@
       nameInput.addEventListener('keydown',event=>{
         if(event.key!=='Enter')return;
         event.preventDefault();
-        document.getElementById('startBtn')?.click();
+        window.COFFEE_SHIP_BOARDING?.enter?.('name-enter-key');
       });
     }
   }
@@ -206,19 +212,16 @@
     drawPreview();
     setMode('general');
 
-    const observer=new MutationObserver(()=>{
-      normalizeDynamicElements();
-      bindStaticEvents();
-    });
-    observer.observe(creator,{childList:true,subtree:true});
     let attempts=0;
     const timer=setInterval(()=>{
       attempts++;
       normalizeDynamicElements();
-      if((document.getElementById('randomAnimalBtn')&&document.querySelector('#loginRoleHolder .role-code-box'))||attempts>40)clearInterval(timer);
+      bindStaticEvents();
+      drawPreview();
+      if((document.getElementById('randomAnimalBtn')&&document.querySelector('#loginRoleHolder .role-code-box'))||attempts>20)clearInterval(timer);
     },200);
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
