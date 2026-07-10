@@ -24,31 +24,7 @@ async function run(browser,{name,viewport,mobile}){
   };
 
   const context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1,locale:'zh-TW',serviceWorkers:'block'});
-  await context.addInitScript(()=>{
-    localStorage.clear();
-    sessionStorage.clear();
-    const nativeAdd=EventTarget.prototype.addEventListener;
-    const nativeRemove=EventTarget.prototype.removeEventListener;
-    const records=[];
-    const tracked=new Set(['click','pointerdown','pointerup','touchstart','touchend','keydown']);
-    const targetName=target=>{
-      if(target===window)return'window';
-      if(target===document)return'document';
-      const tag=target?.tagName?.toLowerCase?.()||target?.constructor?.name||'unknown';
-      return`${tag}${target?.id?`#${target.id}`:''}${target?.classList?.length?`.${[...target.classList].slice(0,4).join('.')}`:''}`;
-    };
-    const sourceOf=listener=>{try{return Function.prototype.toString.call(listener).replace(/\s+/g,' ').slice(0,600);}catch{return String(listener);}};
-    const stackOf=()=>{try{return String(new Error().stack||'').split('\n').slice(3,9).join('\n');}catch{return'';}};
-    EventTarget.prototype.addEventListener=function(type,listener,options){
-      if(tracked.has(type)&&listener)records.push({action:'add',type,capture:typeof options==='boolean'?options:!!options?.capture,target:targetName(this),source:sourceOf(listener),stack:stackOf()});
-      return nativeAdd.call(this,type,listener,options);
-    };
-    EventTarget.prototype.removeEventListener=function(type,listener,options){
-      if(tracked.has(type)&&listener)records.push({action:'remove',type,capture:typeof options==='boolean'?options:!!options?.capture,target:targetName(this),source:sourceOf(listener),stack:stackOf()});
-      return nativeRemove.call(this,type,listener,options);
-    };
-    window.__REMOTE_EVENT_AUDIT__=records;
-  });
+  await context.addInitScript(()=>{localStorage.clear();sessionStorage.clear();});
   await context.route('**/*',route=>{
     try{
       const url=new URL(route.request().url());
@@ -80,26 +56,26 @@ async function run(browser,{name,viewport,mobile}){
         inputVisible:!!input&&rect.width>1&&rect.height>1&&style.display!=='none'&&style.visibility!=='hidden',
         boardingVersion:window.COFFEE_SHIP_BOARDING.version,
         buttonVersion:document.getElementById('startBtn')?.dataset.boardingCore,
-        pointerHandler:typeof document.getElementById('startBtn')?.onpointerup,
-        trace:window.COFFEE_SHIP_BOARDING_TRACE
+        pointerHandler:typeof document.getElementById('startBtn')?.onpointerup
       };
     });
     await stage('ready',ready);
     if(!ready.inputVisible||ready.buttonVersion!=='5'||ready.pointerHandler!=='function')throw new Error(`boarding UI invalid: ${JSON.stringify(ready)}`);
 
-    const audit=await page.evaluate(()=>window.__REMOTE_EVENT_AUDIT__.filter(row=>['click','pointerup','pointerdown'].includes(row.type)));
-    await fs.writeFile(path.join(out,`${name}-event-audit.json`),JSON.stringify(audit,null,2));
-    await stage('event-audit',{records:audit.length});
-
-    const accepted=await page.evaluate(testName=>{
-      console.info=()=>{};
+    const inputResult=await deadline(page.evaluate(testName=>{
       const input=document.getElementById('playerName');
       input.value=testName;
-      input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:testName}));
-      return Boolean(window.COFFEE_SHIP_BOARDING.enter('remote-direct-api'));
-    },mobile?'Mobile Tester':'Desktop Tester');
-    await stage('boarding-requested',{accepted});
-    if(!accepted)throw new Error('boarding request rejected');
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+      return{value:input.value,preview:document.getElementById('loginPreviewName')?.textContent};
+    },mobile?'Mobile Tester':'Desktop Tester'),5000,'login input');
+    await stage('input-responsive',inputResult);
+    if(inputResult.value!==inputResult.preview)throw new Error(`preview did not update: ${JSON.stringify(inputResult)}`);
+
+    const accepted=await deadline(page.evaluate(()=>{
+      const button=document.getElementById('startBtn');
+      return button.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,cancelable:true,pointerId:41,pointerType:'touch',isPrimary:true}));
+    }),5000,'boarding pointer event');
+    await stage('boarding-event-returned',{accepted});
 
     await page.waitForFunction(()=>!document.getElementById('gamePanel')?.classList.contains('hidden')&&window.COFFEE_SHIP_BOARDING_TRACE?.stage!=='failed',null,{timeout:12000});
     const boarded=await page.evaluate(()=>({
@@ -115,10 +91,7 @@ async function run(browser,{name,viewport,mobile}){
     if(!boarded.health.playable||boarded.scene!=='cafe'||!boarded.avatar)throw new Error(`boarding invalid: ${JSON.stringify(boarded)}`);
 
     if(mobile){
-      await page.evaluate(()=>{
-        const button=document.querySelector('[data-move="right"]');
-        button?.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:77,pointerType:'touch',isPrimary:true}));
-      });
+      await page.evaluate(()=>document.querySelector('[data-move="right"]')?.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:77,pointerType:'touch',isPrimary:true})));
       await page.waitForTimeout(500);
       await page.evaluate(()=>document.querySelector('[data-move="right"]')?.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:77,pointerType:'touch',isPrimary:true})));
     }else{
@@ -147,7 +120,7 @@ async function run(browser,{name,viewport,mobile}){
     await page.screenshot({path:path.join(out,`${name}-v6-passed.png`),animations:'disabled',timeout:8000});
     await fs.writeFile(path.join(out,`${name}-browser-console.json`),JSON.stringify(browserConsole,null,2));
     await stage('passed');
-    return{name,ready,accepted,boarded,movedX,deck,restored,auditCount:audit.length};
+    return{name,ready,inputResult,boarded,movedX,deck,restored};
   }catch(error){
     const trace=await page.evaluate(()=>window.COFFEE_SHIP_BOARDING_TRACE).catch(()=>null);
     await stage('failed',{message:error.message,trace,errors});
