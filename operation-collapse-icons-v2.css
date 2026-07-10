@@ -1,0 +1,173 @@
+#operationDock.op-enhanced-v2{
+  display:block!important;
+  grid-template-columns:none!important;
+  overflow:hidden;
+}
+#operationDock .op-dock-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 13px;
+  border:1px solid rgba(130,92,116,.52);
+  border-radius:17px;
+  background:linear-gradient(180deg,rgba(27,20,36,.97),rgba(15,11,23,.97));
+  box-shadow:0 12px 24px rgba(0,0,0,.20),inset 0 0 0 1px rgba(255,255,255,.03);
+}
+#operationDock .op-dock-summary{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+#operationDock .op-dock-summary-icon{
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(121,208,177,.22),rgba(132,96,200,.18));
+  border:1px solid rgba(255,255,255,.08);
+  font-size:20px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+}
+#operationDock .op-dock-summary-copy{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+#operationDock .op-dock-summary-copy strong{
+  color:#fff4d8;
+  font-size:14px;
+}
+#operationDock .op-dock-summary-copy small{
+  overflow:hidden;
+  color:rgba(255,244,216,.66);
+  font-size:11px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#operationDock .op-collapse-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:36px;
+  padding:0 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  background:rgba(255,255,255,.06);
+  color:#fff4d8;
+  font-weight:900;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+#operationDock .op-collapse-btn:active{transform:translateY(1px)}
+#operationDock .op-toggle-icon{font-size:16px;color:#79d0b1}
+#operationDock .op-toggle-label{font-size:12px}
+#operationDock .op-dock-body{
+  display:grid;
+  grid-template-columns:1.2fr .9fr;
+  gap:12px;
+  margin-top:10px;
+}
+#operationDock.is-collapsed .op-dock-body{display:none!important}
+#operationDock.is-collapsed .op-dock-toolbar{
+  border-radius:14px;
+  padding-top:8px;
+  padding-bottom:8px;
+}
+#operationDock.is-collapsed .op-dock-summary-icon{
+  width:32px;
+  height:32px;
+  flex-basis:32px;
+  border-radius:10px;
+  font-size:17px;
+}
+#operationDock .op-action-buttons{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+#operationDock .op-action-button{
+  min-width:0;
+  min-height:58px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:4px;
+  padding:7px 5px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));
+  color:#fff4d8;
+  box-shadow:0 5px 0 rgba(8,6,13,.38),inset 0 0 0 1px rgba(255,255,255,.025);
+  cursor:pointer;
+  touch-action:manipulation;
+}
+#operationDock .op-action-button:hover{
+  transform:translateY(-1px);
+  border-color:rgba(121,208,177,.34);
+  background:linear-gradient(180deg,rgba(121,208,177,.12),rgba(132,96,200,.08));
+}
+#operationDock .op-action-button:active{
+  transform:translateY(2px);
+  box-shadow:0 2px 0 rgba(8,6,13,.38);
+}
+#operationDock .op-action-button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+#operationDock .op-action-icon{
+  display:grid;
+  place-items:center;
+  width:29px;
+  height:29px;
+  border-radius:10px;
+  background:rgba(0,0,0,.18);
+  font-size:17px;
+  line-height:1;
+}
+#operationDock .op-action-label{
+  overflow:hidden;
+  max-width:100%;
+  font-size:11px;
+  font-weight:900;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#operationDock .op-key{
+  padding-left:7px;
+}
+#operationDock .op-key::before{
+  content:'🎮';
+  display:inline-grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  border-radius:8px;
+  background:rgba(0,0,0,.15);
+  font-size:12px;
+}
+@media(max-width:900px){
+  #operationDock .op-dock-body{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  #operationDock.op-enhanced-v2{margin-top:8px!important}
+  #operationDock .op-dock-toolbar{padding:9px 10px;border-radius:14px}
+  #operationDock .op-dock-summary-icon{width:34px;height:34px;flex-basis:34px;font-size:18px}
+  #operationDock .op-dock-summary-copy strong{font-size:13px}
+  #operationDock .op-dock-summary-copy small{max-width:56vw;font-size:10px}
+  #operationDock .op-collapse-btn{min-width:58px;min-height:34px;padding:0 9px}
+  #operationDock .op-toggle-label{font-size:11px}
+  #operationDock .op-dock-body{margin-top:8px;gap:8px}
+  #operationDock .op-action-buttons{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  #operationDock .op-action-button{min-height:52px;border-radius:12px}
+  #operationDock .op-action-icon{width:26px;height:26px;font-size:15px}
+}
+@media(max-width:380px){
+  #operationDock .op-dock-summary-copy small{max-width:48vw}
+  #operationDock .op-action-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
