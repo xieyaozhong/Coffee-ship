@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_LOGIN_VISIBILITY_REPAIR_V1__) return;
-  window.__COFFEE_SHIP_LOGIN_VISIBILITY_REPAIR_V1__ = true;
+  if (window.__COFFEE_SHIP_LOGIN_VISIBILITY_REPAIR_V2__) return;
+  window.__COFFEE_SHIP_LOGIN_VISIBILITY_REPAIR_V2__ = true;
 
   let repairing = false;
   let observer = null;
@@ -10,10 +10,19 @@
     if (repairing) return false;
     const creator = document.getElementById('creator');
     const gamePanel = document.getElementById('gamePanel');
-    if (!creator || !gamePanel || creator.classList.contains('hidden')) return false;
+    if (!creator || !gamePanel) return false;
+
+    const hasAvatar = !!localStorage.getItem('coffeeShipAvatar');
+    const shouldShowLogin = !hasAvatar || !creator.classList.contains('hidden');
+    if (!shouldShowLogin) return false;
+
     repairing = true;
     let changed = false;
     try {
+      if (creator.classList.contains('hidden')) {
+        creator.classList.remove('hidden');
+        changed = true;
+      }
       for (const target of [document.documentElement,document.body]) {
         for (const className of ['coffee-ship-entered','login-resetting','safe-cafe-fallback']) {
           if (target.classList.contains(className)) {
@@ -43,7 +52,7 @@
         input.tabIndex = 0;
       }
       document.body.dataset.loginVisibility = 'ready';
-      if (changed) window.dispatchEvent(new CustomEvent('coffee-ship:login-visibility-repaired',{detail:{reason}}));
+      if (changed) window.dispatchEvent(new CustomEvent('coffee-ship:login-visibility-repaired',{detail:{reason,hasAvatar}}));
     } finally {
       repairing = false;
     }
@@ -61,7 +70,10 @@
       button.addEventListener('click',() => setTimeout(() => repairLoginVisibility('mode-change'),0));
     });
     window.addEventListener('pageshow',() => repairLoginVisibility('pageshow'));
-    window.COFFEE_SHIP_LOGIN_VISIBILITY = {repair:repairLoginVisibility,version:1};
+    window.addEventListener('storage',event => {
+      if (event.key === 'coffeeShipAvatar') repairLoginVisibility('avatar-storage');
+    });
+    window.COFFEE_SHIP_LOGIN_VISIBILITY = {repair:repairLoginVisibility,version:2};
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init,{once:true});
