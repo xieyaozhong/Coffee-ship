@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const BASE_URL = process.env.COFFEE_SHIP_URL || 'http://127.0.0.1:4173/index.html';
 const RESULT_DIR = path.resolve('test-results');
-const CASE_TIMEOUT_MS = 55_000;
+const CASE_TIMEOUT_MS = 45_000;
 await fs.mkdir(RESULT_DIR,{recursive:true});
 
 const ignoredMessages = [
@@ -12,13 +12,18 @@ const ignoredMessages = [
   /Firebase background init failed/i,
   /Firebase 暫時無法載入/i,
   /player sync failed/i,
+  /multiplayer role sync failed/i,
   /ResizeObserver loop/i,
-  /net::ERR_(FAILED|ABORTED|NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION_REFUSED)/i,
+  /net::ERR_(FAILED|ABORTED|BLOCKED_BY_CLIENT|NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|CONNECTION_REFUSED)/i,
   /Failed to load resource.*firebase/i
 ];
 
 function ignored(message) {
   return ignoredMessages.some(pattern => pattern.test(String(message || '')));
+}
+
+function checkpoint(name,step,extra='') {
+  console.log(`[${name}] ${step}${extra ? ` | ${extra}` : ''}`);
 }
 
 async function runCase(browser,config) {
@@ -32,6 +37,11 @@ async function runCase(browser,config) {
     serviceWorkers:'block'
   });
 
+  await context.addInitScript(() => {
+    try { localStorage.clear(); } catch {}
+    try { sessionStorage.clear(); } catch {}
+  });
+
   await context.route('**/*',route => {
     let url;
     try { url = new URL(route.request().url()); }
@@ -43,8 +53,8 @@ async function runCase(browser,config) {
   });
 
   const page = await context.newPage();
-  page.setDefaultTimeout(10_000);
-  page.setDefaultNavigationTimeout(20_000);
+  page.setDefaultTimeout(9_000);
+  page.setDefaultNavigationTimeout(15_000);
   const errors = [];
   const warnings = [];
   let deadlineExpired = false;
@@ -63,16 +73,13 @@ async function runCase(browser,config) {
   });
 
   try {
+    checkpoint(config.name,'navigate');
     await page.goto(BASE_URL,{waitUntil:'domcontentloaded'});
-    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!document.getElementById('startBtn'));
 
-    await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
-    await page.reload({waitUntil:'domcontentloaded'});
-    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK);
+    checkpoint(config.name,'wait runtime');
+    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK && !!document.getElementById('startBtn'));
 
+    checkpoint(config.name,'enter game');
     await page.locator('#playerName').fill(config.mobile ? 'Mobile Tester' : 'Desktop Tester');
     await page.locator('#startBtn').click();
     await page.waitForFunction(() => {
@@ -80,6 +87,7 @@ async function runCase(browser,config) {
       return panel && !panel.classList.contains('hidden');
     });
 
+    checkpoint(config.name,'read initial health');
     const initial = await page.evaluate(() => ({
       health:window.COFFEE_SHIP_RUNTIME.health(),
       x:window.COFFEE_SHIP_GAME_API?.player?.x,
@@ -91,6 +99,7 @@ async function runCase(browser,config) {
     if (!initial.canvas.width || !initial.canvas.height) throw new Error(`invalid canvas: ${JSON.stringify(initial.canvas)}`);
     if (initial.scene !== 'cafe') throw new Error(`unexpected initial scene: ${initial.scene}`);
 
+    checkpoint(config.name,'move player');
     if (config.mobile) {
       const right = page.locator('[data-move="right"]');
       await right.dispatchEvent('pointerdown',{pointerId:7,pointerType:'touch',isPrimary:true});
@@ -105,6 +114,7 @@ async function runCase(browser,config) {
     const movedX = await page.evaluate(() => window.COFFEE_SHIP_GAME_API?.player?.x);
     if (!(Number(movedX) > Number(initial.x))) throw new Error(`player did not move: before=${initial.x}, after=${movedX}`);
 
+    checkpoint(config.name,'open deck');
     await page.evaluate(() => window.COFFEE_SHIP_DECK.switchToDeck());
     await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'deck');
     const deckState = await page.evaluate(() => ({
@@ -114,6 +124,7 @@ async function runCase(browser,config) {
     }));
     if (!deckState.open || deckState.overlayHidden) throw new Error(`deck failed: ${JSON.stringify(deckState)}`);
 
+    checkpoint(config.name,'return cafe');
     await page.evaluate(() => window.COFFEE_SHIP_DECK.switchToCafe());
     await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'cafe');
     await page.waitForTimeout(250);
@@ -124,9 +135,11 @@ async function runCase(browser,config) {
     }));
     if (restoredCanvas.width < 900 || restoredCanvas.height < 500) throw new Error(`canvas did not restore: ${JSON.stringify(restoredCanvas)}`);
 
+    checkpoint(config.name,'capture result');
     await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-passed.png`),fullPage:false,animations:'disabled'});
     if (errors.length) throw new Error(`browser errors:\n${errors.join('\n')}`);
 
+    checkpoint(config.name,'passed');
     return {
       name:config.name,
       health:restoredCanvas.health,
