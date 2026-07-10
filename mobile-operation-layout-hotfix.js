@@ -30,7 +30,7 @@
 
     if (!alreadyFixed) controls.replaceChildren(...expected);
 
-    controls.dataset.operationModeled = 'mobile-fixed';
+    controls.dataset.operationModeled = 'true';
     controls.dataset.mobileLayoutFixed = 'true';
   }
 
