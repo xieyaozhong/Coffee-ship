@@ -1,0 +1,104 @@
+/* operation interface modeling */
+#sceneStatusBadge{
+  left:auto !important;
+  right:18px !important;
+  bottom:18px !important;
+  padding:10px 14px !important;
+  border-radius:14px !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  background:linear-gradient(180deg,rgba(18,14,28,.95),rgba(9,8,17,.92)) !important;
+  box-shadow:0 12px 24px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.04) !important;
+  color:#fff4d8 !important;
+}
+.game-topbar{
+  position:relative;
+  gap:14px;
+}
+.game-topbar::after{
+  content:"";
+  position:absolute;left:0;right:0;bottom:-10px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+}
+#operationDock{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1.2fr .9fr;
+  gap:12px;
+}
+.op-card{
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(25,18,34,.94),rgba(14,11,21,.96));
+  border:1px solid rgba(130,92,116,.52);
+  box-shadow:0 16px 28px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.03);
+  padding:14px;
+}
+.op-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.op-card-head strong{font-size:15px;color:#fff4d8}
+.op-card-head span{font-size:11px;color:#d7bb79;letter-spacing:.08em;font-weight:900}
+.op-scene-pill{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);font-size:13px;font-weight:900;color:#fff4d8
+}
+.op-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.op-stat{
+  padding:10px 11px;border-radius:14px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.05)
+}
+.op-stat span{display:block;font-size:11px;color:rgba(255,244,216,.64);margin-bottom:5px}
+.op-stat strong{display:block;font-size:14px;color:#fff4d8;line-height:1.35}
+.op-key-list,.op-chip-list{display:flex;flex-wrap:wrap;gap:8px}
+.op-key,.op-chip{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:30px;
+  padding:0 11px;border-radius:999px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.06);color:#fff4d8;font-size:12px;font-weight:900
+}
+.op-key b{
+  display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;
+  border-radius:8px;background:rgba(0,0,0,.22);color:#ffe5ae;font-size:11px
+}
+.op-panel-state{display:grid;gap:10px}
+.op-panel-pill{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.05)}
+.op-panel-pill small{color:rgba(255,244,216,.64);font-size:11px}
+.op-panel-pill strong{font-size:13px;color:#fff4d8}
+.op-panel-open{color:#9ff0cf}
+.op-panel-closed{color:#ffc9d1}
+.mobile-controls{
+  display:grid;
+  grid-template-columns:1.2fr 1.6fr;
+  gap:12px;
+  align-items:stretch;
+}
+.mobile-controls > div,
+.mobile-controls .op-mobile-actions{display:grid;gap:8px}
+.mobile-controls > div{grid-template-columns:repeat(3,minmax(0,1fr));align-items:end}
+.mobile-controls .op-mobile-actions{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mobile-controls .op-mobile-block{
+  padding:10px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)
+}
+.mobile-controls .op-mobile-block h4{margin:0 0 8px;font-size:11px;color:#d7bb79;letter-spacing:.08em}
+.mobile-controls .op-mobile-stack{display:grid;gap:8px}
+.mobile-controls [data-move="up"]{grid-column:2}
+.mobile-controls button{
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 8px 0 rgba(18,11,23,.88), inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.mobile-controls button .btn-icon{font-size:17px}
+.mobile-controls button .btn-label{font-size:11px}
+.coffee-menu,.message-board{padding:16px}
+.board-head .op-close-hint{
+  margin-top:6px;display:inline-flex;align-items:center;gap:6px;
+  padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.06);font-size:11px;font-weight:900;color:#d7bb79
+}
+@media (max-width:900px){
+  #operationDock{grid-template-columns:1fr}
+  .op-grid{grid-template-columns:1fr 1fr 1fr}
+}
+@media (max-width:760px){
+  #operationDock{margin-top:10px;gap:10px}
+  .op-card{padding:12px;border-radius:16px}
+  .op-grid{grid-template-columns:1fr}
+  .mobile-controls{grid-template-columns:1fr}
+  .mobile-controls > div{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mobile-controls .op-mobile-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #sceneStatusBadge{right:10px !important;bottom:10px !important}
+}
