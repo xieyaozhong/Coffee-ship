@@ -34,6 +34,7 @@ jobs:
           set -euo pipefail
           find . -maxdepth 1 -type f -name '*.js' -print0 | sort -z | xargs -0 -n1 node --check
           node --check tests/game-smoke.mjs
+          node --check tests/game-runtime-smoke.mjs
 
       - name: Install browser runner
         run: |
@@ -54,11 +55,11 @@ jobs:
           cat /tmp/coffee-ship-http.log
           exit 1
 
-      - name: Desktop and mobile smoke tests
+      - name: Desktop and mobile runtime tests
         timeout-minutes: 3
         env:
           COFFEE_SHIP_URL: http://127.0.0.1:4173/index.html
-        run: node tests/game-smoke.mjs
+        run: node tests/game-runtime-smoke.mjs
 
       - name: Upload browser reports
         if: always()
