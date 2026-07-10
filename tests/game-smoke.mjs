@@ -78,6 +78,53 @@ async function runCase(browser,config) {
     if (message.type() === 'warning' && !ignored(text)) warnings.push(text);
   });
 
+  async function loginLayout() {
+    return page.evaluate(() => {
+      function info(element) {
+        if (!element) return null;
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return {
+          tag:element.tagName,
+          id:element.id,
+          className:element.className,
+          hidden:!!element.hidden,
+          display:style.display,
+          visibility:style.visibility,
+          opacity:style.opacity,
+          position:style.position,
+          pointerEvents:style.pointerEvents,
+          width:rect.width,
+          height:rect.height,
+          top:rect.top,
+          left:rect.left,
+          overflow:style.overflow
+        };
+      }
+      const input = document.getElementById('playerName');
+      const ancestors = [];
+      let current = input;
+      while (current && ancestors.length < 12) {
+        ancestors.push(info(current));
+        current = current.parentElement;
+      }
+      return {
+        body:info(document.body),
+        html:info(document.documentElement),
+        bodyClasses:[...document.body.classList],
+        htmlClasses:[...document.documentElement.classList],
+        creator:info(document.getElementById('creator')),
+        gamePanel:info(document.getElementById('gamePanel')),
+        generalPanel:info(document.getElementById('loginGeneralPanel')),
+        formHolder:info(document.getElementById('loginFormHolder')),
+        input:info(input),
+        ancestors,
+        hasAvatar:!!localStorage.getItem('coffeeShipAvatar'),
+        loginVisibilityApi:!!window.COFFEE_SHIP_LOGIN_VISIBILITY
+      };
+    });
+  }
+
   try {
     await checkpoint('navigate');
     await page.goto(BASE_URL,{waitUntil:'commit'});
@@ -85,9 +132,29 @@ async function runCase(browser,config) {
     await checkpoint('wait runtime');
     await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK && !!document.getElementById('startBtn'),null,{timeout:20_000});
 
-    await checkpoint('enter game');
-    await page.locator('#playerName').fill(config.mobile ? 'Mobile Tester' : 'Desktop Tester');
-    await page.locator('#startBtn').click();
+    await checkpoint('inspect login');
+    const beforeRepair = await loginLayout();
+    await page.evaluate(() => window.COFFEE_SHIP_LOGIN_VISIBILITY?.repair?.('remote-test'));
+    await page.waitForTimeout(120);
+    const afterRepair = await loginLayout();
+    await fs.writeFile(path.join(RESULT_DIR,`${config.name}-login-layout.json`),JSON.stringify({beforeRepair,afterRepair},null,2));
+    const loginVisible = Number(afterRepair.input?.width || 0) > 1 && Number(afterRepair.input?.height || 0) > 1 && afterRepair.input?.display !== 'none' && afterRepair.input?.visibility !== 'hidden';
+
+    await checkpoint('enter game',`loginVisible=${loginVisible}`);
+    const testerName = config.mobile ? 'Mobile Tester' : 'Desktop Tester';
+    if (loginVisible) {
+      await page.locator('#playerName').fill(testerName);
+      await page.locator('#startBtn').click();
+    } else {
+      await page.evaluate(name => {
+        const input = document.getElementById('playerName');
+        if (input) {
+          input.value = name;
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+        }
+        document.getElementById('startBtn')?.click();
+      },testerName);
+    }
     await page.waitForFunction(() => {
       const panel = document.getElementById('gamePanel');
       return panel && !panel.classList.contains('hidden');
@@ -145,9 +212,10 @@ async function runCase(browser,config) {
     await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-passed.png`),fullPage:false,animations:'disabled'});
     if (errors.length) throw new Error(`browser errors:\n${errors.join('\n')}`);
 
-    await checkpoint('passed');
+    await checkpoint('passed',`loginVisible=${loginVisible}`);
     return {
       name:config.name,
+      loginVisible,
       health:restoredCanvas.health,
       warnings:warnings.slice(-10),
       movedFrom:initial.x,
@@ -186,10 +254,13 @@ const results = [];
 try {
   results.push(await runCase(browser,{name:'desktop',viewport:{width:1440,height:1000},mobile:false}));
   results.push(await runCase(browser,{name:'mobile',viewport:{width:390,height:844},mobile:true}));
-  await fs.writeFile(path.join(RESULT_DIR,'summary.json'),JSON.stringify({ok:true,results},null,2));
-  console.log(JSON.stringify({ok:true,results},null,2));
+  const hiddenLogins = results.filter(result => !result.loginVisible).map(result => result.name);
+  const summary = {ok:hiddenLogins.length === 0,hiddenLogins,results};
+  await fs.writeFile(path.join(RESULT_DIR,'summary.json'),JSON.stringify(summary,null,2));
+  console.log(JSON.stringify(summary,null,2));
+  if (hiddenLogins.length) throw new Error(`login UI hidden in: ${hiddenLogins.join(', ')}`);
 } catch (error) {
-  await fs.writeFile(path.join(RESULT_DIR,'summary.json'),JSON.stringify({ok:false,error:error.stack || String(error),results},null,2));
+  if (!results.length) await fs.writeFile(path.join(RESULT_DIR,'summary.json'),JSON.stringify({ok:false,error:error.stack || String(error),results},null,2));
   console.error(error);
   process.exitCode = 1;
 } finally {
