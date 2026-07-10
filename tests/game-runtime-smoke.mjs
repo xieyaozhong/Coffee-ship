@@ -4,43 +4,62 @@ import path from 'node:path';
 
 const URL = process.env.COFFEE_SHIP_URL || 'http://127.0.0.1:4173/index.html';
 const OUT = path.resolve('test-results');
+const CASE_TIMEOUT = 55_000;
 await fs.mkdir(OUT,{recursive:true});
+await fs.writeFile(path.join(OUT,'runner-stage.log'),`[${new Date().toISOString()}] runner-start\n`);
 
 const ignored = text => [
   /firebase/i,/multiplayer role sync failed/i,/player sync failed/i,
   /ERR_(BLOCKED_BY_CLIENT|FAILED|ABORTED)/i,/ResizeObserver loop/i,/favicon/i
 ].some(pattern => pattern.test(String(text || '')));
 
+const timeoutAfter = (ms,label) => new Promise((_,reject) => {
+  const timer = setTimeout(() => reject(new Error(`${label} exceeded ${ms}ms`)),ms);
+  timer.unref?.();
+});
+
+const settleWithin = async (promise,ms) => {
+  try { return await Promise.race([promise,new Promise(resolve => setTimeout(resolve,ms))]); }
+  catch { return undefined; }
+};
+
 async function testCase(browser,{name,viewport,mobile}) {
   const stages = [];
   const errors = [];
   const warnings = [];
+  let context;
+  let page;
+
   const stage = async value => {
     stages.push({at:new Date().toISOString(),value});
-    console.log(`[${name}] ${value}`);
+    const line=`[${new Date().toISOString()}] ${name}: ${value}`;
+    console.log(line);
     await fs.writeFile(path.join(OUT,`${name}-stages.json`),JSON.stringify(stages,null,2));
+    await fs.appendFile(path.join(OUT,'runner-stage.log'),`${line}\n`);
   };
 
-  const context = await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1,locale:'zh-TW',serviceWorkers:'block'});
-  await context.addInitScript(() => { try{localStorage.clear();sessionStorage.clear();}catch{} });
-  await context.route('**/*',route => {
-    try {
-      const target = new URL(route.request().url());
-      if (['127.0.0.1','localhost'].includes(target.hostname) || ['data:','blob:'].includes(target.protocol)) return route.continue();
-      return route.abort('blockedbyclient');
-    } catch { return route.continue(); }
-  });
+  const execute = async () => {
+    await stage('create-context');
+    context = await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1,locale:'zh-TW',serviceWorkers:'block'});
+    await context.addInitScript(() => { try{localStorage.clear();sessionStorage.clear();}catch{} });
+    await context.route('**/*',route => {
+      try {
+        const target = new URL(route.request().url());
+        if (['127.0.0.1','localhost'].includes(target.hostname) || ['data:','blob:'].includes(target.protocol)) return route.continue();
+        return route.abort('blockedbyclient');
+      } catch { return route.continue(); }
+    });
 
-  const page = await context.newPage();
-  page.setDefaultTimeout(12000);
-  page.on('pageerror',error => { if(!ignored(error.message)) errors.push(error.stack || error.message); });
-  page.on('console',message => {
-    const text=message.text();
-    if(message.type()==='error'&&!ignored(text)) errors.push(text);
-    if(message.type()==='warning'&&!ignored(text)) warnings.push(text);
-  });
+    await stage('create-page');
+    page = await context.newPage();
+    page.setDefaultTimeout(12000);
+    page.on('pageerror',error => { if(!ignored(error.message)) errors.push(error.stack || error.message); });
+    page.on('console',message => {
+      const text=message.text();
+      if(message.type()==='error'&&!ignored(text)) errors.push(text);
+      if(message.type()==='warning'&&!ignored(text)) warnings.push(text);
+    });
 
-  try {
     await stage('navigate');
     await page.goto(URL,{waitUntil:'commit',timeout:15000});
     await stage('wait-runtime');
@@ -118,21 +137,29 @@ async function testCase(browser,{name,viewport,mobile}) {
     if(errors.length) throw new Error(`browser errors: ${errors.join(' | ')}`);
 
     await stage('screenshot');
-    await page.screenshot({path:path.join(OUT,`${name}-passed.png`),animations:'disabled'});
+    await page.screenshot({path:path.join(OUT,`${name}-passed.png`),animations:'disabled',timeout:10000});
     await stage('passed');
     return {name,layout,initial,movedX,deck,final,warnings:warnings.slice(-10)};
+  };
+
+  try {
+    return await Promise.race([execute(),timeoutAfter(CASE_TIMEOUT,`${name} case`)]);
   } catch(error) {
-    await page.screenshot({path:path.join(OUT,`${name}-failed.png`),animations:'disabled'}).catch(()=>{});
+    await stage(`failed:${error.message}`).catch(()=>{});
+    if(page && !page.isClosed()) await settleWithin(page.screenshot({path:path.join(OUT,`${name}-failed.png`),animations:'disabled',timeout:5000}).catch(()=>{}),6000);
     await fs.writeFile(path.join(OUT,`${name}-failure.json`),JSON.stringify({stage:stages.at(-1)?.value,error:error.stack||String(error),errors,warnings},null,2));
     throw error;
   } finally {
-    await context.close().catch(()=>{});
+    if(context) await settleWithin(context.close().catch(()=>{}),5000);
   }
 }
 
-const browser=await chromium.launch({headless:true});
+let browser;
 const results=[];
 try{
+  await fs.appendFile(path.join(OUT,'runner-stage.log'),`[${new Date().toISOString()}] browser-launch\n`);
+  browser=await chromium.launch({headless:true,timeout:15000,args:['--no-sandbox','--disable-dev-shm-usage']});
+  await fs.appendFile(path.join(OUT,'runner-stage.log'),`[${new Date().toISOString()}] browser-launched\n`);
   results.push(await testCase(browser,{name:'desktop',viewport:{width:1440,height:1000},mobile:false}));
   results.push(await testCase(browser,{name:'mobile',viewport:{width:390,height:844},mobile:true}));
   await fs.writeFile(path.join(OUT,'summary.json'),JSON.stringify({ok:true,results},null,2));
@@ -142,5 +169,8 @@ try{
   console.error(error);
   process.exitCode=1;
 }finally{
-  await browser.close().catch(()=>{});
+  if(browser) await settleWithin(browser.close().catch(()=>{}),5000);
+  await fs.appendFile(path.join(OUT,'runner-stage.log'),`[${new Date().toISOString()}] runner-finished code=${process.exitCode||0}\n`);
 }
+
+setTimeout(() => process.exit(process.exitCode || 0),25);
