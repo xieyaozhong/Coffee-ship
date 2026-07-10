@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="abyss-auction-event.css?v=auction-ship-1">
 <link rel="stylesheet" href="ocean-friends-qte.css?v=ocean-qte-1">
 <link rel="stylesheet" href="salvage-qte.css?v=salvage-qte-1">
+<link rel="stylesheet" href="runtime-core-v2.css?v=runtime-2">
 </head>
 <body>
 <main class="shell">
@@ -35,7 +36,7 @@
 </div><p class="hint">方向鍵或 WASD 移動，靠近人物按互動。</p></section>
 <section id="gamePanel" class="panel game-panel hidden"><div class="game-topbar"><div><strong id="avatarName">Guest</strong><span id="coffeeBadge">🦪 0 · 尚無咖啡效果</span></div><div class="controls">WASD / 方向鍵移動 · C 咖啡 · E 互動 · B 留言</div></div><canvas id="game" width="960" height="576"></canvas><div class="mobile-controls"><button data-move="up" aria-label="向上移動">▲</button><div><button data-move="left" aria-label="向左移動">◀</button><button data-move="down" aria-label="向下移動">▼</button><button data-move="right" aria-label="向右移動">▶</button></div><button id="coffeeBtn" aria-label="開啟咖啡選單"><span class="mobile-action-content"><span class="mobile-action-icon">☕</span><span class="mobile-action-label">咖啡</span></span></button><button id="sitBtn" aria-label="互動或坐下"><span class="mobile-action-content"><span class="mobile-action-icon">✋</span><span class="mobile-action-label">互動</span></span></button><button id="messageBtn" aria-label="開啟留言板"><span class="mobile-action-content"><span class="mobile-action-icon">💬</span><span class="mobile-action-label">留言</span></span></button><button id="emoteBtn" aria-label="使用表情"><span class="mobile-action-content"><span class="mobile-action-icon">✨</span><span class="mobile-action-label">表情</span></span></button></div><aside id="coffeeMenu" class="coffee-menu hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">MOMO'S PEARL COFFEE BAR</p><h2>Momo 的效果咖啡</h2></div><button id="closeCoffeeMenuBtn" class="ghost-btn">關閉</button></div><p class="board-note">出售漁獲獲得珍珠，再用珍珠購買限時效果咖啡。</p><div id="coffeeOptions" class="coffee-options"></div></aside><aside id="messageBoard" class="message-board hidden" aria-live="polite"><div class="board-head"><div><p class="eyebrow">SHIP MESSAGE BOARD</p><h2>船上留言板</h2></div><button id="closeBoardBtn" class="ghost-btn">關閉</button></div><p class="board-note">不同裝置會同步看到留言。</p><div id="messagesList" class="messages-list"></div><form id="messageForm" class="message-form"><textarea id="messageInput" maxlength="120" placeholder="寫一句留在 Coffee Ship 的話……"></textarea><button type="submit">貼到留言板</button></form></aside></section>
 </main>
-<script src="game-optimizer.js?v=optimizer-1"></script>
+<script src="game-optimizer.js?v=optimizer-2"></script>
 <script src="firebase-config.js"></script>
 <script src="economy-core.js?v=economy-1"></script>
 <script src="mermaid-lyrics-bottles.js?v=lyrics-8"></script>
@@ -60,7 +61,6 @@
 <script src="mutant-creatures.js?v=mutant-hunt-5"></script>
 <script src="stability-patch.js?v=loader-v14"></script>
 <script src="ocean-friends-qte.js?v=ocean-qte-1"></script>
-<script src="ocean-friends-qte-bridge.js?v=ocean-qte-bridge-2"></script>
 <script src="salvage-qte.js?v=salvage-qte-1"></script>
 <script src="expanded-events-qte-router.js?v=qte-router-2"></script>
 <script src="coral-roulette-event.js?v=coral-roulette-2"></script>
@@ -72,5 +72,6 @@
 <script src="multiplayer-role-sync.js?v=core-v7"></script>
 <script src="desktop-role-ability.js?v=deck-entry-3"></script>
 <script src="mobile-controls-runtime-fix.js?v=controls-runtime-3"></script>
+<script src="runtime-core-v2.js?v=runtime-2"></script>
 </body>
 </html>
