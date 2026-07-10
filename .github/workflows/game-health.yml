@@ -1,0 +1,69 @@
+name: Coffee Ship Game Health
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coffee-ship-game-health-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: JavaScript syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -maxdepth 1 -type f -name '*.js' -print0 | sort -z | xargs -0 -n1 node --check
+          node --check tests/game-smoke.mjs
+
+      - name: Install browser runner
+        run: |
+          npm install --no-save playwright@1.54.1
+          npx playwright install --with-deps chromium
+
+      - name: Start local game server
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/coffee-ship-http.log 2>&1 &
+          echo $! > /tmp/coffee-ship-http.pid
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/index.html > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/coffee-ship-http.log
+          exit 1
+
+      - name: Desktop and mobile smoke tests
+        env:
+          COFFEE_SHIP_URL: http://127.0.0.1:4173/index.html
+        run: node tests/game-smoke.mjs
+
+      - name: Upload browser reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coffee-ship-game-health-${{ github.run_number }}
+          path: |
+            test-results
+            /tmp/coffee-ship-http.log
+          if-no-files-found: warn
+          retention-days: 14
