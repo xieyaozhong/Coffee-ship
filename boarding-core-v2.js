@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_BOARDING_CORE_V4__) return;
-  window.__COFFEE_SHIP_BOARDING_CORE_V4__ = true;
+  if (window.__COFFEE_SHIP_BOARDING_CORE_V5__) return;
+  window.__COFFEE_SHIP_BOARDING_CORE_V5__ = true;
 
   const AVATAR_KEY='coffeeShipAvatar';
   const ANIMAL_KEY='coffeeShipAnimal';
@@ -10,7 +10,13 @@
   const RANDOM_NAMES=['拿鐵旅人','漂流豆豆','星光客人','小小船員','焦糖小豬','雲朵咖啡','午夜兔兔','微笑熊熊'];
   let entering=false;
   let entered=false;
+  let queued=false;
   let lastPointerBoarding=0;
+
+  function mark(stage,extra={}) {
+    document.body.dataset.boardingStage=stage;
+    window.COFFEE_SHIP_BOARDING_TRACE={stage,at:Date.now(),...extra};
+  }
 
   function readJson(key,fallback={}) {
     try { return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback)); }
@@ -44,16 +50,18 @@
 
   function notifyModules(avatar,source) {
     setTimeout(()=>{
+      mark('notifying',{source});
       for(const [name,detail] of [
-        ['coffee-ship:entered',{source,avatar,boardingVersion:4}],
+        ['coffee-ship:entered',{source,avatar,boardingVersion:5}],
         ['coffee-ship:scene',{scene:'cafe',source:'boarding-core'}],
-        ['coffee-ship:boarding-complete',{source,avatar,version:4}]
+        ['coffee-ship:boarding-complete',{source,avatar,version:5}]
       ]){
         try{window.dispatchEvent(new CustomEvent(name,{detail}));}
         catch(error){console.warn(`${name} listener failed`,error);}
       }
       try{window.COFFEE_SHIP_RUNTIME?.repair?.('boarding-complete');}
       catch(error){console.warn('boarding runtime repair failed',error);}
+      mark('complete',{source});
     },0);
   }
 
@@ -70,21 +78,25 @@
     };
   }
 
-  function applyAvatar(avatar) {
-    const player=window.COFFEE_SHIP_GAME_API?.player;
-    if(player){
-      Object.assign(player,{name:avatar.name,hair:avatar.hair,shirt:avatar.shirt,animal:avatar.animal,coffeeType:avatar.coffeeType,hasCoffee:!!window.COFFEE_SHIP_COFFEE_EFFECT});
-    }
+  function persistAvatar(avatar) {
     localStorage.setItem(AVATAR_KEY,JSON.stringify(avatar));
     localStorage.setItem(ANIMAL_KEY,avatar.animal);
     const input=document.getElementById('playerName');
     if(input)input.value=avatar.name;
   }
 
+  function applyAvatarToPlayer(avatar) {
+    const player=window.COFFEE_SHIP_GAME_API?.player;
+    if(player){
+      Object.assign(player,{name:avatar.name,hair:avatar.hair,shirt:avatar.shirt,animal:avatar.animal,coffeeType:avatar.coffeeType,hasCoffee:!!window.COFFEE_SHIP_COFFEE_EFFECT});
+    }
+  }
+
   function showGame(avatar,source) {
     const creator=document.getElementById('creator');
     const gamePanel=document.getElementById('gamePanel');
     if(!creator||!gamePanel)return false;
+    mark('showing-game',{source});
     creator.classList.add('hidden');
     gamePanel.classList.remove('hidden');
     for(const property of ['display','visibility','opacity','height','min-height'])gamePanel.style.removeProperty(property);
@@ -100,27 +112,44 @@
     if(status)status.textContent='本機模式・已登船';
     const mood=document.getElementById('moodDot');
     if(mood)mood.style.background='#79d0b1';
-    notifyModules(avatar,source);
+    mark('game-visible',{source});
     return true;
   }
 
-  function enter(source='button') {
+  function performEnter(source='button') {
     if(entering)return false;
     const creator=document.getElementById('creator');
     const gamePanel=document.getElementById('gamePanel');
-    if(!creator||!gamePanel)return false;
+    if(!creator||!gamePanel){mark('missing-dom',{source});return false;}
     if(entered&&creator.classList.contains('hidden')&&!gamePanel.classList.contains('hidden'))return true;
     entering=true;
     try{
+      mark('building-avatar',{source});
       const avatar=buildAvatar();
-      applyAvatar(avatar);
+      mark('persisting-avatar',{source});
+      persistAvatar(avatar);
+      mark('applying-avatar',{source});
+      applyAvatarToPlayer(avatar);
       entered=showGame(avatar,source);
+      if(entered)notifyModules(avatar,source);
       return entered;
     }catch(error){
+      mark('failed',{source,message:String(error?.message||error)});
       console.error('boarding core failed',error);
       setTimeout(()=>window.COFFEE_SHIP_RUNTIME?.toast?.('登船資料修復中，請再按一次登船。','error',3200),0);
       return false;
-    }finally{entering=false;}
+    }finally{
+      entering=false;
+      queued=false;
+    }
+  }
+
+  function enter(source='button') {
+    if(queued||entering)return false;
+    queued=true;
+    mark('queued',{source});
+    setTimeout(()=>performEnter(source),0);
+    return true;
   }
 
   function interceptClick(event) {
@@ -137,21 +166,25 @@
     button.id='startBtn';
     button.type='button';
     button.disabled=false;
-    button.dataset.boardingCore='4';
+    button.dataset.boardingCore='5';
     oldButton.replaceWith(button);
-
-    button.addEventListener('pointerup',event=>{
+    button.onpointerup=event=>{
       event.preventDefault();
       event.stopImmediatePropagation();
       lastPointerBoarding=Date.now();
       enter('pointer');
-    },true);
-    button.addEventListener('keydown',event=>{
+    };
+    button.onclick=event=>{
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if(Date.now()-lastPointerBoarding>500)enter('click');
+    };
+    button.onkeydown=event=>{
       if(event.key!=='Enter'&&event.key!==' ')return;
       event.preventDefault();
       event.stopImmediatePropagation();
       enter('keyboard');
-    },true);
+    };
     return button;
   }
 
@@ -160,7 +193,7 @@
     if(!old)return;
     const button=old.cloneNode(true);
     old.replaceWith(button);
-    button.addEventListener('pointerup',event=>{
+    button.onpointerup=event=>{
       event.preventDefault();
       event.stopImmediatePropagation();
       const animal=ANIMALS[Math.floor(Math.random()*ANIMALS.length)];
@@ -170,7 +203,7 @@
       const input=document.getElementById('playerName');
       if(input)input.value=name;
       enter('random-animal');
-    },true);
+    };
   }
 
   function resumeSavedAvatar() {
@@ -179,8 +212,10 @@
     const avatar=readJson(AVATAR_KEY,null);
     if(!avatar||!creator||!gamePanel)return;
     if(document.body.classList.contains('coffee-ship-entered')&&gamePanel.classList.contains('hidden')){
-      applyAvatar({...avatar,name:cleanName(avatar.name)});
+      persistAvatar({...avatar,name:cleanName(avatar.name)});
+      applyAvatarToPlayer(avatar);
       entered=showGame(avatar,'resume-repair');
+      if(entered)notifyModules(avatar,'resume-repair');
     }
   }
 
@@ -189,8 +224,9 @@
     rebuildRandomButton();
     document.addEventListener('click',interceptClick,true);
     resumeSavedAvatar();
-    window.COFFEE_SHIP_BOARDING={enter,rebuild:rebuildStartButton,state:()=>({entering,entered}),version:4};
-    setTimeout(()=>window.dispatchEvent(new CustomEvent('coffee-ship:boarding-ready',{detail:{version:4}})),0);
+    window.COFFEE_SHIP_BOARDING={enter,performEnter,rebuild:rebuildStartButton,state:()=>({queued,entering,entered,trace:window.COFFEE_SHIP_BOARDING_TRACE}),version:5};
+    mark('ready');
+    setTimeout(()=>window.dispatchEvent(new CustomEvent('coffee-ship:boarding-ready',{detail:{version:5}})),0);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
