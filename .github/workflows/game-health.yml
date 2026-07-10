@@ -57,9 +57,18 @@ jobs:
 
       - name: Desktop and mobile runtime tests
         timeout-minutes: 3
+        shell: bash
         env:
           COFFEE_SHIP_URL: http://127.0.0.1:4173/index.html
-        run: node tests/game-runtime-smoke.mjs
+        run: |
+          set +e
+          mkdir -p test-results
+          echo "workflow-test-start $(date -u +%FT%TZ)" > test-results/workflow-stage.log
+          timeout --signal=TERM --kill-after=10s 120s node tests/game-runtime-smoke.mjs 2>&1 | tee test-results/runtime-console.log
+          status=${PIPESTATUS[0]}
+          echo "workflow-test-finish status=${status} $(date -u +%FT%TZ)" >> test-results/workflow-stage.log
+          echo "runtime test exit status: ${status}"
+          exit ${status}
 
       - name: Upload browser reports
         if: always()
