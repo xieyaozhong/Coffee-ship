@@ -1,11 +1,12 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_BOARDING_CORE_V5_2__) return;
-  window.__COFFEE_SHIP_BOARDING_CORE_V5_2__ = true;
+  if (window.__COFFEE_SHIP_BOARDING_CORE_V5_3__) return;
+  window.__COFFEE_SHIP_BOARDING_CORE_V5_3__ = true;
 
   const AVATAR_KEY='coffeeShipAvatar';
   const ANIMAL_KEY='coffeeShipAnimal';
   const ROLE_KEY='coffeeShipRole';
+  const schedule=window.setTimeout.bind(window);
   const ANIMALS=['human','cat','dog','rabbit','fox','bear','penguin','pig'];
   const RANDOM_NAMES=['拿鐵旅人','漂流豆豆','星光客人','小小船員','焦糖小豬','雲朵咖啡','午夜兔兔','微笑熊熊'];
   let entering=false;
@@ -49,7 +50,7 @@
   }
 
   function notifyModules(avatar,source) {
-    setTimeout(()=>{
+    schedule(()=>{
       mark('notifying',{source});
       for(const [name,detail] of [
         ['coffee-ship:entered',{source,avatar,boardingVersion:5}],
@@ -126,7 +127,7 @@
     }catch(error){
       mark('failed',{source,message:String(error?.message||error)});
       console.error('boarding core failed',error);
-      setTimeout(()=>window.COFFEE_SHIP_RUNTIME?.toast?.('登船資料修復中，請再按一次登船。','error',3200),0);
+      schedule(()=>window.COFFEE_SHIP_RUNTIME?.toast?.('登船資料修復中，請再按一次登船。','error',3200),0);
     }finally{
       entering=false;
       queued=false;
@@ -146,7 +147,7 @@
       mark('persisting-avatar',{source});
       persistAvatar(avatar);
       mark('avatar-persisted',{source});
-      setTimeout(()=>finishEnter(avatar,source),80);
+      schedule(()=>finishEnter(avatar,source),80);
       return true;
     }catch(error){
       mark('failed',{source,message:String(error?.message||error)});
@@ -161,7 +162,7 @@
     if(queued||entering)return false;
     queued=true;
     mark('queued',{source});
-    setTimeout(()=>beginEnter(source),150);
+    schedule(()=>beginEnter(source),150);
     return true;
   }
 
@@ -239,7 +240,7 @@
     resumeSavedAvatar();
     window.COFFEE_SHIP_BOARDING={enter,beginEnter,finishEnter,rebuild:rebuildStartButton,state:()=>({queued,entering,entered,trace:window.COFFEE_SHIP_BOARDING_TRACE}),version:5};
     mark('ready');
-    setTimeout(()=>window.dispatchEvent(new CustomEvent('coffee-ship:boarding-ready',{detail:{version:5}})),0);
+    schedule(()=>window.dispatchEvent(new CustomEvent('coffee-ship:boarding-ready',{detail:{version:5}})),0);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
