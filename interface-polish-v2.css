@@ -1,0 +1,330 @@
+/* Coffee Ship interface polish v2 */
+:root{
+  --ui-surface:rgba(31,23,39,.94);
+  --ui-surface-soft:rgba(255,255,255,.045);
+  --ui-line:rgba(255,255,255,.085);
+  --ui-ink:#fff6e6;
+  --ui-muted:rgba(255,246,230,.68);
+  --ui-mint:#79d0b1;
+  --ui-gold:#f0ce86;
+  --ui-violet:#b99cff;
+  --ui-shadow:0 20px 54px rgba(0,0,0,.26);
+}
+
+body.cs-interface-polish-v2{
+  background:
+    radial-gradient(circle at 14% 0%,rgba(110,64,100,.32),transparent 30%),
+    radial-gradient(circle at 88% 4%,rgba(54,84,123,.28),transparent 28%),
+    linear-gradient(180deg,#120d1b 0%,#1b1020 58%,#100b16 100%);
+}
+
+.cs-interface-polish-v2 .shell{
+  width:min(1180px,calc(100% - 28px));
+  padding-bottom:56px;
+}
+
+.cs-interface-polish-v2 .hero{
+  align-items:center;
+  margin-bottom:16px;
+  padding:4px 2px;
+}
+.cs-interface-polish-v2 .hero h1{
+  font-size:clamp(44px,6vw,76px);
+  letter-spacing:-.045em;
+}
+.cs-interface-polish-v2 .tagline{
+  max-width:620px;
+  margin-top:12px;
+  color:var(--ui-muted);
+  line-height:1.55;
+}
+.cs-interface-polish-v2 .status-card{
+  min-width:196px;
+  padding:12px 14px;
+  border:1px solid var(--ui-line)!important;
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(33,24,42,.96),rgba(18,13,25,.96));
+  box-shadow:0 12px 28px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.025)!important;
+}
+
+.cs-interface-polish-v2 .panel{
+  border-width:1px!important;
+  border-radius:22px!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 22%),
+    linear-gradient(180deg,rgba(48,35,55,.97),rgba(30,21,35,.98))!important;
+  box-shadow:var(--ui-shadow),inset 0 0 0 1px rgba(255,255,255,.025)!important;
+}
+
+.cs-interface-polish-v2 #loginInterface{
+  gap:18px;
+}
+.cs-interface-polish-v2 .login-visual,
+.cs-interface-polish-v2 .login-controls{
+  border-color:var(--ui-line)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+}
+.cs-interface-polish-v2 .login-preview-card{
+  border-color:rgba(240,206,134,.20)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.10))!important;
+}
+.cs-interface-polish-v2 .login-mode-tabs{
+  padding:4px;
+  border-radius:15px;
+  background:rgba(8,6,12,.28);
+  border:1px solid var(--ui-line);
+}
+.cs-interface-polish-v2 .login-mode-tab{
+  min-height:44px;
+  border-radius:11px!important;
+}
+.cs-interface-polish-v2 .login-role-card{
+  min-height:66px;
+  border-color:var(--ui-line)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025))!important;
+}
+.cs-interface-polish-v2 .login-role-card:hover{
+  border-color:rgba(121,208,177,.34)!important;
+  transform:translateY(-1px);
+}
+
+.cs-interface-polish-v2 .game-panel{
+  padding:14px!important;
+  overflow:visible;
+}
+.cs-interface-polish-v2 .game-topbar{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  margin:0 0 12px;
+  padding:10px 12px;
+  border:1px solid var(--ui-line);
+  border-radius:15px;
+  background:linear-gradient(180deg,rgba(24,18,31,.92),rgba(14,11,20,.92));
+  box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.cs-interface-polish-v2 .game-topbar::after{display:none!important}
+.cs-interface-polish-v2 .game-topbar>div:first-child{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.cs-interface-polish-v2 #avatarName{
+  margin:0;
+  font-size:18px;
+  letter-spacing:.01em;
+}
+.cs-interface-polish-v2 #coffeeBadge{
+  max-width:100%;
+  overflow:hidden;
+  padding:6px 10px;
+  border-color:rgba(240,206,134,.20)!important;
+  background:rgba(240,206,134,.065);
+  color:#ffe8b3;
+  font-size:12px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.cs-interface-polish-v2 .controls{
+  color:var(--ui-muted);
+  font-size:12px;
+  white-space:nowrap;
+}
+.cs-interface-polish-v2 #game{
+  border:1px solid rgba(185,156,255,.24)!important;
+  border-radius:18px!important;
+  background:#120e19;
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.28),
+    0 0 0 4px rgba(255,255,255,.018),
+    0 0 36px rgba(87,73,130,.12);
+}
+
+.cs-game-context{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+  margin-top:-2px;
+}
+.cs-context-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:25px;
+  padding:0 9px;
+  border:1px solid var(--ui-line);
+  border-radius:999px;
+  background:var(--ui-surface-soft);
+  color:var(--ui-muted);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.025em;
+}
+.cs-context-chip::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--ui-mint);
+  box-shadow:0 0 8px rgba(121,208,177,.62);
+}
+.cs-context-chip[data-state="offline"]::before{
+  background:#ff8f9f;
+  box-shadow:0 0 8px rgba(255,143,159,.58);
+}
+.cs-context-chip[data-kind="scene"]::before{
+  background:var(--ui-violet);
+  box-shadow:0 0 8px rgba(185,156,255,.58);
+}
+
+.cs-interface-polish-v2 #operationDock{
+  margin-top:12px!important;
+}
+.cs-interface-polish-v2 #operationDock .op-dock-toolbar,
+.cs-interface-polish-v2 #operationDock .op-card{
+  border-color:var(--ui-line)!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 30%),
+    linear-gradient(180deg,rgba(30,22,38,.97),rgba(16,12,23,.98))!important;
+}
+.cs-interface-polish-v2 #operationDock .op-dock-toolbar{
+  box-shadow:0 12px 26px rgba(0,0,0,.19),inset 0 0 0 1px rgba(255,255,255,.02)!important;
+}
+.cs-interface-polish-v2 #operationDock .op-stat,
+.cs-interface-polish-v2 #operationDock .op-panel-pill,
+.cs-interface-polish-v2 #operationDock .op-key{
+  border-color:rgba(255,255,255,.055)!important;
+  background:rgba(255,255,255,.04)!important;
+}
+
+.cs-interface-polish-v2 .coffee-menu,
+.cs-interface-polish-v2 .message-board{
+  border-width:1px!important;
+  border-color:var(--ui-line)!important;
+  border-radius:18px!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),transparent 24%),
+    linear-gradient(180deg,rgba(31,23,39,.985),rgba(17,12,24,.99))!important;
+  box-shadow:0 22px 54px rgba(0,0,0,.30),inset 0 0 0 1px rgba(255,255,255,.025)!important;
+}
+.cs-interface-polish-v2 .board-head{
+  align-items:center;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.cs-interface-polish-v2 .board-head h2{
+  font-size:20px;
+  letter-spacing:-.02em;
+}
+.cs-interface-polish-v2 .board-note{
+  margin-top:11px;
+  color:var(--ui-muted);
+}
+.cs-interface-polish-v2 .coffee-options{
+  gap:10px;
+}
+.cs-interface-polish-v2 .coffee-option,
+.cs-interface-polish-v2 .message-card{
+  border-width:1px!important;
+  border-color:var(--ui-line)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025))!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.15)!important;
+}
+.cs-interface-polish-v2 .coffee-option:hover{
+  border-color:rgba(240,206,134,.30)!important;
+  transform:translateY(-1px);
+}
+.cs-interface-polish-v2 .message-form{
+  align-items:end;
+}
+
+.cs-interface-polish-v2 *{
+  scrollbar-color:rgba(121,208,177,.34) rgba(255,255,255,.035);
+  scrollbar-width:thin;
+}
+.cs-interface-polish-v2 *::-webkit-scrollbar{width:8px;height:8px}
+.cs-interface-polish-v2 *::-webkit-scrollbar-track{background:rgba(255,255,255,.025);border-radius:999px}
+.cs-interface-polish-v2 *::-webkit-scrollbar-thumb{background:rgba(121,208,177,.32);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+
+@media(max-width:760px){
+  .cs-interface-polish-v2 .shell{
+    width:min(100%,460px);
+    padding:8px 8px max(24px,var(--cs-safe-bottom,0px));
+  }
+  .cs-interface-polish-v2 .hero{
+    display:flex!important;
+    justify-content:center;
+    min-height:36px;
+    margin-bottom:7px;
+    text-align:center;
+  }
+  .cs-interface-polish-v2 .hero>div:first-child{display:block}
+  .cs-interface-polish-v2 .hero .eyebrow,
+  .cs-interface-polish-v2 .hero .tagline,
+  .cs-interface-polish-v2 .hero .status-card{display:none!important}
+  .cs-interface-polish-v2 .hero h1{
+    margin:0;
+    font-size:25px;
+    line-height:1;
+    letter-spacing:-.035em;
+  }
+  .cs-interface-polish-v2 .panel{
+    border-radius:16px!important;
+    padding:12px!important;
+  }
+  .cs-interface-polish-v2 #loginInterface{gap:10px}
+  .cs-interface-polish-v2 .game-panel{padding:8px!important}
+  .cs-interface-polish-v2 .game-topbar{
+    grid-template-columns:1fr;
+    gap:7px;
+    margin-bottom:8px;
+    padding:8px 9px;
+    border-radius:13px;
+  }
+  .cs-interface-polish-v2 .game-topbar>div:first-child{gap:6px}
+  .cs-interface-polish-v2 #avatarName{font-size:15px}
+  .cs-interface-polish-v2 #coffeeBadge{padding:5px 8px;font-size:10px}
+  .cs-interface-polish-v2 .controls{display:none!important}
+  .cs-game-context{margin-top:0;overflow:auto;padding-bottom:1px}
+  .cs-context-chip{flex:0 0 auto;min-height:23px;font-size:9px}
+  .cs-interface-polish-v2 #game{
+    border-radius:14px!important;
+    box-shadow:0 12px 24px rgba(0,0,0,.25),0 0 0 3px rgba(255,255,255,.015);
+  }
+  .cs-interface-polish-v2 .mobile-controls{
+    margin-top:8px!important;
+    border-radius:15px!important;
+  }
+  .cs-interface-polish-v2 #operationDock{margin-top:8px!important}
+  .cs-interface-polish-v2 .coffee-menu,
+  .cs-interface-polish-v2 .message-board{
+    margin-top:10px;
+    padding:12px!important;
+    border-radius:15px!important;
+  }
+  .cs-interface-polish-v2 .board-head h2{font-size:18px}
+  .cs-interface-polish-v2 .board-note{font-size:12px;line-height:1.5}
+  .cs-interface-polish-v2 .coffee-option,
+  .cs-interface-polish-v2 .message-card{border-radius:13px!important}
+}
+
+@media(max-width:380px){
+  .cs-interface-polish-v2 .shell{padding-inline:6px}
+  .cs-interface-polish-v2 .panel{padding:9px!important}
+  .cs-interface-polish-v2 .game-panel{padding:6px!important}
+  .cs-interface-polish-v2 #coffeeBadge{max-width:210px}
+}
+
+@media(prefers-reduced-motion:no-preference){
+  .cs-interface-polish-v2 .panel,
+  .cs-interface-polish-v2 .coffee-option,
+  .cs-interface-polish-v2 .login-role-card{
+    transition:border-color .16s ease,transform .16s ease,box-shadow .16s ease;
+  }
+}
