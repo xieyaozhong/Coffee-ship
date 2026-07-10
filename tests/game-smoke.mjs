@@ -22,11 +22,17 @@ function ignored(message) {
   return ignoredMessages.some(pattern => pattern.test(String(message || '')));
 }
 
-function checkpoint(name,step,extra='') {
-  console.log(`[${name}] ${step}${extra ? ` | ${extra}` : ''}`);
-}
-
 async function runCase(browser,config) {
+  const stageFile = path.join(RESULT_DIR,`${config.name}-stages.log`);
+  let stage = 'create context';
+  async function checkpoint(next,extra='') {
+    stage = next;
+    const line = `[${new Date().toISOString()}] ${config.name}: ${next}${extra ? ` | ${extra}` : ''}`;
+    console.log(line);
+    await fs.appendFile(stageFile,`${line}\n`);
+  }
+
+  await checkpoint(stage);
   const context = await browser.newContext({
     viewport:config.viewport,
     isMobile:config.mobile,
@@ -73,13 +79,13 @@ async function runCase(browser,config) {
   });
 
   try {
-    checkpoint(config.name,'navigate');
-    await page.goto(BASE_URL,{waitUntil:'domcontentloaded'});
+    await checkpoint('navigate');
+    await page.goto(BASE_URL,{waitUntil:'commit'});
 
-    checkpoint(config.name,'wait runtime');
-    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK && !!document.getElementById('startBtn'));
+    await checkpoint('wait runtime');
+    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK && !!document.getElementById('startBtn'),null,{timeout:20_000});
 
-    checkpoint(config.name,'enter game');
+    await checkpoint('enter game');
     await page.locator('#playerName').fill(config.mobile ? 'Mobile Tester' : 'Desktop Tester');
     await page.locator('#startBtn').click();
     await page.waitForFunction(() => {
@@ -87,7 +93,7 @@ async function runCase(browser,config) {
       return panel && !panel.classList.contains('hidden');
     });
 
-    checkpoint(config.name,'read initial health');
+    await checkpoint('read initial health');
     const initial = await page.evaluate(() => ({
       health:window.COFFEE_SHIP_RUNTIME.health(),
       x:window.COFFEE_SHIP_GAME_API?.player?.x,
@@ -99,7 +105,7 @@ async function runCase(browser,config) {
     if (!initial.canvas.width || !initial.canvas.height) throw new Error(`invalid canvas: ${JSON.stringify(initial.canvas)}`);
     if (initial.scene !== 'cafe') throw new Error(`unexpected initial scene: ${initial.scene}`);
 
-    checkpoint(config.name,'move player');
+    await checkpoint('move player');
     if (config.mobile) {
       const right = page.locator('[data-move="right"]');
       await right.dispatchEvent('pointerdown',{pointerId:7,pointerType:'touch',isPrimary:true});
@@ -114,7 +120,7 @@ async function runCase(browser,config) {
     const movedX = await page.evaluate(() => window.COFFEE_SHIP_GAME_API?.player?.x);
     if (!(Number(movedX) > Number(initial.x))) throw new Error(`player did not move: before=${initial.x}, after=${movedX}`);
 
-    checkpoint(config.name,'open deck');
+    await checkpoint('open deck');
     await page.evaluate(() => window.COFFEE_SHIP_DECK.switchToDeck());
     await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'deck');
     const deckState = await page.evaluate(() => ({
@@ -124,7 +130,7 @@ async function runCase(browser,config) {
     }));
     if (!deckState.open || deckState.overlayHidden) throw new Error(`deck failed: ${JSON.stringify(deckState)}`);
 
-    checkpoint(config.name,'return cafe');
+    await checkpoint('return cafe');
     await page.evaluate(() => window.COFFEE_SHIP_DECK.switchToCafe());
     await page.waitForFunction(() => document.body.dataset.coffeeShipScene === 'cafe');
     await page.waitForTimeout(250);
@@ -135,11 +141,11 @@ async function runCase(browser,config) {
     }));
     if (restoredCanvas.width < 900 || restoredCanvas.height < 500) throw new Error(`canvas did not restore: ${JSON.stringify(restoredCanvas)}`);
 
-    checkpoint(config.name,'capture result');
+    await checkpoint('capture result');
     await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-passed.png`),fullPage:false,animations:'disabled'});
     if (errors.length) throw new Error(`browser errors:\n${errors.join('\n')}`);
 
-    checkpoint(config.name,'passed');
+    await checkpoint('passed');
     return {
       name:config.name,
       health:restoredCanvas.health,
@@ -149,21 +155,29 @@ async function runCase(browser,config) {
       deckState
     };
   } catch (error) {
-    if (!page.isClosed()) await page.screenshot({path:path.join(RESULT_DIR,`${config.name}-failed.png`),fullPage:false,animations:'disabled'}).catch(() => {});
-    const finalError = deadlineExpired ? new Error(`${config.name} exceeded ${CASE_TIMEOUT_MS}ms hard deadline`) : error;
+    clearTimeout(deadline);
+    const finalError = deadlineExpired ? new Error(`${config.name} exceeded ${CASE_TIMEOUT_MS}ms at stage: ${stage}`) : error;
+    if (!page.isClosed()) {
+      await Promise.race([
+        page.screenshot({path:path.join(RESULT_DIR,`${config.name}-failed.png`),fullPage:false,animations:'disabled'}).catch(() => {}),
+        new Promise(resolve => setTimeout(resolve,3000))
+      ]);
+    }
     const report = {
       name:config.name,
+      stage,
       error:finalError.stack || finalError.message || String(finalError),
+      originalError:error?.stack || error?.message || String(error),
       errors,
       warnings,
       url:page.isClosed() ? 'page-closed-by-deadline' : page.url(),
-      html:page.isClosed() ? '' : await page.locator('body').innerText().catch(() => '')
+      html:page.isClosed() ? '' : await page.locator('body').innerText({timeout:2000}).catch(() => '')
     };
     await fs.writeFile(path.join(RESULT_DIR,`${config.name}-failure.json`),JSON.stringify(report,null,2));
     throw finalError;
   } finally {
     clearTimeout(deadline);
-    await context.close().catch(() => {});
+    await Promise.race([context.close().catch(() => {}),new Promise(resolve => setTimeout(resolve,3000))]);
   }
 }
 
@@ -179,5 +193,5 @@ try {
   console.error(error);
   process.exitCode = 1;
 } finally {
-  await browser.close().catch(() => {});
+  await Promise.race([browser.close().catch(() => {}),new Promise(resolve => setTimeout(resolve,3000))]);
 }
