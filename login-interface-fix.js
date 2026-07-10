@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_LOGIN_INTERFACE_V3__) return;
-  window.__COFFEE_SHIP_LOGIN_INTERFACE_V3__ = true;
+  if (window.__COFFEE_SHIP_LOGIN_INTERFACE_V4__) return;
+  window.__COFFEE_SHIP_LOGIN_INTERFACE_V4__ = true;
 
   const ANIMALS = {
     human:{emoji:'🙂',body:'#c96a4a',face:'#f0c7a0',accent:'#2b1d16'},
@@ -37,7 +37,7 @@
 
   function drawHuman(ctx,hair,shirt){
     const x=90,y=104;
-    ctx.fillStyle='rgba(8,11,20,.55)';ctx.beginPath();ctx.ellipse(x,y+42,30,9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(8,11,20,.55)';ctx.beginPath();ctx.ellipse(x,y+42,30,9,0,0,Math.PI*2);ctx.fill();
     px(ctx,x-13,y+16,10,22,'#242331');px(ctx,x+3,y+16,10,22,'#242331');
     px(ctx,x-18,y-10,36,31,shirt);px(ctx,x-22,y-5,7,22,'#f0c7a0');px(ctx,x+15,y-5,7,22,'#f0c7a0');
     px(ctx,x-12,y-34,24,22,'#f0c7a0');px(ctx,x-17,y-45,34,17,hair);px(ctx,x-19,y-36,8,20,hair);px(ctx,x+11,y-36,8,20,hair);
@@ -49,7 +49,7 @@
     const a=ANIMALS[key]||ANIMALS.human;
     if(key==='human'){drawHuman(ctx,'#2b1d16',shirt);return;}
     const x=90,y=106;
-    ctx.fillStyle='rgba(8,11,20,.55)';ctx.beginPath();ctx.ellipse(x,y+41,31,9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(8,11,20,.55)';ctx.beginPath();ctx.ellipse(x,y+41,31,9,0,0,Math.PI*2);ctx.fill();
     px(ctx,x-16,y-22,32,27,a.body);px(ctx,x-12,y-18,24,19,a.face);
     if(key==='rabbit'){
       px(ctx,x-13,y-50,8,30,a.body);px(ctx,x+5,y-50,8,30,a.body);px(ctx,x-10,y-45,3,21,a.accent);px(ctx,x+8,y-45,3,21,a.accent);
