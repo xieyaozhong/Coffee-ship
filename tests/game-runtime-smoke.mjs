@@ -63,7 +63,7 @@ async function testCase(browser,{name,viewport,mobile}) {
     await stage('navigate');
     await page.goto(URL,{waitUntil:'commit',timeout:15000});
     await stage('wait-runtime');
-    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK && !!window.COFFEE_SHIP_GAME_API,{timeout:20000});
+    await page.waitForFunction(() => !!window.COFFEE_SHIP_RUNTIME && !!window.COFFEE_SHIP_DECK && !!window.COFFEE_SHIP_GAME_API && !!window.COFFEE_SHIP_BOARDING,{timeout:20000});
 
     await stage('login-layout');
     const layout = await page.evaluate(() => {
@@ -77,19 +77,31 @@ async function testCase(browser,{name,viewport,mobile}) {
         visibility:style?.visibility,
         creatorClass:document.getElementById('creator')?.className,
         bodyClass:document.body.className,
-        hasAvatar:!!localStorage.getItem('coffeeShipAvatar')
+        hasAvatar:!!localStorage.getItem('coffeeShipAvatar'),
+        boardingVersion:window.COFFEE_SHIP_BOARDING?.version,
+        buttonVersion:document.getElementById('startBtn')?.dataset?.boardingCore
       };
     });
     await fs.writeFile(path.join(OUT,`${name}-layout.json`),JSON.stringify(layout,null,2));
     if(!layout.visible) throw new Error(`login input is not visible: ${JSON.stringify(layout)}`);
+    if(Number(layout.boardingVersion)<4 || layout.buttonVersion!=='4') throw new Error(`boarding core not attached: ${JSON.stringify(layout)}`);
 
     await stage('board');
-    await page.evaluate(testName => {
+    const boardResult=await page.evaluate(testName => {
       const input=document.getElementById('playerName');
       input.value=testName;
       input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:testName}));
-      document.getElementById('startBtn')?.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+      const button=document.getElementById('startBtn');
+      const dispatched=button?.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,cancelable:true,pointerId:21,pointerType:'touch',isPrimary:true}));
+      return {
+        dispatched,
+        creatorHidden:document.getElementById('creator')?.classList.contains('hidden'),
+        gameHidden:document.getElementById('gamePanel')?.classList.contains('hidden'),
+        avatar:localStorage.getItem('coffeeShipAvatar'),
+        boardingState:window.COFFEE_SHIP_BOARDING?.state?.()
+      };
     },mobile?'Mobile Tester':'Desktop Tester');
+    await fs.writeFile(path.join(OUT,`${name}-boarding.json`),JSON.stringify(boardResult,null,2));
     await page.waitForFunction(() => !document.getElementById('gamePanel')?.classList.contains('hidden'),{timeout:12000});
 
     await stage('health');
@@ -139,7 +151,7 @@ async function testCase(browser,{name,viewport,mobile}) {
     await stage('screenshot');
     await page.screenshot({path:path.join(OUT,`${name}-passed.png`),animations:'disabled',timeout:10000});
     await stage('passed');
-    return {name,layout,initial,movedX,deck,final,warnings:warnings.slice(-10)};
+    return {name,layout,boardResult,initial,movedX,deck,final,warnings:warnings.slice(-10)};
   };
 
   try {
