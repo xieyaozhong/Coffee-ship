@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_BOARDING_CORE_V5_1__) return;
-  window.__COFFEE_SHIP_BOARDING_CORE_V5_1__ = true;
+  if (window.__COFFEE_SHIP_BOARDING_CORE_V5_2__) return;
+  window.__COFFEE_SHIP_BOARDING_CORE_V5_2__ = true;
 
   const AVATAR_KEY='coffeeShipAvatar';
   const ANIMAL_KEY='coffeeShipAnimal';
@@ -14,7 +14,6 @@
   let lastPointerBoarding=0;
 
   function mark(stage,extra={}) {
-    document.body.dataset.boardingStage=stage;
     window.COFFEE_SHIP_BOARDING_TRACE={stage,at:Date.now(),...extra};
     console.info('[Coffee Ship Boarding]',stage,extra);
   }
