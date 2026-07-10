@@ -63,7 +63,6 @@ async function run(browser,{name,viewport,mobile}){
   page.on('console',message=>{
     const text=message.text();
     browserConsole.push({type:message.type(),text});
-    if(text.includes('Coffee Ship Boarding'))console.log(`[${name}] browser: ${text}`);
     if(message.type()==='error'&&!ignored(text))errors.push(text);
   });
 
@@ -92,17 +91,17 @@ async function run(browser,{name,viewport,mobile}){
     await fs.writeFile(path.join(out,`${name}-event-audit.json`),JSON.stringify(audit,null,2));
     await stage('event-audit',{records:audit.length});
 
-    const requested=await page.evaluate(testName=>{
+    const accepted=await page.evaluate(testName=>{
+      console.info=()=>{};
       const input=document.getElementById('playerName');
       input.value=testName;
       input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:testName}));
-      const accepted=window.COFFEE_SHIP_BOARDING.enter('remote-direct-api');
-      return{accepted,state:window.COFFEE_SHIP_BOARDING.state(),trace:window.COFFEE_SHIP_BOARDING_TRACE};
+      return Boolean(window.COFFEE_SHIP_BOARDING.enter('remote-direct-api'));
     },mobile?'Mobile Tester':'Desktop Tester');
-    await stage('boarding-requested',requested);
-    if(!requested.accepted)throw new Error(`boarding request rejected: ${JSON.stringify(requested)}`);
+    await stage('boarding-requested',{accepted});
+    if(!accepted)throw new Error('boarding request rejected');
 
-    await page.waitForFunction(()=>!document.getElementById('gamePanel')?.classList.contains('hidden')&&document.body.dataset.boardingStage!=='failed',null,{timeout:12000});
+    await page.waitForFunction(()=>!document.getElementById('gamePanel')?.classList.contains('hidden')&&window.COFFEE_SHIP_BOARDING_TRACE?.stage!=='failed',null,{timeout:12000});
     const boarded=await page.evaluate(()=>({
       state:window.COFFEE_SHIP_BOARDING.state(),
       trace:window.COFFEE_SHIP_BOARDING_TRACE,
@@ -148,9 +147,10 @@ async function run(browser,{name,viewport,mobile}){
     await page.screenshot({path:path.join(out,`${name}-v6-passed.png`),animations:'disabled',timeout:8000});
     await fs.writeFile(path.join(out,`${name}-browser-console.json`),JSON.stringify(browserConsole,null,2));
     await stage('passed');
-    return{name,ready,requested,boarded,movedX,deck,restored,auditCount:audit.length};
+    return{name,ready,accepted,boarded,movedX,deck,restored,auditCount:audit.length};
   }catch(error){
-    await stage('failed',{message:error.message,trace:await page.evaluate(()=>window.COFFEE_SHIP_BOARDING_TRACE).catch(()=>null),errors});
+    const trace=await page.evaluate(()=>window.COFFEE_SHIP_BOARDING_TRACE).catch(()=>null);
+    await stage('failed',{message:error.message,trace,errors});
     await fs.writeFile(path.join(out,`${name}-browser-console.json`),JSON.stringify(browserConsole,null,2));
     await page.screenshot({path:path.join(out,`${name}-v6-failed.png`),animations:'disabled',timeout:5000}).catch(()=>{});
     throw error;
