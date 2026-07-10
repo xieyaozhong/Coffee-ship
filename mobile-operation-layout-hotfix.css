@@ -1,0 +1,75 @@
+/* Mobile operation layout compatibility fix */
+@media (max-width:760px){
+  body.coffee-ship-entered .mobile-controls{
+    display:grid!important;
+    position:relative!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    grid-template-rows:52px 52px!important;
+    gap:6px!important;
+    margin:8px 0 0!important;
+    padding:7px!important;
+    box-sizing:border-box!important;
+    overflow:visible!important;
+    align-items:stretch!important;
+  }
+
+  body.coffee-ship-entered .mobile-controls > div,
+  body.coffee-ship-entered .mobile-controls .op-mobile-block,
+  body.coffee-ship-entered .mobile-controls .op-mobile-stack,
+  body.coffee-ship-entered .mobile-controls .op-mobile-actions{
+    display:contents!important;
+  }
+
+  body.coffee-ship-entered .mobile-controls .op-mobile-block > h4{
+    display:none!important;
+  }
+
+  body.coffee-ship-entered .mobile-controls button{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:52px!important;
+    min-height:52px!important;
+    margin:0!important;
+    padding:3px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    transform:none!important;
+  }
+
+  body.coffee-ship-entered .mobile-controls [data-move="up"]{grid-column:2!important;grid-row:1!important}
+  body.coffee-ship-entered .mobile-controls [data-move="left"]{grid-column:1!important;grid-row:2!important}
+  body.coffee-ship-entered .mobile-controls [data-move="down"]{grid-column:2!important;grid-row:2!important}
+  body.coffee-ship-entered .mobile-controls [data-move="right"]{grid-column:3!important;grid-row:2!important}
+  body.coffee-ship-entered #coffeeBtn{grid-column:4!important;grid-row:1!important}
+  body.coffee-ship-entered #sitBtn{grid-column:5!important;grid-row:1!important}
+  body.coffee-ship-entered #messageBtn{grid-column:6!important;grid-row:1!important}
+  body.coffee-ship-entered #emoteBtn{grid-column:4!important;grid-row:2!important}
+  body.coffee-ship-entered #fishDexBtn{grid-column:5!important;grid-row:2!important}
+
+  #operationDock{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin-top:10px!important;
+    overflow:hidden!important;
+  }
+  #operationDock .op-card{width:100%!important;box-sizing:border-box!important}
+  #operationDock .op-card:nth-child(2){display:none!important}
+  #operationDock .op-grid{grid-template-columns:1fr!important}
+}
+
+@media (max-width:380px){
+  body.coffee-ship-entered .mobile-controls{
+    grid-template-rows:48px 48px!important;
+    gap:5px!important;
+    padding:6px!important;
+  }
+  body.coffee-ship-entered .mobile-controls button{
+    height:48px!important;
+    min-height:48px!important;
+  }
+}
