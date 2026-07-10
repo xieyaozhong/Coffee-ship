@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  if (window.__COFFEE_SHIP_BOARDING_CORE_V5__) return;
-  window.__COFFEE_SHIP_BOARDING_CORE_V5__ = true;
+  if (window.__COFFEE_SHIP_BOARDING_CORE_V5_1__) return;
+  window.__COFFEE_SHIP_BOARDING_CORE_V5_1__ = true;
 
   const AVATAR_KEY='coffeeShipAvatar';
   const ANIMAL_KEY='coffeeShipAnimal';
@@ -16,6 +16,7 @@
   function mark(stage,extra={}) {
     document.body.dataset.boardingStage=stage;
     window.COFFEE_SHIP_BOARDING_TRACE={stage,at:Date.now(),...extra};
+    console.info('[Coffee Ship Boarding]',stage,extra);
   }
 
   function readJson(key,fallback={}) {
@@ -62,7 +63,7 @@
       try{window.COFFEE_SHIP_RUNTIME?.repair?.('boarding-complete');}
       catch(error){console.warn('boarding runtime repair failed',error);}
       mark('complete',{source});
-    },0);
+    },120);
   }
 
   function buildAvatar() {
@@ -116,31 +117,44 @@
     return true;
   }
 
-  function performEnter(source='button') {
+  function finishEnter(avatar,source) {
+    try{
+      mark('applying-avatar',{source});
+      applyAvatarToPlayer(avatar);
+      entered=showGame(avatar,source);
+      if(entered)notifyModules(avatar,source);
+      else mark('show-failed',{source});
+    }catch(error){
+      mark('failed',{source,message:String(error?.message||error)});
+      console.error('boarding core failed',error);
+      setTimeout(()=>window.COFFEE_SHIP_RUNTIME?.toast?.('登船資料修復中，請再按一次登船。','error',3200),0);
+    }finally{
+      entering=false;
+      queued=false;
+    }
+  }
+
+  function beginEnter(source='button') {
     if(entering)return false;
     const creator=document.getElementById('creator');
     const gamePanel=document.getElementById('gamePanel');
-    if(!creator||!gamePanel){mark('missing-dom',{source});return false;}
-    if(entered&&creator.classList.contains('hidden')&&!gamePanel.classList.contains('hidden'))return true;
+    if(!creator||!gamePanel){mark('missing-dom',{source});queued=false;return false;}
+    if(entered&&creator.classList.contains('hidden')&&!gamePanel.classList.contains('hidden')){queued=false;return true;}
     entering=true;
     try{
       mark('building-avatar',{source});
       const avatar=buildAvatar();
       mark('persisting-avatar',{source});
       persistAvatar(avatar);
-      mark('applying-avatar',{source});
-      applyAvatarToPlayer(avatar);
-      entered=showGame(avatar,source);
-      if(entered)notifyModules(avatar,source);
-      return entered;
+      mark('avatar-persisted',{source});
+      setTimeout(()=>finishEnter(avatar,source),80);
+      return true;
     }catch(error){
       mark('failed',{source,message:String(error?.message||error)});
-      console.error('boarding core failed',error);
-      setTimeout(()=>window.COFFEE_SHIP_RUNTIME?.toast?.('登船資料修復中，請再按一次登船。','error',3200),0);
-      return false;
-    }finally{
       entering=false;
       queued=false;
+      console.error('boarding preparation failed',error);
+      return false;
     }
   }
 
@@ -148,7 +162,7 @@
     if(queued||entering)return false;
     queued=true;
     mark('queued',{source});
-    setTimeout(()=>performEnter(source),0);
+    setTimeout(()=>beginEnter(source),150);
     return true;
   }
 
@@ -224,7 +238,7 @@
     rebuildRandomButton();
     document.addEventListener('click',interceptClick,true);
     resumeSavedAvatar();
-    window.COFFEE_SHIP_BOARDING={enter,performEnter,rebuild:rebuildStartButton,state:()=>({queued,entering,entered,trace:window.COFFEE_SHIP_BOARDING_TRACE}),version:5};
+    window.COFFEE_SHIP_BOARDING={enter,beginEnter,finishEnter,rebuild:rebuildStartButton,state:()=>({queued,entering,entered,trace:window.COFFEE_SHIP_BOARDING_TRACE}),version:5};
     mark('ready');
     setTimeout(()=>window.dispatchEvent(new CustomEvent('coffee-ship:boarding-ready',{detail:{version:5}})),0);
   }
