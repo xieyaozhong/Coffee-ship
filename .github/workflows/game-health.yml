@@ -63,11 +63,21 @@ jobs:
         run: |
           set +e
           mkdir -p test-results
+          {
+            echo
+            echo "===== COFFEE SHIP RUNTIME TEST ====="
+            echo "workflow-test-start $(date -u +%FT%TZ)"
+            echo "pwd=$(pwd)"
+            echo "node=$(node --version)"
+            echo "runtime-test-sha=$(sha256sum tests/game-runtime-smoke.mjs | awk '{print $1}')"
+            echo "runtime-test-lines=$(wc -l < tests/game-runtime-smoke.mjs)"
+          } >> /tmp/coffee-ship-http.log
           echo "workflow-test-start $(date -u +%FT%TZ)" > test-results/workflow-stage.log
-          timeout --signal=TERM --kill-after=10s 120s node tests/game-runtime-smoke.mjs 2>&1 | tee test-results/runtime-console.log
+          timeout --signal=TERM --kill-after=10s 120s node tests/game-runtime-smoke.mjs 2>&1 | tee test-results/runtime-console.log | tee -a /tmp/coffee-ship-http.log
           status=${PIPESTATUS[0]}
-          echo "workflow-test-finish status=${status} $(date -u +%FT%TZ)" >> test-results/workflow-stage.log
-          echo "runtime test exit status: ${status}"
+          echo "workflow-test-finish status=${status} $(date -u +%FT%TZ)" | tee -a test-results/workflow-stage.log /tmp/coffee-ship-http.log
+          echo "runtime test exit status: ${status}" | tee -a /tmp/coffee-ship-http.log
+          find test-results -maxdepth 2 -type f -printf 'report-file %p %s bytes\n' | tee -a /tmp/coffee-ship-http.log
           exit ${status}
 
       - name: Upload browser reports
