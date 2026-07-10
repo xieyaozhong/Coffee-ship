@@ -36,6 +36,7 @@ jobs:
           node --check tests/game-smoke.mjs
           node --check tests/game-runtime-smoke.mjs
           node --check tests/game-runtime-v5.mjs
+          node --check tests/game-runtime-v6.mjs
 
       - name: Install browser runner
         run: |
@@ -66,15 +67,15 @@ jobs:
           mkdir -p test-results
           {
             echo
-            echo "===== COFFEE SHIP RUNTIME V5 TEST ====="
+            echo "===== COFFEE SHIP RUNTIME V6 TEST ====="
             echo "workflow-test-start $(date -u +%FT%TZ)"
             echo "pwd=$(pwd)"
             echo "node=$(node --version)"
-            echo "runtime-test-sha=$(sha256sum tests/game-runtime-v5.mjs | awk '{print $1}')"
-            echo "runtime-test-lines=$(wc -l < tests/game-runtime-v5.mjs)"
+            echo "runtime-test-sha=$(sha256sum tests/game-runtime-v6.mjs | awk '{print $1}')"
+            echo "runtime-test-lines=$(wc -l < tests/game-runtime-v6.mjs)"
           } >> /tmp/coffee-ship-http.log
           echo "workflow-test-start $(date -u +%FT%TZ)" > test-results/workflow-stage.log
-          timeout --signal=TERM --kill-after=10s 120s node tests/game-runtime-v5.mjs 2>&1 | tee test-results/runtime-console.log | tee -a /tmp/coffee-ship-http.log
+          timeout --signal=TERM --kill-after=10s 130s node tests/game-runtime-v6.mjs 2>&1 | tee test-results/runtime-console.log | tee -a /tmp/coffee-ship-http.log
           status=${PIPESTATUS[0]}
           echo "workflow-test-finish status=${status} $(date -u +%FT%TZ)" | tee -a test-results/workflow-stage.log /tmp/coffee-ship-http.log
           echo "runtime test exit status: ${status}" | tee -a /tmp/coffee-ship-http.log
