@@ -39,3 +39,13 @@
 
   window.COFFEE_SHIP_MOMO_SPRITE = { image, version: 1, isReady: () => loaded };
 })();
+
+(() => {
+  if (window.__COFFEE_SHIP_MOMO_STYLE_CAST_LOADER__) return;
+  window.__COFFEE_SHIP_MOMO_STYLE_CAST_LOADER__ = true;
+  const script = document.createElement('script');
+  script.src = 'momo-style-cast-v1.js?v=cast-1';
+  script.async = true;
+  script.onerror = () => console.warn('Momo style cast runtime failed to load; keeping legacy character renderers.');
+  document.head.appendChild(script);
+})();
