@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "frameWidth": 48,
+  "frameHeight": 60,
+  "columns": 4,
+  "rows": 4,
+  "directions": {
+    "down": 0,
+    "left": 1,
+    "right": 2,
+    "up": 3
+  },
+  "frames": ["idle", "walk-1", "walk-2", "walk-3"],
+  "characters": {
+    "player": {
+      "format": "webp-base64-chunks",
+      "chunks": 4,
+      "renderSize": { "width": 96, "height": 120 },
+      "anchorY": 82,
+      "sha256": "bda9c6e58a625fea810d04cbdaaf0ea4a195f08523c23e0a7218bdee6c57d3d9"
+    },
+    "blackcat": {
+      "format": "webp-base64-chunks",
+      "chunks": 3,
+      "renderSize": { "width": 72, "height": 90 },
+      "anchorY": 63,
+      "sha256": "51f84e8f4ce8a5615b4f3611b19e61313eaf218d10ca662c9f7a73eb41c50a78"
+    }
+  }
+}
