@@ -1,0 +1,13 @@
+{
+  "name": "Momo",
+  "version": 1,
+  "image": "momo-sprite-v1.svg",
+  "frameWidth": 48,
+  "frameHeight": 60,
+  "columns": 4,
+  "rows": 4,
+  "directions": { "down": 0, "left": 1, "right": 2, "up": 3 },
+  "frames": ["idle", "walk-1", "walk-2", "walk-3"],
+  "renderSize": { "width": 96, "height": 120 },
+  "anchor": { "x": 0.5, "y": 0.96 }
+}
