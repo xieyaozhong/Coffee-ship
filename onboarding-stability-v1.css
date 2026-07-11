@@ -1,0 +1,245 @@
+.cs-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: grid;
+  place-items: center;
+  padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+.cs-guide.is-hidden {
+  display: none;
+}
+
+.cs-guide__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 8, 18, .78);
+  backdrop-filter: blur(8px);
+}
+
+.cs-guide__card {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: min(760px, calc(100vh - 36px));
+  overflow: auto;
+  border: 2px solid rgba(242, 196, 111, .82);
+  border-radius: 18px;
+  padding: 22px;
+  color: #fff7df;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(118, 95, 214, .28), transparent 34%),
+    linear-gradient(160deg, #172145 0%, #171426 52%, #241525 100%);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .55), inset 0 0 0 3px rgba(255, 255, 255, .035);
+}
+
+.cs-guide__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cs-guide__eyebrow {
+  margin: 0 0 4px;
+  color: #f3c774;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+.cs-guide__header h2 {
+  margin: 0;
+  font-size: clamp(26px, 6vw, 38px);
+  line-height: 1;
+}
+
+.cs-guide__intro {
+  margin: 14px 0 16px;
+  color: #d7ddf5;
+  line-height: 1.65;
+}
+
+.cs-guide__icon-button,
+.cs-guide-button {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .22);
+  color: #fff7df;
+  background: rgba(255, 255, 255, .08);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cs-guide__icon-button {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  font-size: 24px;
+}
+
+.cs-guide__steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cs-guide__steps li {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .055);
+}
+
+.cs-guide__steps li > span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: #221421;
+  background: #f3c774;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.cs-guide__steps strong,
+.cs-guide__steps small {
+  display: block;
+}
+
+.cs-guide__steps strong {
+  margin-bottom: 4px;
+  color: #fff7df;
+  font-size: 15px;
+}
+
+.cs-guide__steps small {
+  color: #bbc4e4;
+  line-height: 1.5;
+}
+
+.cs-guide__controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.cs-guide__controls span {
+  padding: 9px 10px;
+  border-radius: 10px;
+  color: #cbd2ed;
+  background: rgba(4, 9, 24, .36);
+  font-size: 12px;
+}
+
+.cs-guide__controls b {
+  color: #f3c774;
+}
+
+.cs-guide__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.cs-guide__actions button {
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cs-guide__secondary {
+  border: 1px solid rgba(255, 255, 255, .2);
+  color: #dfe4f8;
+  background: transparent;
+}
+
+.cs-guide__primary {
+  border: 1px solid #ffd98f;
+  color: #221421;
+  background: linear-gradient(180deg, #ffd98f, #e9a94f);
+  box-shadow: 0 7px 0 #8d5429;
+}
+
+.cs-guide__primary:active {
+  transform: translateY(4px);
+  box-shadow: 0 3px 0 #8d5429;
+}
+
+.cs-guide-button {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 9000;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-size: 21px;
+  font-weight: 900;
+  box-shadow: 0 9px 25px rgba(0, 0, 0, .34);
+}
+
+body:not(.coffee-ship-entered) .cs-guide-button {
+  display: none;
+}
+
+body.cs-guide-open {
+  overflow: hidden;
+}
+
+.login-role-loading.is-fallback {
+  color: #ffd98f;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .cs-guide__card {
+    padding: 18px 15px;
+    border-radius: 15px;
+  }
+
+  .cs-guide__steps li {
+    grid-template-columns: 36px 1fr;
+    padding: 10px;
+  }
+
+  .cs-guide__steps li > span {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cs-guide__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-guide__actions {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+  }
+
+  .cs-guide__actions button {
+    padding: 0 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-guide *,
+  .cs-guide-button {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
