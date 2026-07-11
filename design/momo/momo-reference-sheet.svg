@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1125" viewBox="0 0 900 1125" role="img" aria-labelledby="title desc">
+  <title id="title">Momo character reference sheet</title>
+  <desc id="desc">Coffee Ship Momo visual reference with primary pose, directional views, palette, and design notes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d7d5c9"/><stop offset="1" stop-color="#bbb9ad"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#4b453f" flood-opacity=".28"/></filter>
+    <clipPath id="hero"><rect x="40" y="80" width="430" height="590" rx="24"/></clipPath>
+    <clipPath id="front"><rect x="520" y="92" width="150" height="205" rx="18"/></clipPath>
+    <clipPath id="side"><rect x="700" y="92" width="150" height="205" rx="18"/></clipPath>
+    <clipPath id="back"><rect x="610" y="335" width="150" height="205" rx="18"/></clipPath>
+  </defs>
+  <rect width="900" height="1125" fill="url(#bg)"/>
+  <rect x="24" y="24" width="852" height="1077" rx="32" fill="none" stroke="#8f887e" stroke-width="3"/>
+  <text x="56" y="70" font-family="ui-monospace, monospace" font-size="18" letter-spacing="4" fill="#6d5143">COFFEE SHIP CHARACTER DESIGN</text>
+
+  <rect x="40" y="80" width="430" height="590" rx="24" fill="#cbc9bd" stroke="#968e83" stroke-width="2"/>
+  <g clip-path="url(#hero)" filter="url(#shadow)">
+    <image href="../../assets/characters/momo/momo-sprite-v1.svg" x="40" y="70" width="1536" height="1920" image-rendering="pixelated"/>
+  </g>
+  <text x="65" y="632" font-family="ui-monospace, monospace" font-size="22" font-weight="700" fill="#4c3d38">MOMO · PEARL COFFEE BARISTA</text>
+
+  <rect x="520" y="92" width="150" height="205" rx="18" fill="#c7c5b8" stroke="#968e83"/>
+  <g clip-path="url(#front)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="520" y="92" width="600" height="750" image-rendering="pixelated"/></g>
+  <text x="595" y="322" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="#584842">FRONT</text>
+
+  <rect x="700" y="92" width="150" height="205" rx="18" fill="#c7c5b8" stroke="#968e83"/>
+  <g clip-path="url(#side)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="100" y="-533" width="600" height="750" image-rendering="pixelated"/></g>
+  <text x="775" y="322" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="#584842">SIDE</text>
+
+  <rect x="610" y="335" width="150" height="205" rx="18" fill="#c7c5b8" stroke="#968e83"/>
+  <g clip-path="url(#back)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="610" y="-415" width="600" height="750" image-rendering="pixelated"/></g>
+  <text x="685" y="565" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="#584842">BACK</text>
+
+  <rect x="505" y="600" width="345" height="240" rx="22" fill="#d1cec1" stroke="#968e83" stroke-width="2"/>
+  <text x="535" y="642" font-family="ui-monospace, monospace" font-size="28" font-weight="800" fill="#59473e">MOMO</text>
+  <text x="535" y="674" font-family="ui-monospace, monospace" font-size="15" letter-spacing="2" fill="#826453">COFFEE SHIP CAFÉ</text>
+  <text x="535" y="716" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">溫柔、可靠，熟悉每一杯珍珠咖啡。</text>
+  <text x="535" y="748" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">帽子與長髮形成清楚的遠距辨識輪廓。</text>
+  <text x="535" y="780" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">深藍、奶油白與焦糖棕是主要識別色。</text>
+  <text x="535" y="812" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">角色定位：咖啡船迎賓者／效果咖啡店員。</text>
+
+  <text x="55" y="725" font-family="ui-monospace, monospace" font-size="18" letter-spacing="3" fill="#6d5143">COLOR PALETTE</text>
+  <g transform="translate(55 748)">
+    <rect width="82" height="54" rx="8" fill="#292934"/><rect x="92" width="82" height="54" rx="8" fill="#5c5359"/>
+    <rect x="184" width="82" height="54" rx="8" fill="#987692"/><rect x="276" width="82" height="54" rx="8" fill="#cdb5a4"/>
+    <rect y="66" width="82" height="54" rx="8" fill="#f9f9f7"/><rect x="92" y="66" width="82" height="54" rx="8" fill="#d19f85"/>
+    <rect x="184" y="66" width="82" height="54" rx="8" fill="#9a6b51"/><rect x="276" y="66" width="82" height="54" rx="8" fill="#657971"/>
+  </g>
+
+  <rect x="55" y="900" width="795" height="150" rx="20" fill="#c8c5b9" stroke="#968e83"/>
+  <text x="85" y="940" font-family="ui-monospace, monospace" font-size="18" font-weight="700" fill="#59473e">IN-GAME MODEL NOTES</text>
+  <text x="85" y="976" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">• 4 directions × 4 frames: idle, walk 1, walk 2, walk 3</text>
+  <text x="85" y="1008" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">• Small-scale readability prioritizes hat bow, hair mass, apron, and dark dress silhouette</text>
+  <text x="85" y="1040" font-family="system-ui, sans-serif" font-size="17" fill="#5e554e">• Approved reference for future portrait, dialogue expression, and service animation work</text>
+</svg>
