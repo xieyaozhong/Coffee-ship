@@ -44,10 +44,10 @@
 
       const image = new Image();
       image.decoding = 'async';
-      image.src = `data:image/webp;base64,${chunks.join('')}`;
       await new Promise((resolve, reject) => {
         image.onload = resolve;
         image.onerror = () => reject(new Error(`${name} atlas decode failed`));
+        image.src = `data:image/webp;base64,${chunks.join('')}`;
       });
 
       if (image.naturalWidth !== 192 || image.naturalHeight !== 240) {
@@ -157,9 +157,10 @@
       return;
     }
 
-    drawAtlasFrame(assets.blackcat.image, actor, { width: 84, height: 105, anchorY: 74 });
+    if (actor.role === 'cat' && typeof drawNpcAura === 'function') drawNpcAura(actor, '#d7a85c');
+    drawAtlasFrame(assets.blackcat.image, actor, { width: 72, height: 90, anchorY: 63 });
     const name = actor.name || (actor.role === 'cat' ? 'Mugi' : 'Guest');
-    drawLabel(actor, `🐈‍⬛ ${name}`, -64, isPlayer ? '#79d0b1' : '#ffe5ae', 12);
+    drawLabel(actor, `🐈‍⬛ ${name}`, -57, isPlayer ? '#79d0b1' : '#ffe5ae', 12);
   }
 
   window.drawHumanAvatar = drawPlayerAtlas;
