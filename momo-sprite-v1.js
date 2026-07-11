@@ -41,14 +41,14 @@
 })();
 
 (() => {
-  if (window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V2__) return;
-  window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V2__ = true;
+  if (window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V3__) return;
+  window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V3__ = true;
 
   function loadScript(src, onComplete) {
     const script = document.createElement('script');
     script.src = src;
     script.async = false;
-    script.onload = onComplete;
+    script.onload = () => onComplete?.();
     script.onerror = () => {
       console.warn(`Coffee Ship character renderer failed to load: ${src}`);
       onComplete?.();
@@ -56,7 +56,7 @@
     document.head.appendChild(script);
   }
 
-  loadScript('momo-style-cast-v1.js?v=cast-2', () => {
-    loadScript('character-atlas-runtime-v2.js?v=atlas-2');
+  loadScript('momo-style-cast-v1.js?v=cast-3', () => {
+    loadScript('unified-character-runtime-v3.js?v=unified-3');
   });
 })();
