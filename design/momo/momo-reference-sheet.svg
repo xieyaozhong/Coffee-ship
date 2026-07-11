@@ -24,11 +24,11 @@
   <text x="595" y="322" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="#584842">FRONT</text>
 
   <rect x="700" y="92" width="150" height="205" rx="18" fill="#c7c5b8" stroke="#968e83"/>
-  <g clip-path="url(#side)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="100" y="-533" width="600" height="750" image-rendering="pixelated"/></g>
+  <g clip-path="url(#side)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="700" y="-283" width="600" height="750" image-rendering="pixelated"/></g>
   <text x="775" y="322" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="#584842">SIDE</text>
 
   <rect x="610" y="335" width="150" height="205" rx="18" fill="#c7c5b8" stroke="#968e83"/>
-  <g clip-path="url(#back)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="610" y="-415" width="600" height="750" image-rendering="pixelated"/></g>
+  <g clip-path="url(#back)"><image href="../../assets/characters/momo/momo-sprite-v1.svg" x="610" y="-228" width="600" height="750" image-rendering="pixelated"/></g>
   <text x="685" y="565" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="#584842">BACK</text>
 
   <rect x="505" y="600" width="345" height="240" rx="22" fill="#d1cec1" stroke="#968e83" stroke-width="2"/>
