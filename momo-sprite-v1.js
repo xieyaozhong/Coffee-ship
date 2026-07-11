@@ -6,7 +6,7 @@
   const image = new Image();
   const fallback = window.drawMomo;
   let loaded = false;
-  image.src = 'assets/characters/momo/momo-sprite-v1.svg?v=1';
+  image.src = 'assets/characters/momo/momo-sprite-v1.svg?v=2';
   image.onload = () => { loaded = true; };
 
   function state(n) {
@@ -34,18 +34,29 @@
     ctx.drawImage(image, frame * fw, rows[s.dir] * fh, fw, fh, x - 48, y - 82, 96, 120);
     ctx.restore();
     drawText('☕ Momo', x, y - 91, 13, 'center', '#ffe5ae');
-    if (n.emote && n.emoteTimer > 0) drawText(n.emote, x, y - 111, 20);
+    if (n.emote && n.emoteTimer > 0) drawText(n.emote, x, y - 112, 20);
   };
 
-  window.COFFEE_SHIP_MOMO_SPRITE = { image, version: 1, isReady: () => loaded };
+  window.COFFEE_SHIP_MOMO_SPRITE = { image, version: 2, isReady: () => loaded };
 })();
 
 (() => {
-  if (window.__COFFEE_SHIP_MOMO_STYLE_CAST_LOADER__) return;
-  window.__COFFEE_SHIP_MOMO_STYLE_CAST_LOADER__ = true;
-  const script = document.createElement('script');
-  script.src = 'momo-style-cast-v1.js?v=cast-1';
-  script.async = true;
-  script.onerror = () => console.warn('Momo style cast runtime failed to load; keeping legacy character renderers.');
-  document.head.appendChild(script);
+  if (window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V2__) return;
+  window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V2__ = true;
+
+  function loadScript(src, onComplete) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = false;
+    script.onload = onComplete;
+    script.onerror = () => {
+      console.warn(`Coffee Ship character renderer failed to load: ${src}`);
+      onComplete?.();
+    };
+    document.head.appendChild(script);
+  }
+
+  loadScript('momo-style-cast-v1.js?v=cast-2', () => {
+    loadScript('character-atlas-runtime-v2.js?v=atlas-2');
+  });
 })();
