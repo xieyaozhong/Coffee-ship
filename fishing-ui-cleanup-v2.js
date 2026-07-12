@@ -39,11 +39,7 @@
   }
 
   function removeLegacyFishingUi() {
-    const legacyIds = [
-      'fishingCard','extraFish50Card','mermaidCard','sharkCard','mutantCard',
-      'fishingMotionCanvas','fishingEventStack','deckFishingBtn','fishingBtn'
-    ];
-    legacyIds.forEach(id => document.getElementById(id)?.remove());
+    ['fishingCard','fishingMotionCanvas','fishingEventStack','deckFishingBtn','fishingBtn'].forEach(id => document.getElementById(id)?.remove());
     document.querySelectorAll('.deck-fishing-button,.legacy-fishing-button,.fishing-shortcut-button').forEach(element => element.remove());
     document.body.classList.remove('fishing-motion-active','fishing-event-stack-open','fishing-result-open');
   }
@@ -100,9 +96,8 @@
 
     if (deckOpen) {
       const state = lastFishingState || window.COFFEE_SHIP_FISHING_API?.getState?.() || null;
-      const icon = '🎣';
       const label = state?.ready ? '下竿' : state?.mode === 'cooldown' ? '等待' : '釣魚';
-      setActionButton(coffee,icon,label,'使用最新版釣魚系統');
+      setActionButton(coffee,'🎣',label,'使用最新版釣魚系統');
       setActionButton(action,'🚪','互動','互動或返回咖啡廳');
       if (dex) setActionButton(dex,'🐟','紀錄','開啟釣魚紀錄與圖鑑');
     } else {
