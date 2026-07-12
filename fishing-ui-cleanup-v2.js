@@ -12,21 +12,8 @@
 
   function setActionButton(button, icon, label, ariaLabel = label) {
     if (!button) return;
-    const currentIcon = button.querySelector('.mobile-action-icon')?.textContent;
-    const currentLabel = button.querySelector('.mobile-action-label')?.textContent;
-    if (currentIcon !== icon || currentLabel !== label || button.children.length !== 1) {
-      button.replaceChildren();
-      const content = document.createElement('span');
-      content.className = 'mobile-action-content';
-      const iconNode = document.createElement('span');
-      iconNode.className = 'mobile-action-icon';
-      iconNode.textContent = icon;
-      const labelNode = document.createElement('span');
-      labelNode.className = 'mobile-action-label';
-      labelNode.textContent = label;
-      content.append(iconNode,labelNode);
-      button.appendChild(content);
-    }
+    const desired = `${icon} ${label}`;
+    if (button.textContent?.replace(/\s+/g,' ').trim() !== desired) button.textContent = desired;
     button.setAttribute('aria-label',ariaLabel);
     button.title = ariaLabel;
   }
