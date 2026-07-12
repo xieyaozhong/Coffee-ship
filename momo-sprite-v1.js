@@ -41,8 +41,8 @@
 })();
 
 (() => {
-  if (window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V4__) return;
-  window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V4__ = true;
+  if (window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V6__) return;
+  window.__COFFEE_SHIP_CHARACTER_RENDER_LOADER_V6__ = true;
 
   function loadScript(src, onComplete) {
     const script = document.createElement('script');
@@ -56,9 +56,13 @@
     document.head.appendChild(script);
   }
 
-  loadScript('momo-style-cast-v1.js?v=cast-4', () => {
-    loadScript('unified-character-runtime-v3.js?v=unified-4', () => {
-      loadScript('scene-art-runtime-v1.js?v=scene-art-1');
+  loadScript('momo-style-cast-v1.js?v=cast-6', () => {
+    loadScript('unified-character-runtime-v3.js?v=unified-6', () => {
+      loadScript('scene-art-runtime-v1.js?v=scene-art-2b', () => {
+        loadScript('cafe-background-repair-v2.js?v=cafe-repair-2', () => {
+          loadScript('fishing-ui-cleanup-v2.js?v=cleanup-2b');
+        });
+      });
     });
   });
 })();
