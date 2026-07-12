@@ -1,51 +1,67 @@
 (() => {
   'use strict';
 
-  if (window.__COFFEE_SHIP_FISHING_UI_CLEANUP_V2__) return;
+  if (window.__COFFEE_SHIP_FISHING_UI_CLEANUP_V3__) return;
+  window.__COFFEE_SHIP_FISHING_UI_CLEANUP_V3__ = true;
   window.__COFFEE_SHIP_FISHING_UI_CLEANUP_V2__ = true;
 
   let scene = document.body?.dataset?.coffeeShipScene || window.COFFEE_SHIP_SCENE || 'cafe';
   let queued = false;
-  let lastFishingState = null;
+  let lastState = null;
 
   const isDeck = () => scene === 'deck' || document.body?.dataset?.coffeeShipScene === 'deck' || !!window.COFFEE_SHIP_DECK?.isDeckOpen?.();
 
-  function setActionButton(button, icon, label, ariaLabel = label) {
-    if (!button) return;
-    const desired = `${icon} ${label}`;
-    if (button.textContent?.replace(/\s+/g,' ').trim() !== desired) button.textContent = desired;
-    button.setAttribute('aria-label',ariaLabel);
-    button.title = ariaLabel;
-  }
-
-  function setVisible(element, visible) {
-    if (!element) return;
-    if (element.hidden === !visible && element.getAttribute('aria-hidden') === String(!visible)) return;
-    element.hidden = !visible;
-    element.setAttribute('aria-hidden',String(!visible));
-  }
-
-  function removeLegacyFishingUi() {
+  function removeLegacyUi() {
     ['fishingCard','fishingMotionCanvas','fishingEventStack','deckFishingBtn','fishingBtn'].forEach(id => document.getElementById(id)?.remove());
     document.querySelectorAll('.deck-fishing-button,.legacy-fishing-button,.fishing-shortcut-button').forEach(element => element.remove());
     document.body.classList.remove('fishing-motion-active','fishing-event-stack-open','fishing-result-open');
   }
 
-  function dedupeById(id) {
-    const elements = Array.from(document.querySelectorAll(`[id="${id}"]`));
-    elements.slice(1).forEach(element => element.remove());
-    return elements[0] || null;
+  function dedupe(id) {
+    const items = Array.from(document.querySelectorAll(`[id="${id}"]`));
+    items.slice(1).forEach(item => item.remove());
+    return items[0] || null;
   }
 
-  function syncOperationDock(deckOpen) {
-    const actionRow = document.getElementById('opActionButtons');
-    if (actionRow) {
-      actionRow.querySelectorAll('[data-trigger]').forEach(button => {
-        const keep = deckOpen && button.dataset.trigger === 'fishDexBtn';
-        setVisible(button,keep);
-      });
-    }
+  function setVisible(element,visible) {
+    if (!element) return;
+    if (element.hidden !== !visible) element.hidden = !visible;
+    const aria = visible ? 'false' : 'true';
+    if (element.getAttribute('aria-hidden') !== aria) element.setAttribute('aria-hidden',aria);
+  }
 
+  function protectFishingButton() {
+    const button = document.getElementById('coffeeBtn');
+    if (!button || button.dataset.fishingTextGuard === 'v3') return;
+    const descriptor = Object.getOwnPropertyDescriptor(Node.prototype,'textContent');
+    if (!descriptor?.get || !descriptor?.set) return;
+    const nativeGet = descriptor.get.bind(button);
+    const nativeSet = descriptor.set.bind(button);
+
+    try {
+      Object.defineProperty(button,'textContent',{
+        configurable:true,
+        enumerable:false,
+        get() { return nativeGet(); },
+        set(value) {
+          const next = String(value ?? '');
+          if (isDeck() && next.trim().startsWith('🎣')) {
+            button.dataset.fishingStateLabel = next.replace(/^🎣\s*/,'').trim();
+            button.setAttribute('aria-label',next.trim() || '釣魚');
+            button.title = next.trim() || '釣魚';
+            return;
+          }
+          if (nativeGet() === next) return;
+          nativeSet(next);
+        }
+      });
+      button.dataset.fishingTextGuard = 'v3';
+    } catch (error) {
+      console.warn('Coffee Ship fishing button guard was not installed.',error);
+    }
+  }
+
+  function syncOperationHints(deckOpen) {
     const keys = document.getElementById('opKeys');
     if (keys) {
       const entries = deckOpen
@@ -54,26 +70,20 @@
       const html = entries.map(([key,label]) => `<span class="op-key"><b>${key}</b>${label}</span>`).join('');
       if (keys.innerHTML !== html) keys.innerHTML = html;
     }
-
     const actionLabel = document.getElementById('opActionLabel');
     const hintLabel = document.getElementById('opHintLabel');
-    if (actionLabel) actionLabel.textContent = deckOpen ? '最新版釣魚、互動、返回咖啡廳' : '點咖啡、人物互動、留言';
-    if (hintLabel) hintLabel.textContent = deckOpen ? '右側發光區按 C 釣魚，左側按 E 回艙' : '靠近角色或座位後按互動';
-  }
-
-  function syncTopbar(deckOpen) {
-    const hint = document.querySelector('.game-topbar .controls');
-    if (hint) hint.textContent = deckOpen
-      ? 'WASD / 方向鍵移動 · C 釣魚 · E 互動 / 返回'
-      : 'WASD / 方向鍵移動 · C 咖啡 · E 互動 · B 留言';
+    const actionText = deckOpen ? '最新版釣魚、互動、返回咖啡廳' : '點咖啡、人物互動、留言';
+    const hintText = deckOpen ? '右側發光區按 C 釣魚，左側按 E 回艙' : '靠近角色或座位後按互動';
+    if (actionLabel && actionLabel.textContent !== actionText) actionLabel.textContent = actionText;
+    if (hintLabel && hintLabel.textContent !== hintText) hintLabel.textContent = hintText;
   }
 
   function syncButtons(deckOpen) {
-    const coffee = dedupeById('coffeeBtn');
-    const action = dedupeById('sitBtn');
-    const message = dedupeById('messageBtn');
-    const emote = dedupeById('emoteBtn');
-    const dex = dedupeById('fishDexBtn');
+    const coffee = dedupe('coffeeBtn');
+    const action = dedupe('sitBtn');
+    const message = dedupe('messageBtn');
+    const emote = dedupe('emoteBtn');
+    const dex = dedupe('fishDexBtn');
 
     setVisible(coffee,true);
     setVisible(action,true);
@@ -81,34 +91,28 @@
     setVisible(emote,!deckOpen);
     setVisible(dex,deckOpen);
 
-    if (deckOpen) {
-      const state = lastFishingState || window.COFFEE_SHIP_FISHING_API?.getState?.() || null;
-      const label = state?.ready ? '下竿' : state?.mode === 'cooldown' ? '等待' : '釣魚';
-      setActionButton(coffee,'🎣',label,'使用最新版釣魚系統');
-      setActionButton(action,'🚪','互動','互動或返回咖啡廳');
-      if (dex) setActionButton(dex,'🐟','紀錄','開啟釣魚紀錄與圖鑑');
-    } else {
-      setActionButton(coffee,'☕','咖啡','開啟咖啡選單');
-      setActionButton(action,'✋','互動','互動或坐下');
-      setActionButton(message,'💬','留言','開啟留言板');
-      setActionButton(emote,'✨','表情','使用表情');
+    if (coffee) {
+      coffee.setAttribute('aria-label',deckOpen ? '釣魚' : '開啟咖啡選單');
+      coffee.title = deckOpen ? (lastState?.ready ? '下竿' : lastState?.mode === 'cooldown' ? '整理釣具中' : '釣魚') : '開啟咖啡選單';
     }
-  }
-
-  function ensureCafeScenePatch() {
-    if (isDeck()) return;
-    window.COFFEE_SHIP_SCENE_ART_V2?.installCafePatch?.();
+    if (action) {
+      action.setAttribute('aria-label',deckOpen ? '互動或返回咖啡廳' : '互動或坐下');
+      action.title = deckOpen ? '互動或返回咖啡廳' : '互動或坐下';
+    }
+    if (dex) {
+      dex.setAttribute('aria-label','開啟釣魚紀錄與圖鑑');
+      dex.title = '開啟釣魚紀錄與圖鑑';
+    }
   }
 
   function sync() {
     queued = false;
     const deckOpen = isDeck();
-    removeLegacyFishingUi();
+    removeLegacyUi();
+    protectFishingButton();
     syncButtons(deckOpen);
-    syncOperationDock(deckOpen);
-    syncTopbar(deckOpen);
-    ensureCafeScenePatch();
-    document.body.dataset.fishingUi = deckOpen ? 'unified-v4' : 'cafe';
+    syncOperationHints(deckOpen);
+    document.body.dataset.fishingUi = deckOpen ? 'unified-v4-stable' : 'cafe';
   }
 
   function queueSync() {
@@ -118,29 +122,26 @@
   }
 
   function init() {
+    protectFishingButton();
     window.addEventListener('coffee-ship:scene',event => {
       scene = event.detail?.scene || window.COFFEE_SHIP_SCENE || 'cafe';
       queueSync();
     });
     window.addEventListener('coffee-ship:fishing-state',event => {
-      lastFishingState = event.detail || null;
+      lastState = event.detail || null;
       queueSync();
     });
     window.addEventListener('coffee-ship:fishing-api-ready',queueSync);
-    window.addEventListener('coffee-ship:scene-art-ready',queueSync);
     window.addEventListener('coffee-ship:entered',queueSync);
-
-    const observer = new MutationObserver(queueSync);
-    observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden','data-coffee-ship-scene']});
+    window.addEventListener('coffee-ship:scene-art-ready',event => {
+      if (event.detail?.scene === 'cafe') window.COFFEE_SHIP_SCENE_ART_V2?.installCafePatch?.();
+      queueSync();
+    });
 
     queueSync();
-    setTimeout(queueSync,300);
-    setTimeout(queueSync,1200);
-    setInterval(() => {
-      if (!isDeck()) ensureCafeScenePatch();
-    },1500);
-
-    window.COFFEE_SHIP_FISHING_UI_CLEANUP = { version:2, sync:queueSync };
+    setTimeout(queueSync,250);
+    setTimeout(queueSync,1000);
+    window.COFFEE_SHIP_FISHING_UI_CLEANUP = {version:3,sync:queueSync};
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init,{once:true});
