@@ -179,7 +179,11 @@
         if (html) return html;
       }
     }
-    if (row.eventKind === 'bottle') {
+    if (eventKind === 'mermaid') {
+      const html = window.COFFEE_SHIP_MERMAID_ICONS?.iconHtml?.({eventId:row.eventId,title:row.title},'fh-mermaid-event-icon');
+      if (html) return html;
+    }
+    if (eventKind === 'bottle') {
       const html = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.({name:row.title,series:row.title,kind:'bottle',rarity:'稀有'},'fh-event-item-icon');
       if (html) return html;
     }

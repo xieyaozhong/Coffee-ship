@@ -93,7 +93,7 @@ assert.match(fxSource,/coffee-ship:event-triggered/);
 assert.match(deckSource,/eventId:String\(options\.eventId/);
 assert.match(deckSource,/data-event-tone=/);
 assert.match(adventureSource,/eventId:event\.id/);
-assert.match(mermaidSource,/eventId:`mermaid:\$\{encounter\[0\]\}`/);
+assert.match(mermaidSource,/eventId:`mermaid:\$\{encounter\[5\]\}`/);
 assert.match(sharkSource,/eventId:`shark:\$\{shark\[0\]\}`/);
 assert.match(expandedSource,/eventId:`\$\{category\}:\$\{event\[0\]\}`/);
 assert.match(oceanQteSource,/eventId:`ocean:\$\{eventName\}`/);
