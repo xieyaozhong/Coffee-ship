@@ -5,7 +5,7 @@
 
   const SIZE = 24;
   const BIOLOGICAL_KINDS = new Set([
-    'fish','shrimp','crab','lobster','angler','squid','jelly','shell','octopus','whale','mutant'
+    'fish','shark','shrimp','crab','lobster','angler','squid','jelly','shell','octopus','whale','mutant'
   ]);
   const NON_BIOLOGICAL_KINDS = new Set([
     'trash','letter','bottle','treasure','item','relic','toy','mask','clothes','accessory','pearl'
@@ -36,7 +36,7 @@
     const name = normalizeName(item.name || item.title || item.id);
     const kind = String(item.kind || '').toLowerCase();
     if (/海馬/.test(name)) return 'seahorse';
-    if (/鯊/.test(name)) return 'shark';
+    if (/鯊/.test(name) || kind === 'shark') return 'shark';
     if (/鯨/.test(name)) return 'whale';
     if (/翻車魚/.test(name)) return 'sunfish';
     if (/魟|鰩/.test(name)) return 'ray';
@@ -173,7 +173,29 @@
     px(7,9,12,6,d.body); px(18,10,4,4,d.body); px(4,11,3,3,d.accent);
     px(11,4,4,4,d.deep); px(12,5,3,3,d.body); px(11,15,5,3,d.deep);
     px(9,13,10,2,d.light); px(21,13,1,1,'#fff9df'); addEye(px,19,10);
+    addSharkTraits(px,d);
     addSignature(px,d,[[8,10],[10,10],[12,10],[14,10],[16,10],[9,12],[13,12],[17,12]]);
+  }
+
+  function addSharkTraits(px, d) {
+    if (/黑鰭礁鯊/.test(d.name)) {
+      px(11,4,4,2,'#11131a'); px(1,8,2,2,'#11131a'); px(1,15,2,2,'#11131a'); px(12,16,4,2,'#11131a');
+    } else if (/護士鯊/.test(d.name)) {
+      px(20,14,1,3,d.accent); px(22,14,1,2,d.accent); px(8,15,9,2,d.light); px(5,14,4,2,d.body);
+    } else if (/雙髻鯊/.test(d.name)) {
+      px(17,7,7,4,d.deep); px(18,8,5,3,d.body); addEye(px,17,8); addEye(px,22,8); px(20,11,3,2,d.light);
+    } else if (/虎鯊/.test(d.name)) {
+      [9,12,15,18].forEach((x,index) => px(x,8 + (index % 2),1,6 - (index % 2),d.deep)); px(7,10,2,1,d.accent);
+    } else if (/大白鯊/.test(d.name)) {
+      px(8,13,13,3,'#eef5eb'); px(19,13,3,2,'#eef5eb'); px(21,12,2,1,'#ef6c67'); px(20,13,2,1,'#17131d');
+    } else if (/深海幽影鯊/.test(d.name)) {
+      px(7,9,12,5,'#111126'); px(9,10,8,3,'#21184a'); px(8,14,10,1,'#70f5ef'); px(19,10,1,1,'#b9ffff');
+    } else if (/星海巨齒鯊/.test(d.name)) {
+      px(7,9,13,6,'#1c1742'); [[8,10],[11,12],[14,9],[16,13],[18,11]].forEach(([x,y],index) => px(x,y,index === 2 ? 2 : 1,1,index % 2 ? '#8fe8ff' : '#fff3a8'));
+      px(19,13,4,2,'#f4f0de'); px(20,12,1,1,'#f4f0de'); px(22,12,1,1,'#f4f0de');
+    } else if (/巨齒鯊/.test(d.name)) {
+      px(18,9,5,7,d.deep); px(19,10,4,5,d.body); px(19,13,4,2,'#17131d'); px(19,12,1,1,'#fff9df'); px(21,12,1,1,'#fff9df'); px(22,14,1,1,'#fff9df');
+    }
   }
 
   function drawWhale(px, d) {
@@ -413,6 +435,7 @@
       .cs-fish-pixel-sprite{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 2px 0 rgba(0,0,0,.34));user-select:none}
       .cs-fish-pixel-icon .cs-species-rarity-gem{left:-.28em;top:-.3em;background:#0c1820;border-color:var(--fish-rarity);color:var(--fish-rarity)}
       .fh-icon .cs-fish-pixel-icon,.fh-dex-icon .cs-fish-pixel-icon,.fh-icon-shell .cs-fish-pixel-icon{margin:0!important;font-size:20px}
+      .fh-icon .fh-shark-event-icon{font-size:18px;margin:0!important}
       .fh-dex-icon .cs-fish-pixel-icon{font-size:18px}
       .bp-title>.cs-fish-pixel-icon{font-size:18px;flex:0 0 auto;margin-right:2px!important}
       .central-fish-title>.cs-fish-pixel-icon,.mutant-name>.cs-fish-pixel-icon{font-size:22px}

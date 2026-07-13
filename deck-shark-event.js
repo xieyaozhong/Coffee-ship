@@ -61,6 +61,7 @@
       castId:event.detail?.castId,
       eventId:`shark:${shark[0]}`,
       eventKind:'shark',
+      iconRarity:shark[1],
       title:`鯊魚事件｜${shark[0]}`,
       icon:'🦈',
       accent:colors[shark[1]] || '#e9a6b0',

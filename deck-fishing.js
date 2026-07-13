@@ -25,6 +25,7 @@
   const QUALITY = [['普通',55,1],['優秀',25,1.15],['完美',13,1.3],['閃亮',5,1.55],['神話',2,1.9]];
   const ICONS = {fish:'🐟',shrimp:'🦐',crab:'🦀',angler:'🐡',trash:'🗑️',letter:'🍾',squid:'🦑',jelly:'🪼',shell:'🐚',octopus:'🐙',whale:'🐋',treasure:'📦',mutant:'🧬'};
   const COLORS = {普通:'#fff4d8',常見:'#9ce8f0',稀有:'#79d0b1',史詩:'#e9a6b0',傳說:'#ffe16b',神話:'#ffffff',世界級:'#ff5f9e'};
+  const SHARK_RARITY = {黑鰭礁鯊:'常見',護士鯊:'常見',雙髻鯊:'稀有',虎鯊:'稀有',大白鯊:'史詩',深海幽影鯊:'史詩',巨齒鯊:'傳說',星海巨齒鯊:'傳說'};
 
   const registeredPools = new Map();
   let activeTab = 'recent';
@@ -160,6 +161,14 @@
   }
 
   function eventIcon(row) {
+    const eventKind = row.eventKind || eventKindFor(row.title);
+    if (eventKind === 'shark') {
+      const eventName = String(row.eventId || '').replace(/^shark:/,'');
+      const titleName = String(row.title || '').split('｜').at(-1).trim();
+      const name = eventName || titleName || '未知鯊魚';
+      const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.({name,kind:'shark',rarity:row.iconRarity || SHARK_RARITY[name] || '普通'},'fh-shark-event-icon');
+      if (html) return html;
+    }
     if (row.eventKind === 'bottle') {
       const html = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.({name:row.title,series:row.title,kind:'bottle',rarity:'稀有'},'fh-event-item-icon');
       if (html) return html;
@@ -235,6 +244,7 @@
       eventId:String(options.eventId || options.id || ''),
       eventKind:options.eventKind || eventKindFor(title),
       tone:String(options.tone || ''),
+      iconRarity:String(options.iconRarity || ''),
       title,
       text,
       icon:options.icon || '🌟',
