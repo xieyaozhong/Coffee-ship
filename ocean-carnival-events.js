@@ -344,6 +344,7 @@
     const accents = {ocean:'#79d0b1',carnival:'#e9a6b0',salvage:'#d7bb79',world:'#9ce8f0'};
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
+      eventId:`${category}:${event[0]}`,
       eventKind:'special',
       title:`${labels[category]}｜${event[0]}`,
       icon:icons[category],

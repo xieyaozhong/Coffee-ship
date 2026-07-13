@@ -186,6 +186,7 @@
     const total = rewards.reduce((sum,item) => sum+Number(item.sellPrice || 0),0);
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
+      eventId:`ocean:${eventName}`,
       eventKind:'special',
       title:`海洋朋友QTE｜${eventName}・${grade.label}`,
       icon:grade.icon,

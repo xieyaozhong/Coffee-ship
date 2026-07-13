@@ -232,7 +232,9 @@
     pushHistory({
       type:'event',
       castId:options.castId || currentCastId() || `event_${Date.now()}_${++castSequence}`,
+      eventId:String(options.eventId || options.id || ''),
       eventKind:options.eventKind || eventKindFor(title),
+      tone:String(options.tone || ''),
       title,
       text,
       icon:options.icon || '🌟',
@@ -350,7 +352,7 @@
   }
 
   function renderEventCard(row) {
-    return `<article class="fh-card" style="--accent:${escapeHtml(row.accent || '#8460c8')}"><div class="fh-card-head"><span class="fh-icon">${eventIcon(row)}</span><strong>${escapeHtml(row.title || '特殊事件')}</strong><span class="fh-event-label">${escapeHtml(eventLabel(row.eventKind))}</span></div><small>${formatText(row.text || '')}</small><span class="fh-time">${timeLabel(row.at)}</span></article>`;
+    return `<article class="fh-card" data-event-id="${escapeHtml(row.eventId || '')}" data-event-tone="${escapeHtml(row.tone || '')}" data-event-kind="${escapeHtml(row.eventKind || 'special')}" style="--accent:${escapeHtml(row.accent || '#8460c8')}"><div class="fh-card-head"><span class="fh-icon">${eventIcon(row)}</span><strong>${escapeHtml(row.title || '特殊事件')}</strong><span class="fh-event-label">${escapeHtml(eventLabel(row.eventKind))}</span></div><small>${formatText(row.text || '')}</small><span class="fh-time">${timeLabel(row.at)}</span></article>`;
   }
 
   function renderRecent() {

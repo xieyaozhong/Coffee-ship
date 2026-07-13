@@ -136,6 +136,7 @@
   function pushResult(segment, detail) {
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId:active?.castId || `coral_roulette_${Date.now()}`,
+      eventId:`coral-roulette:${segment.id}`,
       eventKind:'special',
       title:`珊瑚輪盤｜${detail.title}`,
       icon:segment.icon,

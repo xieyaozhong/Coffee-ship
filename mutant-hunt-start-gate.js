@@ -146,7 +146,8 @@
   }
 
   function pushEvent(title, text, icon='🧬', accent='#ff5f9e', castId=active?.castId) {
-    window.COFFEE_SHIP_FISHING_API?.pushEvent?.({castId,eventKind:'mutant',title,text,icon,accent});
+    const creatureId = active?.creature?.id || creatures().find(creature => title.includes(creature.name))?.id || '';
+    window.COFFEE_SHIP_FISHING_API?.pushEvent?.({castId,eventId:creatureId ? `mutant:${creatureId}` : `mutant:${title}`,eventKind:'mutant',title,text,icon,accent});
   }
 
   function addCurse(creature) {

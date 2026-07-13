@@ -69,6 +69,7 @@
 
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
+      eventId:`mermaid-lyric:${entry.id || entry.title}`,
       eventKind:'bottle',
       title:entry.title,
       icon:entry.icon,
@@ -102,6 +103,7 @@
 
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
+      eventId:`mermaid:${encounter[0]}`,
       eventKind:'mermaid',
       title:`美人魚事件｜${encounter[0]}`,
       icon:'🧜‍♀️',

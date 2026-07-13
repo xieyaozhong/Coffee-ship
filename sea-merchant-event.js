@@ -201,7 +201,7 @@
   }
 
   function pushEvent(title,text,icon='🛶',castId=currentVisit?.castId) {
-    window.COFFEE_SHIP_FISHING_API?.pushEvent?.({castId,eventKind:'special',title:`海上商人｜${title}`,icon,accent:'#f2a957',text});
+    window.COFFEE_SHIP_FISHING_API?.pushEvent?.({castId,eventId:'sea-merchant',eventKind:'special',title:`海上商人｜${title}`,icon,accent:'#f2a957',text});
   }
 
   function addStyle() {

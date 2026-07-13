@@ -59,6 +59,7 @@
       : '背包裡沒有可吃的漁獲，牠繞了一圈就離開了。';
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId:event.detail?.castId,
+      eventId:`shark:${shark[0]}`,
       eventKind:'shark',
       title:`鯊魚事件｜${shark[0]}`,
       icon:'🦈',

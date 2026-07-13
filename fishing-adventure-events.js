@@ -510,12 +510,14 @@
     }
   }
 
-  function pushDisplay({castId,tone,icon,title,text}) {
+  function pushDisplay({castId,eventId,tone,icon,title,text}) {
     const labels = {negative:'負面事件',positive:'幸運事件',strange:'奇異事件',risk:'風險事件',status:'持續效果'};
     const accents = {negative:'#d96b72',positive:'#79d0b1',strange:'#9ce8f0',risk:'#f2a957',status:'#b9a4e6'};
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId,
+      eventId,
       eventKind:'special',
+      tone,
       title:`${labels[tone] || '海上事件'}｜${title}`,
       icon:icon || '🌊',
       accent:accents[tone] || '#8460c8',
@@ -533,7 +535,7 @@
     const context = {item,castId,currentState,title:event.title,escaped:false};
     const detail = executeAction(event,context);
     saveState(currentState);
-    pushDisplay({castId,tone:event.tone,icon:event.icon,title:event.title,text:`${event.text}\n${detail}`});
+    pushDisplay({castId,eventId:event.id,tone:event.tone,icon:event.icon,title:event.title,text:`${event.text}\n${detail}`});
     logEvent(event,detail,castId);
     currentState.stats.events = Number(currentState.stats.events || 0) + 1;
     currentState.stats[event.tone] = Number(currentState.stats[event.tone] || 0) + 1;

@@ -103,6 +103,7 @@
   function log(title, text, icon = '🏴‍☠️') {
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId: visit?.castId || `pirate_${Date.now()}`,
+      eventId: `pirate:${visit?.gameType || 'ship'}`,
       eventKind: 'special',
       title: `海盜賭局｜${title}`,
       icon,

@@ -184,6 +184,7 @@
     const pulls = active.hits.map((value,index) => `第 ${index+1} 次 ${value}%`).join('、');
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId:active.castId,
+      eventId:`salvage:${active.event[0]}`,
       eventKind:'special',
       title:`沉船打撈QTE｜${active.event[0]}・${grade.label}`,
       icon:grade.icon,

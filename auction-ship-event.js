@@ -175,6 +175,7 @@
   function pushEvent(title,text,icon='🚢',accent='#f2a957') {
     window.COFFEE_SHIP_FISHING_API?.pushEvent?.({
       castId:active?.castId || pendingCastId || `auction_ship_${Date.now()}`,
+      eventId:'auction-ship',
       eventKind:'auction-ship',
       title:`拍賣船｜${title}`,
       icon,
