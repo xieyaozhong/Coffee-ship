@@ -20,6 +20,7 @@
 - `coffee-ship-voyage-core.js`：航程、目標、聲望、航線與持久狀態。
 - `coffee-ship-world-renderer.js`：咖啡廳、甲板、港口與角色的統一可見建模。
 - `coffee-ship-game-redesign.css`：航程 HUD、日誌、世界畫布與響應式遊戲介面。
+- `coffee-ship-fish-pixel-icons.js`：為每個魚種即時生成穩定且獨特的 24×24 像素圖示。
 - 舊版公開 API、DOM ID 與事件仍保留，讓釣魚、背包、特殊事件和多人功能可以漸進遷移。
 
 ## 上傳到 GitHub Pages

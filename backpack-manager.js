@@ -184,12 +184,20 @@
     return lines.join('<br>');
   }
 
+  function itemIconMarkup(item) {
+    if (isBiologicalCatch(item)) {
+      const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.(item,'bp-species-icon');
+      if (html) return html;
+    }
+    return `<span aria-hidden="true">${escapeHtml(item.icon || (isBiologicalCatch(item) ? '🐟' : '📦'))}</span>`;
+  }
+
   function renderItems(items, filter) {
     const rows = items.map((item, index) => ({item, index})).filter(row => filter(row.item));
     if (!rows.length) return '<div class="bp-empty">目前沒有內容。</div>';
     return `<div class="bp-list">${rows.map(({item,index}) => `
       <article class="bp-card">
-        <strong class="bp-title"><span>${escapeHtml(item.icon || (isBiologicalCatch(item) ? '🐟' : '📦'))}</span><span>${escapeHtml(`${item.quality ? item.quality + ' ' : ''}${item.name || '未知物品'}`)}</span></strong>
+        <strong class="bp-title">${itemIconMarkup(item)}<span>${escapeHtml(`${item.quality ? item.quality + ' ' : ''}${item.name || '未知物品'}`)}</span></strong>
         <small class="bp-meta">${itemMeta(item)}</small>
         <div class="bp-actions"><button class="bp-sell" data-bp-sell="${index}" ${priceOf(item) <= 0 ? 'disabled' : ''}>販售</button><button class="bp-delete" data-bp-delete="${index}">丟棄</button></div>
       </article>`).join('')}</div>`;

@@ -151,6 +151,12 @@
     return window.COFFEE_SHIP_ICON?.iconDescriptor?.(item) || {base:item.icon || ICONS[item.kind] || '🐟'};
   }
 
+  function pixelIcon(item, className = '') {
+    const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.(item,className);
+    if (html) return html;
+    return `<span class="fh-fallback-icon" aria-hidden="true">${escapeHtml(descriptor(item).base)}</span>`;
+  }
+
   function priceOf(item) {
     const rarity = {普通:2,常見:4,稀有:10,史詩:28,傳說:120,神話:500,世界級:5000}[item.rarity] || 2;
     const quality = {普通:1,優秀:1.4,完美:2,閃亮:3.5,神話:6,變異:3,祝福:2}[item.quality] || 1;
@@ -186,6 +192,7 @@
     const previous = meta[item.name] || {};
     meta[item.name] = {
       icon:descriptor(item).base,
+      kind:item.kind || previous.kind || 'fish',
       rarity:item.rarity || previous.rarity || '普通',
       zone:item.zone || previous.zone || '未知',
       count:Number(previous.count || 0) + 1,
@@ -328,9 +335,8 @@
 
   function renderCatchCard(row) {
     const item = row.item || row;
-    const icon = descriptor(item).base;
     const value = item.kind === 'trash' ? '不可販售' : `${priceOf(item)} 珍珠`;
-    return `<article class="fh-card is-primary" style="--accent:${COLORS[item.rarity] || '#79d0b1'}"><div class="fh-card-head"><span class="fh-icon">${escapeHtml(icon)}</span><strong>${escapeHtml(`${item.quality || ''} ${item.name || '未知漁獲'}`.trim())}</strong></div><small>海域：${escapeHtml(item.zone || '未知')}<br>稀有度：${escapeHtml(item.rarity || '普通')}<br>重量：${Number(item.weight || 0).toFixed(2)} kg<br>價值：${value}${item.coffeeEffectName ? `<br>咖啡加成：${escapeHtml(item.coffeeEffectName)}` : ''}</small></article>`;
+    return `<article class="fh-card is-primary" style="--accent:${COLORS[item.rarity] || '#79d0b1'}"><div class="fh-card-head"><span class="fh-icon fh-icon-shell">${pixelIcon(item,'fh-species-icon')}</span><strong>${escapeHtml(`${item.quality || ''} ${item.name || '未知漁獲'}`.trim())}</strong></div><small>海域：${escapeHtml(item.zone || '未知')}<br>稀有度：${escapeHtml(item.rarity || '普通')}<br>重量：${Number(item.weight || 0).toFixed(2)} kg<br>價值：${value}${item.coffeeEffectName ? `<br>咖啡加成：${escapeHtml(item.coffeeEffectName)}` : ''}</small></article>`;
   }
 
   function renderEventCard(row) {
@@ -361,7 +367,8 @@
     if (!rows.length) return '<div class="fh-empty">尚未收集任何魚種。</div>';
     return `<div>${rows.map(([name,weight]) => {
       const info = meta[name] || {};
-      return `<div class="fh-dex-row"><span class="fh-dex-icon">${escapeHtml(info.icon || '🐟')}</span><span class="fh-dex-copy"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(info.rarity || '已發現')} · ${escapeHtml(info.zone || '未知海域')} · ${Number(info.count || 1)} 次</small></span><span class="fh-dex-best">${Number(weight || info.best || 0).toFixed(2)} kg</span></div>`;
+      const item = {name,kind:info.kind || 'fish',rarity:info.rarity || '普通',zone:info.zone || '未知海域'};
+      return `<div class="fh-dex-row"><span class="fh-dex-icon">${pixelIcon(item,'fh-dex-species-icon')}</span><span class="fh-dex-copy"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(info.rarity || '已發現')} · ${escapeHtml(info.zone || '未知海域')} · ${Number(info.count || 1)} 次</small></span><span class="fh-dex-best">${Number(weight || info.best || 0).toFixed(2)} kg</span></div>`;
     }).join('')}</div>`;
   }
 
