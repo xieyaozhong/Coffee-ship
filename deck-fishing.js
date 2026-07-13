@@ -169,6 +169,16 @@
       const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.({name,kind:'shark',rarity:row.iconRarity || SHARK_RARITY[name] || '普通'},'fh-shark-event-icon');
       if (html) return html;
     }
+    if (eventKind === 'mutant') {
+      const mutantId = String(row.eventId || '').replace(/^mutant:/,'');
+      const creatures = window.COFFEE_SHIP_MUTANT_HUNT?.creatures || [];
+      const eventText = `${row.title || ''}\n${row.text || ''}`;
+      const creature = creatures.find(item => item.id === mutantId) || creatures.find(item => eventText.includes(item.name));
+      if (creature) {
+        const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.({mutantId:creature.id,name:creature.name,kind:'mutant',rarity:row.iconRarity || creature.rarity},'fh-mutant-event-icon');
+        if (html) return html;
+      }
+    }
     if (row.eventKind === 'bottle') {
       const html = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.({name:row.title,series:row.title,kind:'bottle',rarity:'稀有'},'fh-event-item-icon');
       if (html) return html;

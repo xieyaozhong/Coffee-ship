@@ -146,8 +146,9 @@
   }
 
   function pushEvent(title, text, icon='🧬', accent='#ff5f9e', castId=active?.castId) {
-    const creatureId = active?.creature?.id || creatures().find(creature => title.includes(creature.name))?.id || '';
-    window.COFFEE_SHIP_FISHING_API?.pushEvent?.({castId,eventId:creatureId ? `mutant:${creatureId}` : `mutant:${title}`,eventKind:'mutant',title,text,icon,accent});
+    const creature = active?.creature || creatures().find(item => title.includes(item.name));
+    const creatureId = creature?.id || '';
+    window.COFFEE_SHIP_FISHING_API?.pushEvent?.({castId,eventId:creatureId ? `mutant:${creatureId}` : `mutant:${title}`,eventKind:'mutant',iconRarity:creature?.rarity || '',title,text,icon,accent});
   }
 
   function addCurse(creature) {
