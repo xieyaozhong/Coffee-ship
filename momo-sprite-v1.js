@@ -56,11 +56,17 @@
     document.head.appendChild(script);
   }
 
-  loadScript('momo-style-cast-v1.js?v=cast-8', () => {
-    loadScript('unified-character-runtime-v3.js?v=unified-8', () => {
-      loadScript('scene-art-runtime-v1.js?v=scene-art-4', () => {
-        loadScript('fishing-ui-cleanup-v2.js?v=cleanup-4');
+  if (window.__COFFEE_SHIP_WORLD_RENDERER_V1__) {
+    loadScript('scene-art-runtime-v1.js?v=scene-art-4', () => {
+      loadScript('fishing-ui-cleanup-v2.js?v=cleanup-4');
+    });
+  } else {
+    loadScript('momo-style-cast-v1.js?v=cast-8', () => {
+      loadScript('unified-character-runtime-v3.js?v=unified-8', () => {
+        loadScript('scene-art-runtime-v1.js?v=scene-art-4', () => {
+          loadScript('fishing-ui-cleanup-v2.js?v=cleanup-4');
+        });
       });
     });
-  });
+  }
 })();

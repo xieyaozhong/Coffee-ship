@@ -1,0 +1,1506 @@
+/* Coffee Ship — Harbor design system
+   A unified visual layer for boarding, in-game HUD, panels and mobile controls. */
+
+:root {
+  --harbor-950: #061113;
+  --harbor-900: #081719;
+  --harbor-850: #0c1d20;
+  --harbor-800: #10272a;
+  --harbor-700: #17363a;
+  --harbor-600: #23484b;
+  --harbor-500: #376467;
+  --foam-50: #f5f1e8;
+  --foam-100: #ebe4d4;
+  --foam-200: #d8cfbd;
+  --foam-400: #a9a592;
+  --brass-300: #dfbd7b;
+  --brass-400: #cfa45f;
+  --brass-500: #b98242;
+  --copper-500: #b96f4c;
+  --sea-glass-300: #8fc8bc;
+  --sea-glass-400: #6caa9f;
+  --rose-300: #d7a4a0;
+  --sky-300: #9bbdcd;
+  --harbor-line: rgba(235, 228, 212, .12);
+  --harbor-line-strong: rgba(235, 228, 212, .2);
+  --harbor-surface: rgba(12, 29, 32, .94);
+  --harbor-surface-soft: rgba(255, 255, 255, .045);
+  --harbor-shadow: 0 28px 80px rgba(0, 0, 0, .38);
+  --harbor-shadow-soft: 0 14px 34px rgba(0, 0, 0, .24);
+  --harbor-radius-xl: 30px;
+  --harbor-radius-lg: 20px;
+  --harbor-radius-md: 14px;
+  --harbor-radius-sm: 10px;
+
+  /* Bridge legacy tokens to one shared palette. */
+  --bg: var(--harbor-950);
+  --panel: var(--harbor-850);
+  --ink: var(--foam-50);
+  --muted: var(--foam-400);
+  --accent: var(--brass-400);
+  --accent2: var(--sea-glass-300);
+  --line: var(--harbor-line);
+  --ui-surface: var(--harbor-surface);
+  --ui-surface-soft: var(--harbor-surface-soft);
+  --ui-line: var(--harbor-line);
+  --ui-ink: var(--foam-50);
+  --ui-muted: var(--foam-400);
+  --ui-mint: var(--sea-glass-300);
+  --ui-gold: var(--brass-300);
+  --ui-violet: var(--sky-300);
+  --ui-shadow: var(--harbor-shadow);
+}
+
+html {
+  background: var(--harbor-950);
+  color-scheme: dark;
+}
+
+body.cs-harbor-design {
+  min-height: 100vh;
+  color: var(--foam-50);
+  font-family: Inter, "SF Pro Text", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 12% -4%, rgba(108, 170, 159, .15), transparent 29%),
+    radial-gradient(circle at 91% 3%, rgba(185, 111, 76, .11), transparent 25%),
+    linear-gradient(148deg, var(--harbor-950) 0%, #0a1c1f 46%, #071416 100%) !important;
+  background-attachment: fixed !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.cs-harbor-design,
+.cs-harbor-design button,
+.cs-harbor-design input,
+.cs-harbor-design select,
+.cs-harbor-design textarea {
+  font-family: inherit;
+}
+
+.cs-harbor-design .shell {
+  position: relative;
+  width: min(1180px, calc(100% - 48px)) !important;
+  margin: 0 auto;
+  padding: 26px 0 54px !important;
+}
+
+.cs-harbor-design .shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+/* Brand masthead */
+.cs-harbor-design:not(.coffee-ship-entered):has(#creator.login-interface-ready:not(.hidden)) .hero {
+  display: flex !important;
+}
+
+.cs-harbor-design .hero {
+  display: flex;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 64px;
+  margin: 0 0 20px !important;
+  padding: 0 2px !important;
+}
+
+.cs-harbor-design .hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cs-harbor-design .brand-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  color: var(--harbor-900);
+  background: var(--brass-300);
+  border: 1px solid #efd49d;
+  border-radius: 50%;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
+}
+
+.cs-harbor-design .eyebrow,
+.cs-harbor-design .section-label {
+  margin: 0 0 7px;
+  color: var(--sea-glass-300) !important;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .2em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.cs-harbor-design .hero h1 {
+  margin: 0;
+  color: var(--foam-50);
+  font-family: Georgia, "Noto Serif TC", "Times New Roman", serif;
+  font-size: clamp(28px, 3.2vw, 42px) !important;
+  font-weight: 500;
+  letter-spacing: -.035em !important;
+  line-height: .95;
+  text-shadow: none !important;
+}
+
+.cs-harbor-design .tagline {
+  margin: 7px 0 0 !important;
+  color: var(--foam-400) !important;
+  font-size: 13px;
+  line-height: 1.4 !important;
+}
+
+.cs-harbor-design .status-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 178px !important;
+  padding: 10px 14px !important;
+  color: var(--foam-100);
+  background: rgba(10, 26, 29, .72) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+}
+
+.cs-harbor-design .status-card small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--foam-400);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .16em;
+}
+
+.cs-harbor-design .status-card p {
+  margin: 0;
+  color: var(--foam-100);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cs-harbor-design #moodDot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  color: var(--sea-glass-300);
+  background: var(--sea-glass-300);
+  box-shadow: 0 0 0 5px rgba(143, 200, 188, .1), 0 0 16px rgba(143, 200, 188, .42);
+  animation: none;
+}
+
+/* Shared surfaces and controls */
+.cs-harbor-design .panel {
+  position: relative;
+  overflow: hidden;
+  color: var(--foam-50);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .025), transparent 32%),
+    var(--harbor-surface) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: var(--harbor-radius-xl) !important;
+  box-shadow: var(--harbor-shadow), inset 0 1px 0 rgba(255, 255, 255, .035) !important;
+  backdrop-filter: blur(18px);
+}
+
+.cs-harbor-design .panel::before {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design input,
+.cs-harbor-design select,
+.cs-harbor-design textarea {
+  min-height: 50px;
+  width: 100%;
+  color: var(--foam-50) !important;
+  background: rgba(4, 15, 17, .68) !important;
+  border: 1px solid var(--harbor-line-strong) !important;
+  border-radius: var(--harbor-radius-sm) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025) !important;
+  outline: none;
+  transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+
+.cs-harbor-design input::placeholder,
+.cs-harbor-design textarea::placeholder {
+  color: rgba(216, 207, 189, .44);
+}
+
+.cs-harbor-design input:hover,
+.cs-harbor-design select:hover,
+.cs-harbor-design textarea:hover {
+  border-color: rgba(235, 228, 212, .3) !important;
+}
+
+.cs-harbor-design input:focus,
+.cs-harbor-design select:focus,
+.cs-harbor-design textarea:focus {
+  background: rgba(4, 15, 17, .9) !important;
+  border-color: var(--sea-glass-300) !important;
+  box-shadow: 0 0 0 3px rgba(143, 200, 188, .13) !important;
+}
+
+.cs-harbor-design label {
+  color: var(--foam-200);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .02em;
+}
+
+.cs-harbor-design button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background-color .16s ease, color .16s ease, opacity .16s ease;
+}
+
+.cs-harbor-design button:hover {
+  filter: none;
+  transform: translateY(-1px);
+}
+
+.cs-harbor-design button:active,
+.cs-harbor-design button.is-pressed {
+  transform: translateY(1px) !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design button:focus-visible,
+.cs-harbor-design input:focus-visible,
+.cs-harbor-design select:focus-visible,
+.cs-harbor-design textarea:focus-visible {
+  outline: 2px solid var(--foam-50) !important;
+  outline-offset: 3px;
+}
+
+/* Boarding experience */
+.cs-harbor-design #creator.login-interface-ready {
+  min-height: 620px;
+  padding: 0 !important;
+  background: var(--harbor-850) !important;
+}
+
+.cs-harbor-design .login-interface {
+  display: grid !important;
+  grid-template-columns: minmax(340px, .86fr) minmax(440px, 1.14fr) !important;
+  min-height: 620px;
+  gap: 0 !important;
+}
+
+.cs-harbor-design .login-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 46px 42px 34px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 55%, rgba(143, 200, 188, .13), transparent 28%),
+    radial-gradient(circle at 0 0, rgba(207, 164, 95, .12), transparent 28%),
+    linear-gradient(160deg, #102b2e 0%, #0b2023 52%, #081719 100%) !important;
+  border: 0 !important;
+  border-right: 1px solid var(--harbor-line) !important;
+  border-radius: 29px 0 0 29px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .login-visual::before {
+  width: 330px;
+  height: 330px;
+  left: 50%;
+  top: 174px;
+  border: 1px solid rgba(143, 200, 188, .17);
+  box-shadow:
+    0 0 0 22px rgba(143, 200, 188, .018),
+    0 0 0 72px rgba(143, 200, 188, .012),
+    inset 0 0 70px rgba(143, 200, 188, .05);
+  animation: none !important;
+}
+
+.cs-harbor-design .login-visual::after {
+  inset: auto -12% -52px;
+  height: 165px;
+  opacity: .45;
+  background: repeating-radial-gradient(ellipse at 50% 120%, transparent 0 17px, rgba(143, 200, 188, .11) 18px 19px, transparent 20px 34px);
+}
+
+.cs-harbor-design .login-brand {
+  max-width: 380px;
+}
+
+.cs-harbor-design .login-brand h2 {
+  max-width: 360px;
+  margin: 0 !important;
+  color: var(--foam-50) !important;
+  font-family: Georgia, "Noto Serif TC", "Times New Roman", serif;
+  font-size: clamp(34px, 4.2vw, 52px) !important;
+  font-weight: 500;
+  letter-spacing: -.045em;
+  line-height: 1.06;
+  text-shadow: none !important;
+}
+
+.cs-harbor-design .login-brand > p:last-child {
+  max-width: 340px;
+  margin: 17px 0 0;
+  color: var(--foam-400);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.cs-harbor-design .login-preview-card {
+  position: relative;
+  width: min(100%, 260px);
+  margin: 28px auto 20px;
+  padding: 32px 22px 20px;
+  overflow: visible;
+  color: var(--foam-50);
+  text-align: center;
+  background: rgba(5, 18, 20, .64) !important;
+  border: 1px solid rgba(223, 189, 123, .22) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 24px 54px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  backdrop-filter: blur(12px);
+}
+
+.cs-harbor-design .login-preview-card::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border: 1px solid rgba(235, 228, 212, .065);
+  border-radius: 20px;
+}
+
+.cs-harbor-design .login-preview-card::after {
+  display: none;
+}
+
+.cs-harbor-design .preview-label {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  color: var(--brass-300);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .18em;
+  white-space: nowrap;
+}
+
+.cs-harbor-design #loginAvatarPreview {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 13px;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .login-preview-name {
+  color: var(--foam-50);
+  font-size: 16px;
+  font-weight: 680;
+  letter-spacing: .02em;
+}
+
+.cs-harbor-design .login-preview-caption {
+  margin-top: 6px;
+  color: var(--sea-glass-300);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .17em;
+}
+
+.cs-harbor-design .login-visual-footer {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.cs-harbor-design .login-feature-chip {
+  position: relative;
+  padding: 7px 10px 7px 20px;
+  color: var(--foam-200);
+  background: rgba(5, 18, 20, .54) !important;
+  border: 1px solid rgba(235, 228, 212, .1) !important;
+  border-radius: 999px;
+  box-shadow: none !important;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .03em;
+}
+
+.cs-harbor-design .login-feature-chip::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  transform: translateY(-50%);
+  background: var(--brass-300);
+  border-radius: 50%;
+}
+
+.cs-harbor-design .login-controls {
+  min-width: 0;
+  padding: 54px 54px 38px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .018), transparent 32%),
+    var(--harbor-850);
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .login-controls-header {
+  max-width: 520px;
+}
+
+.cs-harbor-design .login-controls-header h3 {
+  margin: 0;
+  color: var(--foam-50);
+  font-family: Georgia, "Noto Serif TC", "Times New Roman", serif;
+  font-size: clamp(27px, 3vw, 36px) !important;
+  font-weight: 500;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+}
+
+.cs-harbor-design .login-controls-header > p:last-child {
+  margin: 12px 0 0;
+  color: var(--foam-400);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.cs-harbor-design .login-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 28px 0 25px;
+  padding: 4px;
+  background: rgba(4, 15, 17, .54) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 13px !important;
+}
+
+.cs-harbor-design .login-mode-tab {
+  min-height: 43px;
+  padding: 9px 13px;
+  color: var(--foam-400) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.cs-harbor-design .login-mode-tab:hover {
+  color: var(--foam-100) !important;
+  background: rgba(255, 255, 255, .035) !important;
+}
+
+.cs-harbor-design .login-mode-tab.is-active {
+  color: var(--harbor-950) !important;
+  background: var(--foam-100) !important;
+  border-color: rgba(255, 255, 255, .36) !important;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .18) !important;
+}
+
+.cs-harbor-design .login-general-panel .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 15px !important;
+  margin: 0 !important;
+}
+
+.cs-harbor-design .login-general-panel .form-grid label:first-child {
+  grid-column: 1 / -1;
+}
+
+.cs-harbor-design .login-general-panel label {
+  gap: 8px;
+}
+
+.cs-harbor-design .login-general-panel input,
+.cs-harbor-design .login-general-panel select {
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.cs-harbor-design .login-actions {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.22fr) minmax(0, .88fr) !important;
+  gap: 10px;
+  margin-top: 21px;
+}
+
+.cs-harbor-design .login-actions #startBtn,
+.cs-harbor-design .login-actions #randomAnimalBtn {
+  min-height: 52px;
+  margin: 0 !important;
+  padding: 12px 16px;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 750;
+  letter-spacing: .02em;
+}
+
+.cs-harbor-design .login-actions #startBtn {
+  color: var(--harbor-950) !important;
+  background: var(--brass-300) !important;
+  border-color: #ebcf99 !important;
+}
+
+.cs-harbor-design .login-actions #startBtn:hover {
+  background: #e7c98f !important;
+}
+
+.cs-harbor-design .login-actions #randomAnimalBtn {
+  color: var(--foam-100) !important;
+  background: rgba(143, 200, 188, .07) !important;
+  border-color: rgba(143, 200, 188, .3) !important;
+}
+
+.cs-harbor-design .login-actions #randomAnimalBtn:hover {
+  background: rgba(143, 200, 188, .13) !important;
+  border-color: rgba(143, 200, 188, .48) !important;
+}
+
+.cs-harbor-design .login-status {
+  position: relative;
+  min-height: 20px;
+  margin: 16px 0 0;
+  padding: 0 0 0 14px;
+  color: var(--foam-400);
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.55;
+}
+
+.cs-harbor-design .login-status::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .58em;
+  width: 5px;
+  height: 5px;
+  background: var(--sea-glass-300);
+  border-radius: 50%;
+}
+
+.cs-harbor-design .login-status.is-error { color: #e5aaa7; }
+.cs-harbor-design .login-status.is-error::before { background: #e5aaa7; }
+.cs-harbor-design .login-status.is-ok { color: #a9d5cb; }
+
+.cs-harbor-design .login-special-panel {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.cs-harbor-design .login-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 17px;
+}
+
+.cs-harbor-design .login-role-card {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 11px;
+  min-height: 72px;
+  padding: 12px 13px;
+  color: var(--foam-100) !important;
+  text-align: left;
+  background: rgba(255, 255, 255, .032) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .login-role-card:hover {
+  background: rgba(255, 255, 255, .055) !important;
+  border-color: rgba(143, 200, 188, .33) !important;
+}
+
+.cs-harbor-design .login-role-card.is-selected {
+  background: rgba(223, 189, 123, .09) !important;
+  border-color: rgba(223, 189, 123, .5) !important;
+  box-shadow: inset 3px 0 0 var(--brass-300) !important;
+}
+
+.cs-harbor-design .login-role-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 10px;
+}
+
+.cs-harbor-design .login-role-card strong {
+  color: var(--foam-100);
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.cs-harbor-design .login-role-card small {
+  margin-top: 4px;
+  color: var(--foam-400);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.cs-harbor-design .login-special-panel .role-code-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 9px;
+}
+
+.cs-harbor-design .login-special-panel #roleEnterBtn {
+  min-width: 128px;
+  color: var(--harbor-950) !important;
+  background: var(--brass-300) !important;
+  border: 1px solid #ebcf99 !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design #creator.login-interface-ready .login-role-loading {
+  color: var(--foam-400);
+  background: rgba(255, 255, 255, .02);
+  border: 1px dashed rgba(235, 228, 212, .16);
+  border-radius: 10px;
+  font-weight: 550;
+}
+
+/* Game frame and HUD */
+.cs-harbor-design.coffee-ship-entered .shell {
+  width: min(1240px, calc(100% - 36px)) !important;
+}
+
+.cs-harbor-design .game-panel {
+  padding: 14px !important;
+  overflow: visible !important;
+  background: rgba(7, 20, 22, .94) !important;
+  border-radius: 24px !important;
+}
+
+.cs-harbor-design.coffee-ship-entered #gamePanel:not(.hidden) .game-topbar,
+.cs-harbor-design .game-topbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 11px !important;
+  margin: 0 0 11px !important;
+  padding: 11px 13px !important;
+  color: var(--foam-200);
+  background: rgba(12, 29, 32, .82) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px);
+}
+
+.cs-harbor-design .game-topbar::after { display: none !important; }
+
+.cs-harbor-design .game-topbar > div:first-child {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.cs-harbor-design #avatarName {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--foam-50);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  text-shadow: none;
+}
+
+.cs-harbor-design #avatarName::before,
+.cs-harbor-design .game-topbar strong#avatarName::before {
+  content: "CS";
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  color: var(--harbor-950);
+  background: var(--brass-300);
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 8px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.cs-harbor-design #coffeeBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 9px;
+  color: var(--brass-300);
+  background: rgba(223, 189, 123, .065) !important;
+  border: 1px solid rgba(223, 189, 123, .18) !important;
+  border-radius: 999px;
+  box-shadow: none !important;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.cs-harbor-design #coffeeBadge::after { display: none; }
+
+.cs-harbor-design .controls {
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+.cs-harbor-design .game-topbar .controls::before,
+.cs-harbor-design .game-topbar .controls::after {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  padding: 5px 9px;
+  color: var(--foam-400) !important;
+  background: rgba(255, 255, 255, .025) !important;
+  border: 1px solid rgba(255, 255, 255, .055) !important;
+  border-radius: 999px;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: .025em !important;
+}
+
+.cs-harbor-design .game-topbar .controls::before { content: "WASD / 方向鍵移動" !important; }
+.cs-harbor-design .game-topbar .controls::after { content: "C 咖啡 · E 互動 · B 留言" !important; }
+
+.cs-harbor-design .cs-game-context {
+  grid-column: 1 / -1;
+  gap: 6px;
+}
+
+.cs-harbor-design .cs-context-chip,
+.cs-harbor-design #sceneStatusBadge,
+.cs-harbor-design .op-scene-pill,
+.cs-harbor-design .op-chip,
+.cs-harbor-design .op-key {
+  color: var(--foam-400) !important;
+  background: rgba(255, 255, 255, .028) !important;
+  border: 1px solid rgba(255, 255, 255, .06) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design.coffee-ship-entered #game,
+.cs-harbor-design #game {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--harbor-950) !important;
+  border: 1px solid rgba(143, 200, 188, .18) !important;
+  border-radius: 17px !important;
+  box-shadow: 0 24px 54px rgba(0, 0, 0, .3), 0 0 0 4px rgba(255, 255, 255, .012) !important;
+}
+
+/* Operation dock, game cards and content panels */
+.cs-harbor-design #operationDock {
+  margin-top: 11px !important;
+}
+
+.cs-harbor-design #operationDock .op-dock-toolbar,
+.cs-harbor-design #operationDock .op-card,
+.cs-harbor-design .op-card,
+.cs-harbor-design .fh-card,
+.cs-harbor-design .cs-recovery-card {
+  color: var(--foam-100) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .024), transparent 38%),
+    rgba(10, 26, 29, .94) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 15px !important;
+  box-shadow: var(--harbor-shadow-soft), inset 0 1px 0 rgba(255, 255, 255, .025) !important;
+}
+
+.cs-harbor-design #operationDock .op-dock-toolbar {
+  padding: 10px 12px !important;
+}
+
+.cs-harbor-design #operationDock .op-stat,
+.cs-harbor-design #operationDock .op-panel-pill,
+.cs-harbor-design .fh-meta-cell,
+.cs-harbor-design .fh-pill,
+.cs-harbor-design .coffee-chip,
+.cs-harbor-design .fh-dex-best {
+  color: var(--foam-200) !important;
+  background: rgba(255, 255, 255, .035) !important;
+  border: 1px solid rgba(255, 255, 255, .06) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design #operationDock .op-action-button {
+  min-height: 64px !important;
+  color: var(--foam-100) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .018)),
+    var(--harbor-800) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 2px 0 var(--btn-accent, var(--sea-glass-300)) !important;
+}
+
+.cs-harbor-design #operationDock .op-action-button::before,
+.cs-harbor-design #operationDock .op-action-button::after {
+  opacity: .12 !important;
+}
+
+.cs-harbor-design #operationDock .op-action-button:hover {
+  color: var(--foam-50) !important;
+  background: var(--harbor-700) !important;
+  border-color: rgba(255, 255, 255, .16) !important;
+  transform: translateY(-1px) !important;
+}
+
+.cs-harbor-design #operationDock .op-action-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
+  background: rgba(255, 255, 255, .045) !important;
+  border: 1px solid rgba(255, 255, 255, .055) !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design #operationDock .op-collapse-btn {
+  color: var(--foam-200) !important;
+  background: rgba(255, 255, 255, .035) !important;
+  border: 1px solid var(--harbor-line) !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .coffee-menu,
+.cs-harbor-design .message-board,
+.cs-harbor-design .fh-modal,
+.cs-harbor-design .fh-shell,
+.cs-harbor-design .cs-guide__card {
+  color: var(--foam-100) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .025), transparent 30%),
+    rgba(8, 23, 25, .98) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 19px !important;
+  box-shadow: var(--harbor-shadow) !important;
+  backdrop-filter: blur(18px);
+}
+
+.cs-harbor-design .board-head {
+  align-items: center;
+  padding-bottom: 12px;
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.cs-harbor-design .board-head h2,
+.cs-harbor-design .cs-guide__header h2 {
+  color: var(--foam-50);
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+
+.cs-harbor-design .board-note,
+.cs-harbor-design .cs-guide__intro,
+.cs-harbor-design .cs-guide__steps small {
+  color: var(--foam-400) !important;
+}
+
+.cs-harbor-design .coffee-option,
+.cs-harbor-design .message-card,
+.cs-harbor-design .fh-dex-row,
+.cs-harbor-design .cs-guide__steps li {
+  color: var(--foam-100) !important;
+  background: rgba(255, 255, 255, .032) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 13px !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .coffee-option:hover,
+.cs-harbor-design .message-card:hover,
+.cs-harbor-design .fh-dex-row:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  border-color: rgba(143, 200, 188, .25) !important;
+}
+
+.cs-harbor-design .coffee-option strong,
+.cs-harbor-design .message-text,
+.cs-harbor-design .fh-card strong,
+.cs-harbor-design .fh-dex-copy strong {
+  color: var(--foam-100) !important;
+}
+
+.cs-harbor-design .coffee-option span,
+.cs-harbor-design .message-meta,
+.cs-harbor-design .fh-meta-cell span {
+  color: var(--foam-400) !important;
+}
+
+.cs-harbor-design .coffee-option small,
+.cs-harbor-design .coffee-option-price,
+.cs-harbor-design .message-meta {
+  color: var(--sea-glass-300) !important;
+}
+
+.cs-harbor-design .ghost-btn,
+.cs-harbor-design .coffee-menu .ghost-btn,
+.cs-harbor-design .message-board .ghost-btn,
+.cs-harbor-design .cs-guide__secondary {
+  color: var(--foam-200) !important;
+  background: rgba(255, 255, 255, .035) !important;
+  border: 1px solid var(--harbor-line) !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .message-board .message-form button,
+.cs-harbor-design .coffee-menu .coffee-options button:not(.ghost-btn),
+.cs-harbor-design .cs-guide__primary,
+.cs-harbor-design .cs-guide-button {
+  color: var(--harbor-950) !important;
+  background: var(--brass-300) !important;
+  border: 1px solid #ebcf99 !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design .cs-guide__backdrop {
+  background: rgba(2, 10, 11, .78) !important;
+  backdrop-filter: blur(9px);
+}
+
+.cs-harbor-design .cs-system-banner,
+.cs-harbor-design .cs-system-toast,
+.cs-harbor-design .cs-runtime-toast,
+.cs-harbor-design #coffeeShipRuntimeStatus,
+.cs-harbor-design #safeCafeStatus {
+  color: var(--foam-100) !important;
+  background: rgba(8, 23, 25, .96) !important;
+  border: 1px solid rgba(143, 200, 188, .32) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--harbor-shadow-soft) !important;
+}
+
+/* Runtime-injected inventory and fishing surfaces */
+body.cs-harbor-design #backpackSafeOpenBtn {
+  color: var(--foam-100) !important;
+  background: rgba(12, 39, 42, .96) !important;
+  border: 1px solid rgba(143, 200, 188, .28) !important;
+  border-radius: 13px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .3) !important;
+  backdrop-filter: blur(12px);
+}
+
+body.cs-harbor-design #backpackPanel,
+body.cs-harbor-design #fishingHub {
+  color: var(--foam-100) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .024), transparent 30%),
+    rgba(7, 22, 24, .985) !important;
+  border: 1px solid var(--harbor-line-strong) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--harbor-shadow) !important;
+  backdrop-filter: blur(18px);
+}
+
+body.cs-harbor-design .bp-head,
+body.cs-harbor-design .fh-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--harbor-line);
+}
+
+body.cs-harbor-design .bp-head h3,
+body.cs-harbor-design .fh-head h3 {
+  color: var(--foam-50);
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+
+body.cs-harbor-design .bp-wallet,
+body.cs-harbor-design .fh-summary,
+body.cs-harbor-design .fh-zone,
+body.cs-harbor-design .bp-empty,
+body.cs-harbor-design .fh-empty {
+  color: var(--brass-300) !important;
+  background: rgba(223, 189, 123, .055) !important;
+  border: 1px solid rgba(223, 189, 123, .2) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+body.cs-harbor-design .bp-tab,
+body.cs-harbor-design .fh-tab {
+  color: var(--foam-400) !important;
+  background: rgba(255, 255, 255, .025) !important;
+  border: 1px solid var(--harbor-line) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+body.cs-harbor-design .bp-tab.active,
+body.cs-harbor-design .fh-tab.active {
+  color: var(--harbor-950) !important;
+  background: var(--foam-100) !important;
+  border-color: var(--foam-100) !important;
+}
+
+body.cs-harbor-design .bp-card,
+body.cs-harbor-design #fishingHub .fh-card {
+  color: var(--foam-100) !important;
+  background: rgba(255, 255, 255, .032) !important;
+  border-width: 1px !important;
+  border-radius: 13px !important;
+  box-shadow: none !important;
+}
+
+body.cs-harbor-design .bp-close,
+body.cs-harbor-design .fh-close {
+  color: var(--foam-200) !important;
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--harbor-line) !important;
+  box-shadow: none !important;
+}
+
+body.cs-harbor-design .bp-tool,
+body.cs-harbor-design .bp-sell,
+body.cs-harbor-design .bp-delete,
+body.cs-harbor-design .fh-cast {
+  border: 1px solid rgba(255, 255, 255, .1) !important;
+  box-shadow: none !important;
+}
+
+/* Event and QTE shells keep their semantic accent, but share one frame. */
+body.cs-harbor-design #pirateGamblingEvent,
+body.cs-harbor-design #mutantHuntEvent,
+body.cs-harbor-design #abyssAuctionEvent,
+body.cs-harbor-design #oceanFriendsQte,
+body.cs-harbor-design #salvageQteEvent,
+body.cs-harbor-design #coralRouletteEvent,
+body.cs-harbor-design #seaMerchantEvent {
+  background: rgba(2, 11, 12, .84) !important;
+  backdrop-filter: blur(14px);
+}
+
+body.cs-harbor-design .pg-shell,
+body.cs-harbor-design .mh-shell,
+body.cs-harbor-design .aa-shell,
+body.cs-harbor-design .ofq-shell,
+body.cs-harbor-design .sq-shell,
+body.cs-harbor-design .cr-shell,
+body.cs-harbor-design .sm-card {
+  color: var(--foam-100) !important;
+  background:
+    radial-gradient(circle at 50% 0, rgba(143, 200, 188, .075), transparent 34%),
+    linear-gradient(160deg, #10282b, #071719 74%) !important;
+  border-width: 1px !important;
+  border-radius: 20px !important;
+  box-shadow: var(--harbor-shadow) !important;
+}
+
+body.cs-harbor-design .pg-head,
+body.cs-harbor-design .mh-head,
+body.cs-harbor-design .aa-head,
+body.cs-harbor-design .ofq-head,
+body.cs-harbor-design .sq-head,
+body.cs-harbor-design .cr-head,
+body.cs-harbor-design .sm-head {
+  background: rgba(255, 255, 255, .018) !important;
+  border-bottom: 1px solid var(--harbor-line) !important;
+}
+
+body.cs-harbor-design .pg-head b,
+body.cs-harbor-design .mh-title h3,
+body.cs-harbor-design .aa-title h3,
+body.cs-harbor-design .ofq-title h3,
+body.cs-harbor-design .sq-title h3,
+body.cs-harbor-design .cr-head h3,
+body.cs-harbor-design .sm-title h3 {
+  color: var(--foam-50) !important;
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-weight: 500;
+  letter-spacing: -.02em;
+}
+
+body.cs-harbor-design .pg-bar,
+body.cs-harbor-design .aa-status,
+body.cs-harbor-design .sm-status {
+  color: var(--foam-400) !important;
+  background: rgba(0, 0, 0, .16) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .045);
+}
+
+body.cs-harbor-design .pg-feature,
+body.cs-harbor-design .mh-arena,
+body.cs-harbor-design .mh-encounter-card,
+body.cs-harbor-design .aa-lot,
+body.cs-harbor-design .aa-board,
+body.cs-harbor-design .ofq-arena,
+body.cs-harbor-design .sq-meter,
+body.cs-harbor-design .sq-current,
+body.cs-harbor-design .cr-result,
+body.cs-harbor-design .cr-legend span,
+body.cs-harbor-design .sm-offer {
+  background: rgba(255, 255, 255, .032) !important;
+  border-width: 1px !important;
+  border-radius: 13px !important;
+  box-shadow: none !important;
+}
+
+body.cs-harbor-design .pg-head button,
+body.cs-harbor-design .pg-shell footer button,
+body.cs-harbor-design .mh-close,
+body.cs-harbor-design .aa-close,
+body.cs-harbor-design .ofq-close,
+body.cs-harbor-design .sq-close,
+body.cs-harbor-design .cr-close,
+body.cs-harbor-design .sm-close,
+body.cs-harbor-design .sm-leave {
+  color: var(--foam-200) !important;
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--harbor-line) !important;
+  box-shadow: none !important;
+}
+
+body.cs-harbor-design .mh-tap,
+body.cs-harbor-design .ofq-hit,
+body.cs-harbor-design .sq-pull,
+body.cs-harbor-design .aa-bid,
+body.cs-harbor-design .aa-pass,
+body.cs-harbor-design .cr-spin,
+body.cs-harbor-design .sm-buy {
+  border: 1px solid rgba(255, 255, 255, .12) !important;
+  box-shadow: none !important;
+}
+
+.cs-harbor-design * {
+  scrollbar-color: rgba(143, 200, 188, .28) rgba(255, 255, 255, .025);
+  scrollbar-width: thin;
+}
+
+.cs-harbor-design *::-webkit-scrollbar { width: 8px; height: 8px; }
+.cs-harbor-design *::-webkit-scrollbar-track { background: rgba(255, 255, 255, .02); }
+.cs-harbor-design *::-webkit-scrollbar-thumb {
+  background: rgba(143, 200, 188, .28);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+/* Mobile game controls inherit the same restrained visual language. */
+@media (max-width: 760px) {
+  body.cs-harbor-design.coffee-ship-entered {
+    background: var(--harbor-950) !important;
+  }
+
+  .cs-harbor-design .shell,
+  .cs-harbor-design.cs-interface-polish-v2 .shell {
+    width: min(100%, 520px) !important;
+    padding: 9px 9px max(26px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .cs-harbor-design:not(.coffee-ship-entered):has(#creator.login-interface-ready:not(.hidden)) .hero {
+    display: flex !important;
+    min-height: 46px;
+    margin-bottom: 9px !important;
+  }
+
+  .cs-harbor-design .hero-brand { gap: 9px; }
+  .cs-harbor-design .brand-mark {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    font-size: 10px;
+  }
+  .cs-harbor-design .hero .eyebrow,
+  .cs-harbor-design .hero .tagline,
+  .cs-harbor-design .hero .status-card { display: none !important; }
+  .cs-harbor-design .hero h1 { font-size: 23px !important; }
+
+  .cs-harbor-design #creator.login-interface-ready {
+    min-height: 0;
+    border-radius: 21px !important;
+  }
+
+  .cs-harbor-design .login-interface {
+    display: block !important;
+    min-height: 0;
+  }
+
+  .cs-harbor-design .login-visual {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 116px;
+    gap: 14px;
+    align-items: center;
+    padding: 23px 20px 17px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--harbor-line) !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  .cs-harbor-design .login-visual::before {
+    width: 132px;
+    height: 132px;
+    left: auto;
+    right: 3px;
+    top: 9px;
+    transform: none;
+  }
+
+  .cs-harbor-design .login-brand h2 {
+    display: block !important;
+    max-width: 260px;
+    font-size: 28px !important;
+    letter-spacing: -.04em;
+  }
+
+  .cs-harbor-design .login-brand > p:last-child {
+    max-width: 250px;
+    margin-top: 10px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .cs-harbor-design .login-preview-card {
+    grid-column: 2;
+    grid-row: 1;
+    width: 116px;
+    margin: 0;
+    padding: 19px 9px 10px;
+    border-radius: 18px !important;
+  }
+
+  .cs-harbor-design .preview-label { top: 8px; font-size: 6px; }
+  .cs-harbor-design #loginAvatarPreview {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 7px;
+  }
+  .cs-harbor-design .login-preview-name { font-size: 11px; }
+  .cs-harbor-design .login-preview-caption { display: none; }
+
+  .cs-harbor-design .login-visual-footer {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    gap: 5px;
+  }
+  .cs-harbor-design .login-feature-chip {
+    padding: 5px 8px 5px 17px;
+    font-size: 8px;
+  }
+  .cs-harbor-design .login-feature-chip::before { left: 7px; }
+
+  .cs-harbor-design .login-controls {
+    padding: 23px 20px 20px !important;
+  }
+  .cs-harbor-design .login-controls-header h3 {
+    display: block !important;
+    font-size: 25px !important;
+  }
+  .cs-harbor-design .login-controls-header > p:last-child {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+  .cs-harbor-design .login-mode-tabs { margin: 18px 0 16px; }
+  .cs-harbor-design .login-mode-tab { min-height: 40px; font-size: 12px; }
+  .cs-harbor-design .login-general-panel .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  .cs-harbor-design .login-general-panel input,
+  .cs-harbor-design .login-general-panel select {
+    min-height: 45px !important;
+    padding: 10px 11px;
+    font-size: 13px;
+  }
+  .cs-harbor-design .login-actions {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .cs-harbor-design .login-actions #startBtn,
+  .cs-harbor-design .login-actions #randomAnimalBtn {
+    min-height: 47px !important;
+  }
+  .cs-harbor-design .login-status { margin-top: 11px; }
+  .cs-harbor-design .login-role-grid { gap: 7px; }
+  .cs-harbor-design .login-role-card {
+    grid-template-columns: 32px 1fr;
+    min-height: 62px;
+    padding: 9px;
+  }
+  .cs-harbor-design .login-role-icon {
+    width: 31px;
+    height: 31px;
+    font-size: 15px;
+  }
+  .cs-harbor-design .login-role-card small { display: none; }
+  .cs-harbor-design .login-special-panel .role-code-row {
+    grid-template-columns: 1fr !important;
+  }
+  .cs-harbor-design .login-special-panel #roleEnterBtn { width: 100%; }
+
+  .cs-harbor-design.coffee-ship-entered .shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 7px 7px calc(108px + env(safe-area-inset-bottom)) !important;
+  }
+  .cs-harbor-design.coffee-ship-entered #gamePanel:not(.hidden) {
+    margin: 0 !important;
+    padding: 7px !important;
+    border-radius: 17px !important;
+  }
+  .cs-harbor-design.coffee-ship-entered #gamePanel:not(.hidden) .game-topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+    padding: 8px 9px !important;
+  }
+  .cs-harbor-design .cs-game-context {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .cs-harbor-design .cs-context-chip { flex: 0 0 auto; }
+  .cs-harbor-design.coffee-ship-entered #game {
+    border-width: 1px !important;
+    border-radius: 13px !important;
+  }
+  .cs-harbor-design.coffee-ship-entered .mobile-controls {
+    gap: 5px !important;
+    margin-top: 7px !important;
+    padding: 6px !important;
+    background: rgba(8, 23, 25, .98) !important;
+    border: 1px solid var(--harbor-line) !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+  }
+  .cs-harbor-design.coffee-ship-entered .mobile-controls button {
+    color: var(--foam-100) !important;
+    background: var(--harbor-800) !important;
+    border: 1px solid rgba(255, 255, 255, .075) !important;
+    border-radius: 10px !important;
+    box-shadow: inset 0 2px 0 var(--btn-accent, rgba(143, 200, 188, .5)) !important;
+  }
+  .cs-harbor-design.coffee-ship-entered .mobile-controls [data-move] {
+    color: var(--foam-200) !important;
+    background: #122a2d !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  }
+  .cs-harbor-design .mobile-action-icon { font-size: 15px !important; }
+  .cs-harbor-design .mobile-action-label { font-size: 8px !important; }
+
+  .cs-harbor-design .coffee-menu,
+  .cs-harbor-design .message-board {
+    margin-top: 8px;
+    padding: 12px !important;
+    border-radius: 15px !important;
+  }
+  .cs-harbor-design .board-head h2 { font-size: 18px; }
+}
+
+@media (max-width: 430px) {
+  .cs-harbor-design .shell { padding-inline: 7px !important; }
+  .cs-harbor-design .login-visual {
+    grid-template-columns: minmax(0, 1fr) 100px;
+    gap: 10px;
+    padding: 19px 16px 15px !important;
+  }
+  .cs-harbor-design .login-brand h2 { font-size: 24px !important; }
+  .cs-harbor-design .login-brand > p:last-child { font-size: 10px; }
+  .cs-harbor-design .login-preview-card { width: 100px; }
+  .cs-harbor-design #loginAvatarPreview { width: 82px; height: 82px; }
+  .cs-harbor-design .login-controls { padding: 20px 16px 17px !important; }
+  .cs-harbor-design .login-controls-header h3 { font-size: 22px !important; }
+  .cs-harbor-design .login-general-panel .form-grid { gap: 8px !important; }
+  .cs-harbor-design .login-role-card { font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cs-harbor-design:not(.coffee-ship-entered) #creator {
+    animation: harborPanelIn .48s cubic-bezier(.2, .75, .24, 1) both;
+  }
+  .cs-harbor-design:not(.coffee-ship-entered) .login-brand,
+  .cs-harbor-design:not(.coffee-ship-entered) .login-preview-card,
+  .cs-harbor-design:not(.coffee-ship-entered) .login-controls > * {
+    animation: harborContentIn .44s ease both;
+  }
+  .cs-harbor-design:not(.coffee-ship-entered) .login-preview-card { animation-delay: .06s; }
+  .cs-harbor-design:not(.coffee-ship-entered) .login-controls > *:nth-child(2) { animation-delay: .08s; }
+  .cs-harbor-design:not(.coffee-ship-entered) .login-controls > *:nth-child(3) { animation-delay: .12s; }
+}
+
+@keyframes harborPanelIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes harborContentIn {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-harbor-design *,
+  .cs-harbor-design *::before,
+  .cs-harbor-design *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .cs-harbor-design {
+    --harbor-line: rgba(245, 241, 232, .28);
+    --harbor-line-strong: rgba(245, 241, 232, .42);
+  }
+  .cs-harbor-design input,
+  .cs-harbor-design select,
+  .cs-harbor-design textarea,
+  .cs-harbor-design button { border-width: 2px !important; }
+}

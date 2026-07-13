@@ -6,7 +6,7 @@
   let active = false;
   let overlay;
   let ctx;
-  let player = { x: 150, y: 395, speed: 2.4, emote: null, emoteTimer: 0 };
+  let player = { x: 150, y: 395, speed: 2.4, dir:'right', moving:false, emote: null, emoteTimer: 0 };
   const keys = new Set();
   const mobile = { up:false, down:false, left:false, right:false };
   let wave = 0;
@@ -21,13 +21,16 @@
     return active;
   }
 
+  const DECK_PORT_GATE = {x:480,y:478,radius:68};
+
   function getDeckPlayerGuess() {
-    return { x: 840, y: 405 };
+    return window.COFFEE_SHIP_DECK?.getPlayer?.() || window.COFFEE_SHIP_DECK?.getPlayerPosition?.() || { x:480, y:478 };
   }
 
   function nearDeckPortGate() {
     if (!isDeckOpen()) return false;
-    return true;
+    const deckPlayer=getDeckPlayerGuess();
+    return Math.hypot(Number(deckPlayer.x||0)-DECK_PORT_GATE.x,Number(deckPlayer.y||0)-DECK_PORT_GATE.y)<DECK_PORT_GATE.radius;
   }
 
   function addStyle() {
@@ -90,22 +93,30 @@
   function openPort() {
     if (!overlay) return;
     active = true;
+    window.COFFEE_SHIP_DECK?.switchToCafe?.();
     window.COFFEE_SHIP_SCENE = 'port';
+    document.body.dataset.coffeeShipScene='port';
     overlay.classList.remove('hidden');
     setGate(false);
     player.x = 130;
     player.y = 410;
+    player.dir='right';
+    player.moving=false;
+    window.dispatchEvent(new CustomEvent('coffee-ship:scene',{detail:{scene:'port',source:'port-v2'}}));
     setTip('⚓ Port｜港口開放了。左側按 E 回甲板，右側未來可前往小島。', true);
     setTimeout(() => { if (active) setTip('', false); }, 4200);
   }
 
   function closePort() {
     active = false;
+    window.COFFEE_SHIP_DECK?.switchToDeck?.();
     window.COFFEE_SHIP_SCENE = 'deck';
+    document.body.dataset.coffeeShipScene='deck';
     overlay?.classList.add('hidden');
     setTip('', false);
     keys.clear();
     Object.keys(mobile).forEach(k => mobile[k] = false);
+    window.dispatchEvent(new CustomEvent('coffee-ship:scene',{detail:{scene:'deck',source:'port-v2'}}));
   }
 
   function drawSky() {
@@ -177,6 +188,8 @@
     if (keys.has('ArrowLeft') || keys.has('a') || mobile.left) dx-=player.speed;
     if (keys.has('ArrowRight') || keys.has('d') || mobile.right) dx+=player.speed;
     if (dx && dy) { dx*=.707; dy*=.707; }
+    player.moving=Boolean(dx||dy);
+    if(player.moving)player.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
     player.x = Math.max(105, Math.min(850, player.x + dx));
     player.y = Math.max(370, Math.min(455, player.y + dy));
     if (player.emoteTimer>0) player.emoteTimer--;
@@ -204,7 +217,7 @@
       if (e.code==='Space') { player.emote='⚓'; player.emoteTimer=80; }
       return;
     }
-    if (isDeckOpen() && k==='e') {
+    if (isDeckOpen() && k==='e' && nearDeckPortGate()) {
       block(e);
       openPort();
     }
@@ -221,7 +234,7 @@
     });
     document.getElementById('sitBtn')?.addEventListener('click', e => {
       if (active) { e.preventDefault(); e.stopPropagation(); Math.hypot(player.x-115, player.y-415)<70 ? closePort() : (player.emote='🌊', player.emoteTimer=80); }
-      else if (isDeckOpen()) { e.preventDefault(); e.stopPropagation(); openPort(); }
+      else if (isDeckOpen() && nearDeckPortGate()) { e.preventDefault(); e.stopPropagation(); openPort(); }
     }, true);
     document.getElementById('emoteBtn')?.addEventListener('click', e => { if (active) { e.preventDefault(); e.stopPropagation(); player.emote='⚓'; player.emoteTimer=80; } }, true);
   }
@@ -232,6 +245,15 @@
     bindMobile();
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('keyup', onKeyUp, true);
+    window.COFFEE_SHIP_PORT={
+      version:2,
+      isOpen:()=>active,
+      open:openPort,
+      close:closePort,
+      getPlayer:()=>({...player}),
+      nearGate:nearDeckPortGate,
+      gate:{...DECK_PORT_GATE}
+    };
     loop();
   }
 

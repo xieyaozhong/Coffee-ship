@@ -9,6 +9,19 @@
 - Bean 講笑話 NPC：靠近互動會說笑話。
 - NPC 會移動、碰撞、偶爾出現心情泡泡。
 
+## 新版遊戲核心
+
+目前介面與遊戲已收斂為「夜航咖啡船」主循環：
+
+```text
+咖啡廳準備 → 船員任務 → 甲板探索／釣魚 → 貨艙與珍珠 → 航程結算 → 解鎖新航線
+```
+
+- `coffee-ship-voyage-core.js`：航程、目標、聲望、航線與持久狀態。
+- `coffee-ship-world-renderer.js`：咖啡廳、甲板、港口與角色的統一可見建模。
+- `coffee-ship-game-redesign.css`：航程 HUD、日誌、世界畫布與響應式遊戲介面。
+- 舊版公開 API、DOM ID 與事件仍保留，讓釣魚、背包、特殊事件和多人功能可以漸進遷移。
+
 ## 上傳到 GitHub Pages
 
 把以下檔案放在 repository 根目錄：

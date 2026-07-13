@@ -24,7 +24,7 @@
     if (typeof callback !== 'function') return false;
     try {
       const source = Function.prototype.toString.call(callback).replace(/\s+/g,'');
-      return source.includes('update();render();requestAnimationFrame(loop)');
+      return source.includes('requestAnimationFrame(loop)')&&source.includes('update(')&&source.includes('render()');
     } catch {
       return false;
     }

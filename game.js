@@ -36,6 +36,8 @@ let myPlayerRef = null;
 let lastPlayerSync = 0;
 let lastSyncedState = '';
 let frameCount = 0;
+let frameDelta = 1;
+let lastLoopAt = 0;
 let myPlayerId = localStorage.getItem('coffeeShipPlayerId') || `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 localStorage.setItem('coffeeShipPlayerId', myPlayerId);
 
@@ -159,6 +161,7 @@ const peakLines = [
 ];
 
 function safeJson(raw,fallback){try{return raw?JSON.parse(raw):fallback;}catch{return fallback;}}
+function emitGameEvent(name,detail={}){try{window.dispatchEvent(new CustomEvent(name,{detail:{...detail,at:Date.now()}}));}catch{}}
 function rectsOverlap(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;}
 function near(px,py,ox,oy,dist=70){return Math.hypot(px-ox,py-oy)<dist;}
 function say(text,time=240){world.message=text;world.messageTimer=time;}
@@ -172,7 +175,7 @@ function pushBubble(n,text,life=140){world.bubbles.push({x:n.x,y:n.y-(n.role==='
 function cafeInputAllowed(){return !window.COFFEE_SHIP_DECK?.isDeckOpen?.() && !(document.getElementById('portOverlay')&&!document.getElementById('portOverlay').classList.contains('hidden'));}
 
 function getPearls(){return Math.max(0,Number(localStorage.getItem(PEARL_KEY)||0));}
-function setPearls(value){const next=Math.max(0,Math.floor(Number(value)||0));localStorage.setItem(PEARL_KEY,String(next));window.dispatchEvent(new CustomEvent('coffeeShipPearlsChanged',{detail:{pearls:next}}));return next;}
+function setPearls(value){const previous=getPearls();const next=Math.max(0,Math.floor(Number(value)||0));localStorage.setItem(PEARL_KEY,String(next));window.dispatchEvent(new CustomEvent('coffeeShipPearlsChanged',{detail:{balance:next,pearls:next,delta:next-previous,reason:'legacy balance update',meta:{source:'game-core'}}}));return next;}
 function remainingSeconds(effect=player.coffeeEffect){return effect?Math.max(0,Math.ceil((effect.expiresAt-Date.now())/1000)):0;}
 function formatDuration(seconds){const m=Math.floor(seconds/60);const s=seconds%60;return `${m}:${String(s).padStart(2,'0')}`;}
 function activeEffect(){return player.coffeeEffect&&player.coffeeEffect.expiresAt>Date.now()?player.coffeeEffect:null;}
@@ -323,9 +326,9 @@ function drawAvatar(a,isPlayer=false){
   if(a.role==='barista'){drawMomo(a);return;}if(a.role==='cellist'){drawPeak(a);return;}if(a.role==='joker'){drawBean(a);return;}if(a.role==='cat'){drawCat(a);return;}if(a.animal&&a.animal!=='human'){drawAnimalAvatar(a,isPlayer);return;}drawHumanAvatar(a,isPlayer);
 }
 function drawMessage(){if(world.messageTimer<=0)return;ctx.globalAlpha=Math.min(1,world.messageTimer/30);drawPixelRect(90,455,780,76,'#151020');ctx.strokeStyle='#76536a';ctx.lineWidth=3;ctx.strokeRect(90,455,780,76);drawText(world.message,480,500,18);ctx.globalAlpha=1;}
-function drawBubbles(){world.bubbles.forEach(b=>{ctx.globalAlpha=Math.min(1,b.life/25);const w=Math.min(280,Math.max(48,String(b.text).length*15));drawPixelRect(b.x-w/2,b.y-18,w,32,'#151020');ctx.strokeStyle='#76536a';ctx.lineWidth=2;ctx.strokeRect(Math.round(b.x-w/2),Math.round(b.y-18),w,32);drawText(b.text,b.x,b.y+4,15,'center','#fff4d8');ctx.globalAlpha=1;b.y-=.18;b.life--;});world.bubbles=world.bubbles.filter(b=>b.life>0);}
+function drawBubbles(){world.bubbles.forEach(b=>{ctx.globalAlpha=Math.min(1,b.life/25);const w=Math.min(280,Math.max(48,String(b.text).length*15));drawPixelRect(b.x-w/2,b.y-18,w,32,'#151020');ctx.strokeStyle='#76536a';ctx.lineWidth=2;ctx.strokeRect(Math.round(b.x-w/2),Math.round(b.y-18),w,32);drawText(b.text,b.x,b.y+4,15,'center','#fff4d8');ctx.globalAlpha=1;b.y-=.18*frameDelta;b.life-=frameDelta;});world.bubbles=world.bubbles.filter(b=>b.life>0);}
 function spawnSparkles(color='#ffe5ae',glyph='',count=18){for(let i=0;i<count;i++)world.particles.push({x:player.x,y:player.y-28,vx:(Math.random()-.5)*3,vy:-Math.random()*2-1,life:45,color,glyph:glyph&&i%3===0?glyph:''});}
-function drawParticles(){world.particles.forEach(p=>{ctx.globalAlpha=Math.min(1,p.life/15);if(p.glyph)drawText(p.glyph,p.x,p.y,13,'center',p.color||'#ffe5ae');else drawPixelRect(p.x,p.y,4,4,p.color||'#ffe5ae');p.x+=p.vx;p.y+=p.vy;p.life--;ctx.globalAlpha=1;});world.particles=world.particles.filter(p=>p.life>0);}
+function drawParticles(){world.particles.forEach(p=>{ctx.globalAlpha=Math.min(1,p.life/15);if(p.glyph)drawText(p.glyph,p.x,p.y,13,'center',p.color||'#ffe5ae');else drawPixelRect(p.x,p.y,4,4,p.color||'#ffe5ae');p.x+=p.vx*frameDelta;p.y+=p.vy*frameDelta;p.life-=frameDelta;ctx.globalAlpha=1;});world.particles=world.particles.filter(p=>p.life>0);}
 
 function tryMove(dx,dy){
   if(player.sitting&&(dx||dy))player.sitting=false;const next=playerHitboxAt(player.x+dx,player.y+dy);if(next.x<70||next.x+next.w>890||next.y<74||next.y+next.h>545)return;for(const b of blocks)if(rectsOverlap(next,b))return;for(const n of npcs)if(rectsOverlap(next,npcHitbox(n)))return;for(const r of Object.values(remotePlayers))if(r&&rectsOverlap(next,playerHitboxAt(r.x||0,r.y||0)))return;player.x+=dx;player.y+=dy;window.COFFEE_SHIP_PLAYER_POS={x:player.x,y:player.y};
@@ -333,13 +336,13 @@ function tryMove(dx,dy){
 function npcCanMove(n,nx,ny){
   if(nx<n.bounds.x+18||nx>n.bounds.x+n.bounds.w-18||ny<n.bounds.y+24||ny>n.bounds.y+n.bounds.h-16)return false;const box=npcHitbox({...n,x:nx,y:ny});for(const b of blocks)if(rectsOverlap(box,b))return false;for(const obstacle of npcObstacles)if(rectsOverlap(box,obstacle))return false;if(n.role==='cat'&&catBlockRects.some(r=>circleRectHit(nx,ny,n.radius+4,r)))return false;if(rectsOverlap(box,playerHitboxAt(player.x,player.y)))return false;for(const other of npcs){if(other!==n&&rectsOverlap(box,npcHitbox(other)))return false;}return true;
 }
-function updateNpc(n){
-  if(n.emoteTimer>0){n.emoteTimer--;if(n.emoteTimer===0)n.emote=null;}if(n.petTimer>0)n.petTimer--;if(n.sleepTimer>0)n.sleepTimer--;if(n.activityTimer>0)n.activityTimer--;
+function updateNpc(n,delta=1){
+  if(n.emoteTimer>0){n.emoteTimer-=delta;if(n.emoteTimer<=0){n.emoteTimer=0;n.emote=null;}}if(n.petTimer>0)n.petTimer-=delta;if(n.sleepTimer>0)n.sleepTimer-=delta;if(n.activityTimer>0)n.activityTimer-=delta;
   const dToPlayer=Math.hypot(player.x-n.x,player.y-n.y);const affinity=activeEffect()?.bonuses?.npcAffinity||1;
-  if(n.role==='barista'&&dToPlayer<120){n.emote=player.hasCoffee?'☕':'？';n.emoteTimer=55;if(Math.random()<.006*affinity)pushBubble(n,player.hasCoffee?'效果還喜歡嗎？':'今天想喝哪一杯？',115);if(!coffeeMenu.classList.contains('hidden')){n.wait=Math.max(n.wait,12);return;}}
+  if(n.role==='barista'&&dToPlayer<120){n.emote=player.hasCoffee?'☕':'？';n.emoteTimer=55;if(Math.random()<.006*affinity*delta)pushBubble(n,player.hasCoffee?'效果還喜歡嗎？':'今天想喝哪一杯？',115);if(!coffeeMenu.classList.contains('hidden')){n.wait=Math.max(n.wait,12);return;}}
   if(n.role==='cat'){
-    if(dToPlayer<62){n.wait=Math.max(n.wait,20);if(Math.random()<.008*affinity){n.emote='喵';n.emoteTimer=80;}}
-    if(Math.random()<.00075){n.sleepTimer=260;n.emote='💤';n.emoteTimer=200;pushBubble(n,'Mugi 找到了一塊暖暖的地板。',130);}if(n.sleepTimer>0)return;
+    if(dToPlayer<62){n.wait=Math.max(n.wait,20);if(Math.random()<.008*affinity*delta){n.emote='喵';n.emoteTimer=80;}}
+    if(Math.random()<.00075*delta){n.sleepTimer=260;n.emote='💤';n.emoteTimer=200;pushBubble(n,'Mugi 找到了一塊暖暖的地板。',130);}if(n.sleepTimer>0)return;
   }
   if(n.activityTimer<=0){
     n.activityTimer=170+Math.floor(Math.random()*260);
@@ -347,14 +350,14 @@ function updateNpc(n){
     if(n.role==='joker'&&Math.random()<.5){n.wait=80;n.emote='😆';n.emoteTimer=100;pushBubble(n,'新笑話準備中！',95);}
     if(n.role==='barista'&&Math.random()<.45){n.wait=70;n.emote='☕';n.emoteTimer=90;pushBubble(n,'巡桌時間',90);}
   }
-  if(n.wait>0){n.wait--;return;}
+  if(n.wait>0){n.wait-=delta;return;}
   const dx=n.targetX-n.x,dy=n.targetY-n.y,dist=Math.hypot(dx,dy);
   if(dist<5||!Number.isFinite(dist)){n.wait=(n.role==='cat'?40:35)+Math.floor(Math.random()*100);chooseTarget(n);if(Math.random()<.35){n.emote=n.role==='cat'?'🐾':moods[Math.floor(Math.random()*moods.length)];n.emoteTimer=90;}return;}
-  const nx=n.x+dx/dist*n.speed,ny=n.y+dy/dist*n.speed;
+  const nx=n.x+dx/dist*n.speed*delta,ny=n.y+dy/dist*n.speed*delta;
   if(npcCanMove(n,nx,ny)){n.flip=nx<n.x;n.x=nx;n.y=ny;}else{n.wait=12;chooseTarget(n);}
 }
-function socialTick(){
-  for(let i=0;i<npcs.length;i++){for(let j=i+1;j<npcs.length;j++){const a=npcs[i],b=npcs[j];if(near(a.x,a.y,b.x,b.y,82)&&Math.random()<.002){a.wait=Math.max(a.wait,45);b.wait=Math.max(b.wait,45);if(a.role==='cat'){a.emote='喵';pushBubble(a,b.role==='cellist'?'♪ 喵':'喵～',105);}else{a.emote=a.role==='cellist'?'♪':a.role==='joker'?'😆':'☕';b.emote=b.role==='cat'?'🐾':b.role==='joker'?'😂':'✨';pushBubble(a,a.role==='joker'?'我有一個點子':a.role==='cellist'?'來一小段？':'要不要試喝？',105);}a.emoteTimer=b.emoteTimer=95;}}
+function socialTick(delta=1){
+  for(let i=0;i<npcs.length;i++){for(let j=i+1;j<npcs.length;j++){const a=npcs[i],b=npcs[j];if(near(a.x,a.y,b.x,b.y,82)&&Math.random()<.002*delta){a.wait=Math.max(a.wait,45);b.wait=Math.max(b.wait,45);if(a.role==='cat'){a.emote='喵';pushBubble(a,b.role==='cellist'?'♪ 喵':'喵～',105);}else{a.emote=a.role==='cellist'?'♪':a.role==='joker'?'😆':'☕';b.emote=b.role==='cat'?'🐾':b.role==='joker'?'😂':'✨';pushBubble(a,a.role==='joker'?'我有一個點子':a.role==='cellist'?'來一小段？':'要不要試喝？',105);}a.emoteTimer=b.emoteTimer=95;}}
   }
 }
 function getClosestNpc(dist=82){const multiplier=activeEffect()?.bonuses?.interactionRange||1;let closest=null,best=dist*multiplier;for(const n of npcs){const d=Math.hypot(player.x-n.x,player.y-n.y);const limit=n.role==='cat'?70*multiplier:best;if(d<limit&&d<best){closest=n;best=d;}}return closest;}
@@ -367,7 +370,7 @@ function closeCoffeeMenu(){coffeeMenu.classList.add('hidden');}
 function openCoffeeMenu(force=false){
   if(!cafeInputAllowed())return;const momo=npcs.find(n=>n.role==='barista');const closeToMomo=momo&&near(player.x,player.y,momo.x,momo.y,150*(activeEffect()?.bonuses?.interactionRange||1));const closeToCounter=near(player.x,player.y,counter.x+counter.w/2,counter.y+counter.h+35,170);
   if(!force&&!closeToMomo&&!closeToCounter){say('要靠近吧台或正在巡桌的 Momo，才能點咖啡喔。');return;}
-  renderCoffeeOptions();coffeeMenu.classList.remove('hidden');if(momo){momo.emote='☕';momo.emoteTimer=120;momo.wait=130;pushBubble(momo,'珍珠準備好了嗎？',105);}say('Momo 遞上了以珍珠計價的效果咖啡單。',190);
+  renderCoffeeOptions();coffeeMenu.classList.remove('hidden');if(momo){momo.emote='☕';momo.emoteTimer=120;momo.wait=130;pushBubble(momo,'珍珠準備好了嗎？',105);}say('Momo 遞上了以珍珠計價的效果咖啡單。',190);emitGameEvent('coffee-ship:coffee-menu-opened',{source:force?'shortcut':'proximity'});
 }
 function renderCoffeeOptions(){
   const balance=getPearls();const note=coffeeMenu.querySelector('.board-note');if(note)note.innerHTML=`目前持有 <strong class="coffee-pearl-balance">🦪 ${balance} 珍珠</strong>。每杯咖啡都會帶來一種限時人物效果。`;
@@ -377,13 +380,15 @@ function renderCoffeeOptions(){
 }
 function chooseCoffee(item){
   const balance=getPearls();if(balance<item.price){say(`珍珠不足：${item.name} 需要 ${item.price} 珍珠，目前只有 ${balance}。先去甲板釣魚並出售漁獲吧。`,330);renderCoffeeOptions();return;}
-  setPearls(balance-item.price);applyCoffeeEffect(item);player.emote=`${item.icon}✨`;player.emoteTimer=Math.round(110*(item.bonuses.emoteBonus||1));const momo=npcs.find(n=>n.role==='barista');if(momo){momo.emote='☕';momo.emoteTimer=120;pushBubble(momo,'效果已啟動，請慢用！',125);}closeCoffeeMenu();say(`花費 ${item.price} 珍珠。${item.icon}「${item.name}」啟動：${item.effectLabel}。`,330);spawnSparkles(item.aura,item.icon,22);syncPlayer(true);
+  const transaction=window.COFFEE_SHIP_ECONOMY?.spend?.(item.price,`購買 ${item.name}`,{source:'coffee-menu',itemId:item.id});
+  if(transaction&&!transaction.ok){say(`珍珠不足：還需要 ${transaction.needed} 珍珠。`,240);renderCoffeeOptions();return;}
+  const nextBalance=transaction?.balance??setPearls(balance-item.price);applyCoffeeEffect(item);player.emote=`${item.icon}✨`;player.emoteTimer=Math.round(110*(item.bonuses.emoteBonus||1));const momo=npcs.find(n=>n.role==='barista');if(momo){momo.emote='☕';momo.emoteTimer=120;pushBubble(momo,'效果已啟動，請慢用！',125);}closeCoffeeMenu();say(`花費 ${item.price} 珍珠。${item.icon}「${item.name}」啟動：${item.effectLabel}。`,330);spawnSparkles(item.aura,item.icon,22);syncPlayer(true);emitGameEvent('coffee-ship:coffee-ordered',{item:{id:item.id,name:item.name,price:item.price,duration:item.duration},balance:nextBalance});
 }
 function orderCoffee(){openCoffeeMenu();}
-function sitDown(){const chair=chairs.find(c=>near(player.x,player.y,c.x,c.y,52));if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`);syncPlayer(true);}else say('靠近椅子後按 E 就能坐下。靠近移動中的 NPC 按 E 可以互動。');}
+function sitDown(){const chair=chairs.find(c=>near(player.x,player.y,c.x,c.y,52));if(chair){player.x=chair.x;player.y=chair.y-10;player.sitting=true;player.emote='💭';player.emoteTimer=120;say(`${player.name} 坐下來休息。這裡很適合慢慢整理心情。`);syncPlayer(true);emitGameEvent('coffee-ship:rested',{chair:{x:chair.x,y:chair.y}});}else say('靠近椅子後按 E 就能坐下。靠近移動中的 NPC 按 E 可以互動。');}
 function emote(){const bonus=activeEffect()?.bonuses?.emoteBonus||1;player.emote=player.hasCoffee?`${activeEffect()?.icon||'☕'}✨`:'✨';player.emoteTimer=Math.round(95*bonus);say(`${player.name} 發出了一個小小的表情。`);spawnSparkles(activeEffect()?.aura||'#ffe5ae',activeEffect()?.bonuses?.socialSparkle?'♡':'',18);syncPlayer(true);}
 function petCat(n){n.petTimer=90;n.emote='♡';n.emoteTimer=120;n.wait=100;const text=catMoods[Math.floor(Math.random()*catMoods.length)];pushBubble(n,text,130);say(`${player.name} 摸了摸 Mugi。${text}`,220);spawnSparkles(activeEffect()?.aura||'#ffe5ae','♡',12);}
-function interact(){const n=getClosestNpc(100);if(n){if(n.role==='cat'){petCat(n);return;}if(n.role==='barista'){openCoffeeMenu(true);return;}if(n.role==='cellist'){startAudio();playCelloPhrase();n.emote='♪';n.emoteTimer=120;say(peakLines[Math.floor(Math.random()*peakLines.length)],220);return;}if(n.role==='joker'){n.emote='😆';n.emoteTimer=120;n.wait=90;say(beanJokes[Math.floor(Math.random()*beanJokes.length)],260);return;}}sitDown();}
+function interact(){const n=getClosestNpc(100);if(n){emitGameEvent('coffee-ship:npc-interaction',{npc:{name:n.name,role:n.role}});if(n.role==='cat'){petCat(n);return;}if(n.role==='barista'){openCoffeeMenu(true);return;}if(n.role==='cellist'){startAudio();playCelloPhrase();n.emote='♪';n.emoteTimer=120;say(peakLines[Math.floor(Math.random()*peakLines.length)],220);return;}if(n.role==='joker'){n.emote='😆';n.emoteTimer=120;n.wait=90;say(beanJokes[Math.floor(Math.random()*beanJokes.length)],260);return;}}sitDown();}
 
 function getLocalMessages(){try{return JSON.parse(localStorage.getItem('coffeeShipMessages')||'[]');}catch{return[];}}
 function saveLocalMessages(messages){localStorage.setItem('coffeeShipMessages',JSON.stringify(messages.slice(-80)));}
@@ -394,8 +399,8 @@ function cleanName(name){return cleanMessageText(name||'Guest').slice(0,16)||'Gu
 function escapeHtml(text=''){return String(text).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]||ch));}
 function formatTime(value){if(!value)return'剛剛';const d=new Date(value);if(Number.isNaN(d.getTime()))return'剛剛';return d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
 function renderMessages(){if(!messagesList)return;const statusClass=cloudReady&&firebaseConnected?'online':firebaseLoading?'connecting':'offline';const messages=getMessages().slice().sort((a,b)=>getMessageTime(b)-getMessageTime(a));const statusHtml=`<div class="board-status ${statusClass}">${escapeHtml(boardStatusText)}</div>`;if(!messages.length){messagesList.innerHTML=statusHtml+`<div class="empty-board">目前還沒有留言。Firebase 成功連線後，不同裝置會同步看到。</div>`;return;}messagesList.innerHTML=statusHtml+messages.map(m=>`<article class="message-card"><div class="message-meta"><strong>${escapeHtml(m.name||'Guest')}</strong><span>${escapeHtml(formatTime(getMessageTime(m)))}</span></div><div class="message-text">${escapeHtml(m.text||'')}</div></article>`).join('');}
-async function addMessage(text){const safeText=cleanMessageText(text);if(!safeText)throw new Error('empty message');const now=Date.now();const msg={name:cleanName(player.name),text:safeText,clientCreatedAt:now,createdAt:now,source:'coffee-ship-web'};if(cloudReady&&messagesRef&&firebaseApi)await firebaseApi.push(messagesRef,{...msg,createdAt:firebaseApi.serverTimestamp()});else{const messages=getLocalMessages();messages.push({...msg,timeRaw:now});saveLocalMessages(messages);renderMessages();}}
-function openBoard(force=false){if(!cafeInputAllowed())return;const closeEnough=near(player.x,player.y,board.x+board.w/2,board.y+board.h+36,170);if(!force&&!closeEnough){say('要靠近牆上的留言板，才能留下訊息喔。');return;}renderMessages();messageBoard.classList.remove('hidden');say(cloudReady?(firebaseConnected?'你打開了 Coffee Ship 的雲端留言板。':'留言板正在背景連線中。'):'目前先用本機留言板，Firebase 連線成功後會自動同步。');setTimeout(()=>messageInput.focus(),30);}
+async function addMessage(text){const safeText=cleanMessageText(text);if(!safeText)throw new Error('empty message');const now=Date.now();const msg={name:cleanName(player.name),text:safeText,clientCreatedAt:now,createdAt:now,source:'coffee-ship-web'};if(cloudReady&&messagesRef&&firebaseApi)await firebaseApi.push(messagesRef,{...msg,createdAt:firebaseApi.serverTimestamp()});else{const messages=getLocalMessages();messages.push({...msg,timeRaw:now});saveLocalMessages(messages);renderMessages();}emitGameEvent('coffee-ship:message-posted',{message:{text:safeText,createdAt:now},cloud:cloudReady});}
+function openBoard(force=false){if(!cafeInputAllowed())return;const closeEnough=near(player.x,player.y,board.x+board.w/2,board.y+board.h+36,170);if(!force&&!closeEnough){say('要靠近牆上的留言板，才能留下訊息喔。');return;}renderMessages();messageBoard.classList.remove('hidden');say(cloudReady?(firebaseConnected?'你打開了 Coffee Ship 的雲端留言板。':'留言板正在背景連線中。'):'目前先用本機留言板，Firebase 連線成功後會自動同步。');emitGameEvent('coffee-ship:message-board-opened',{cloud:cloudReady});setTimeout(()=>messageInput.focus(),30);}
 function closeBoard(){messageBoard.classList.add('hidden');canvas.focus&&canvas.focus();}
 
 function updateOnlineStatus(){if(!statusText)return;statusText.textContent=cloudReady?`雲端已連線 · ${1+Object.keys(remotePlayers).length} 人在線`:firebaseLoading?'Firebase 背景連線中':'本機模式';if(moodDot)moodDot.style.background=cloudReady?'#79d0b1':'#f0a75c';}
@@ -415,13 +420,13 @@ async function initFirebaseInBackground(){
   }catch(error){console.warn('Firebase background init failed:',error);firebaseLoading=false;cloudReady=false;firebaseConnected=false;boardStatusText='Firebase 暫時無法載入，已切回本機留言板；遊戲不會卡住。';renderMessages();updateOnlineStatus();}
 }
 
-function update(){
-  frameCount++;window.COFFEE_SHIP_PLAYER_POS={x:player.x,y:player.y};updateCoffeeEffect();npcs.forEach(updateNpc);socialTick();
-  if(celloTimer>0){celloTimer--;if(celloTimer%150===0&&Math.random()<.65)playCelloPhrase(false);}
-  let dx=0,dy=0;if(keys.has('ArrowUp')||keys.has('w')||mobile.up)dy-=player.speed;if(keys.has('ArrowDown')||keys.has('s')||mobile.down)dy+=player.speed;if(keys.has('ArrowLeft')||keys.has('a')||mobile.left)dx-=player.speed;if(keys.has('ArrowRight')||keys.has('d')||mobile.right)dx+=player.speed;if(dx&&dy){dx*=.707;dy*=.707;}tryMove(dx,dy);syncPlayer(false);if(world.messageTimer>0)world.messageTimer--;if(player.emoteTimer>0){player.emoteTimer--;if(player.emoteTimer===0)player.emote=null;}
+function update(delta=1){
+  frameDelta=delta;frameCount+=delta;window.COFFEE_SHIP_PLAYER_POS={x:player.x,y:player.y};updateCoffeeEffect();npcs.forEach(n=>updateNpc(n,delta));socialTick(delta);
+  if(celloTimer>0){const previous=celloTimer;celloTimer=Math.max(0,celloTimer-delta);if(Math.floor(previous/150)!==Math.floor(celloTimer/150)&&Math.random()<.65)playCelloPhrase(false);}
+  let dx=0,dy=0;if(keys.has('ArrowUp')||keys.has('w')||mobile.up)dy-=player.speed*delta;if(keys.has('ArrowDown')||keys.has('s')||mobile.down)dy+=player.speed*delta;if(keys.has('ArrowLeft')||keys.has('a')||mobile.left)dx-=player.speed*delta;if(keys.has('ArrowRight')||keys.has('d')||mobile.right)dx+=player.speed*delta;if(dx&&dy){dx*=.707;dy*=.707;}tryMove(dx,dy);syncPlayer(false);if(world.messageTimer>0)world.messageTimer=Math.max(0,world.messageTimer-delta);if(player.emoteTimer>0){player.emoteTimer-=delta;if(player.emoteTimer<=0){player.emoteTimer=0;player.emote=null;}}
 }
 function render(){drawFloor();drawCafe();drawParticles();const actors=[...npcs,...Object.values(remotePlayers),player].sort((a,b)=>(a.y||0)-(b.y||0));actors.forEach(a=>drawAvatar(a,a===player));drawBubbles();drawMessage();}
-function loop(){update();render();requestAnimationFrame(loop);}
+function loop(time=performance.now()){const delta=Math.max(.25,Math.min(2.2,lastLoopAt?(time-lastLoopAt)/16.667:1));lastLoopAt=time;update(delta);render();requestAnimationFrame(loop);}
 
 function setupRandomAnimalButton(){
   const btn=document.createElement('button');btn.type='button';btn.id='randomAnimalBtn';btn.textContent='🎲 隨機進入';btn.style.marginLeft='10px';const hint=document.createElement('p');hint.id='animalHint';hint.className='hint';hint.style.marginTop='8px';
@@ -441,7 +446,7 @@ startBtn.addEventListener('click',()=>{
 const saved=localStorage.getItem('coffeeShipAvatar');if(saved){try{const s=JSON.parse(saved);document.getElementById('playerName').value=s.name||'';document.getElementById('hairColor').value=s.hair||'#2b1d16';document.getElementById('shirtColor').value=s.shirt||'#c96a4a';document.getElementById('coffeeType').value='美式';selectedAnimal=s.animal||selectedAnimal;player.animal=selectedAnimal;localStorage.setItem('coffeeShipAnimal',selectedAnimal);}catch{}}
 
 window.addEventListener('keydown',e=>{
-  const k=e.key.length===1?e.key.toLowerCase():e.key;keys.add(k);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(!cafeInputAllowed())return;if(k==='c')orderCoffee();if(k==='e')interact();if(k==='b')openBoard();if(e.code==='Space')emote();
+  if(document.body.classList.contains('voyage-journal-open'))return;const k=e.key.length===1?e.key.toLowerCase():e.key;keys.add(k);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(!cafeInputAllowed())return;if(k==='c')orderCoffee();if(k==='e')interact();if(k==='b')openBoard();if(e.code==='Space')emote();
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
 document.querySelectorAll('[data-move]').forEach(btn=>{const d=btn.dataset.move;const on=()=>mobile[d]=true,off=()=>mobile[d]=false;btn.addEventListener('pointerdown',on);btn.addEventListener('pointerup',off);btn.addEventListener('pointerleave',off);btn.addEventListener('pointercancel',off);});
@@ -465,6 +470,6 @@ window.COFFEE_SHIP_COFFEE={
   clearEffect:()=>clearCoffeeEffect(false),
   updateBadge:updateCoffeeBadge
 };
-window.COFFEE_SHIP_GAME_API={player,npcs,openCoffeeMenu,interact,getPearls,setPearls};
+window.COFFEE_SHIP_GAME_API={player,npcs,world,openCoffeeMenu,interact,getPearls,setPearls,getRemotePlayers:()=>remotePlayers,emit:emitGameEvent};
 publishCoffeeEffect();
 renderMessages();updateOnlineStatus();loop();setTimeout(initFirebaseInBackground,350);

@@ -1,6 +1,11 @@
 (() => {
   'use strict';
 
+  if (window.__COFFEE_SHIP_WORLD_RENDERER_V1__) {
+    window.__COFFEE_SHIP_ROLE_SPRITES_LEGACY_DISABLED__ = true;
+    return;
+  }
+
   const canvasId = 'game';
   let lastRoleText = '';
   let tick = 0;
