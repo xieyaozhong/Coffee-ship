@@ -20,7 +20,7 @@
   const BIOLOGICAL_KINDS = new Set([
     'fish','mutant','shrimp','crab','squid','jelly','angler','octopus','whale',
     'shark','ray','eel','lobster','creature','animal','sea-creature','sea_creature',
-    'mollusk','turtle','dolphin','seal','penguin','seahorse','urchin','starfish',
+    'mollusk','shell','turtle','dolphin','seal','penguin','seahorse','urchin','starfish',
     'sea-cucumber','sea_cucumber','snake'
   ]);
 
@@ -189,7 +189,14 @@
       const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.(item,'bp-species-icon');
       if (html) return html;
     }
+    const itemHtml = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.(item,'bp-item-icon');
+    if (itemHtml) return itemHtml;
     return `<span aria-hidden="true">${escapeHtml(item.icon || (isBiologicalCatch(item) ? '🐟' : '📦'))}</span>`;
+  }
+
+  function letterIconMarkup(letter) {
+    const html = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.({...letter,name:letter.series,seriesKey:letter.key,kind:'letter'},'bp-letter-icon');
+    return html || `<span aria-hidden="true">${escapeHtml(letter.icon || '✉️')}</span>`;
   }
 
   function renderItems(items, filter) {
@@ -208,7 +215,7 @@
     if (!rows.length) return '<div class="bp-empty">目前沒有信件。</div>';
     return `<div class="bp-list">${rows.map(letter => `
       <article class="bp-card">
-        <strong class="bp-title"><span>${escapeHtml(letter.icon)}</span><span>${escapeHtml(letter.title || letter.series)}</span></strong>
+        <strong class="bp-title">${letterIconMarkup(letter)}<span>${escapeHtml(letter.title || letter.series)}</span></strong>
         <small class="bp-meta">系列：${escapeHtml(letter.series)}<br>稀有度：${escapeHtml(letter.rarity)}<br>${formatText(letter.text || '')}<br><span class="bp-price">售價：${letterPrice(letter)} 珍珠</span></small>
         <div class="bp-actions"><button class="bp-sell" data-letter-sell="${escapeHtml(letter.key)}" data-letter-index="${letter.index}">販售</button><button class="bp-delete" data-letter-delete="${escapeHtml(letter.key)}" data-letter-index="${letter.index}">丟棄</button></div>
       </article>`).join('')}</div>`;

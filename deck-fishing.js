@@ -152,9 +152,19 @@
   }
 
   function pixelIcon(item, className = '') {
-    const html = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.(item,className);
-    if (html) return html;
+    const fishHtml = window.COFFEE_SHIP_FISH_ICONS?.iconHtml?.(item,className);
+    if (fishHtml) return fishHtml;
+    const itemHtml = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.(item,className);
+    if (itemHtml) return itemHtml;
     return `<span class="fh-fallback-icon" aria-hidden="true">${escapeHtml(descriptor(item).base)}</span>`;
+  }
+
+  function eventIcon(row) {
+    if (row.eventKind === 'bottle') {
+      const html = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.({name:row.title,series:row.title,kind:'bottle',rarity:'稀有'},'fh-event-item-icon');
+      if (html) return html;
+    }
+    return `<span aria-hidden="true">${escapeHtml(row.icon || '🌟')}</span>`;
   }
 
   function priceOf(item) {
@@ -340,7 +350,7 @@
   }
 
   function renderEventCard(row) {
-    return `<article class="fh-card" style="--accent:${escapeHtml(row.accent || '#8460c8')}"><div class="fh-card-head"><span class="fh-icon">${escapeHtml(row.icon || '🌟')}</span><strong>${escapeHtml(row.title || '特殊事件')}</strong><span class="fh-event-label">${escapeHtml(eventLabel(row.eventKind))}</span></div><small>${formatText(row.text || '')}</small><span class="fh-time">${timeLabel(row.at)}</span></article>`;
+    return `<article class="fh-card" style="--accent:${escapeHtml(row.accent || '#8460c8')}"><div class="fh-card-head"><span class="fh-icon">${eventIcon(row)}</span><strong>${escapeHtml(row.title || '特殊事件')}</strong><span class="fh-event-label">${escapeHtml(eventLabel(row.eventKind))}</span></div><small>${formatText(row.text || '')}</small><span class="fh-time">${timeLabel(row.at)}</span></article>`;
   }
 
   function renderRecent() {

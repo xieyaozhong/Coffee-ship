@@ -39,6 +39,11 @@
     return String(value ?? '').replace(/[&<>'"]/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt',"'":'&#39;','"':'&quot;'}[char]));
   }
 
+  function storyIcon(item, className = '') {
+    const html = window.COFFEE_SHIP_ITEM_PIXEL_ICONS?.iconHtml?.({...item,kind:'letter'},className);
+    return html || `<span aria-hidden="true">${escapeHtml(item.icon || '✉️')}</span>`;
+  }
+
   function formatText(value) {
     return escapeHtml(value).replace(/\n/g,'<br>');
   }
@@ -92,7 +97,7 @@
         if (!entry || typeof entry !== 'object') return;
         const series = String(entry.series || meta.series);
         const number = Number(entry.number || entry.chapter || entry.part || 0);
-        addRow(map,series,meta,{
+        addRow(map,series,{...meta,key},{
           storage:'store',key,index,id:entry.id || '',number,
           icon:entry.icon || meta.icon,title:entry.title || (number ? `${series} ${String(number).padStart(2,'0')}` : series),
           series,rarity:entry.rarity || meta.rarity,author:entry.author || '',
@@ -141,7 +146,7 @@
     if (row.author) info.push(`作者：${escapeHtml(row.author)}`);
     if (row.number) info.push(`章節：${String(row.number).padStart(2,'0')}`);
     info.push(`系列：${escapeHtml(row.series)}`);
-    return `<details class="story-letter" style="--story-color:${color}"><summary><span class="story-letter-icon">${escapeHtml(row.icon)}</span><span class="story-letter-title"><strong>${escapeHtml(row.title)}</strong><small>${escapeHtml([row.number ? `第 ${String(row.number).padStart(2,'0')} 篇` : '',row.author,row.rarity].filter(Boolean).join('・'))}</small></span><span class="story-letter-price">🦪 ${formatPearls(row.price)}</span></summary><div class="story-letter-body"><div class="story-letter-info">${info.join('<span>・</span>')}</div><div class="story-letter-text">${formatText(row.text || '這封信沒有留下可辨識的內容。')}</div><div class="story-letter-actions">${rowActions(row)}</div></div></details>`;
+    return `<details class="story-letter" style="--story-color:${color}"><summary><span class="story-letter-icon">${storyIcon({...row,name:row.series,seriesKey:row.key},'story-letter-pixel-icon')}</span><span class="story-letter-title"><strong>${escapeHtml(row.title)}</strong><small>${escapeHtml([row.number ? `第 ${String(row.number).padStart(2,'0')} 篇` : '',row.author,row.rarity].filter(Boolean).join('・'))}</small></span><span class="story-letter-price">🦪 ${formatPearls(row.price)}</span></summary><div class="story-letter-body"><div class="story-letter-info">${info.join('<span>・</span>')}</div><div class="story-letter-text">${formatText(row.text || '這封信沒有留下可辨識的內容。')}</div><div class="story-letter-actions">${rowActions(row)}</div></div></details>`;
   }
 
   function renderUnified(rows) {
@@ -151,7 +156,7 @@
       const color = group.meta.color || COLORS[group.meta.rarity] || '#d7bb79';
       const progress = group.total > 0 ? `${group.collected}/${group.total} 已收集` : `${group.rows.length} 封收藏`;
       const copies = group.rows.length !== group.collected ? `・共 ${group.rows.length} 封` : '';
-      return `<section class="story-series" style="--story-color:${color}" data-story-name="${escapeHtml(group.series)}"><button class="story-series-head" type="button" data-story-toggle="${escapeHtml(group.series)}" aria-expanded="${open}"><span class="story-series-main"><span class="story-series-icon">${escapeHtml(group.meta.icon || '✉️')}</span><span><strong>${escapeHtml(group.series)}</strong><small>${progress}${copies}</small></span></span><span class="story-series-state">${open ? '收合' : '展開'} <b>⌄</b></span></button><div class="story-series-body" ${open ? '' : 'hidden'}><p>點擊信件標題閱讀全文；販售按鈕會清楚顯示本封售價。</p><div class="story-letter-list">${group.rows.map(row => renderCard(row,color)).join('')}</div></div></section>`;
+      return `<section class="story-series" style="--story-color:${color}" data-story-name="${escapeHtml(group.series)}"><button class="story-series-head" type="button" data-story-toggle="${escapeHtml(group.series)}" aria-expanded="${open}"><span class="story-series-main"><span class="story-series-icon">${storyIcon({name:group.series,series:group.series,seriesKey:group.meta.key,icon:group.meta.icon,rarity:group.meta.rarity},'story-series-pixel-icon')}</span><span><strong>${escapeHtml(group.series)}</strong><small>${progress}${copies}</small></span></span><span class="story-series-state">${open ? '收合' : '展開'} <b>⌄</b></span></button><div class="story-series-body" ${open ? '' : 'hidden'}><p>點擊信件標題閱讀全文；販售按鈕會清楚顯示本封售價。</p><div class="story-letter-list">${group.rows.map(row => renderCard(row,color)).join('')}</div></div></section>`;
     }).join('')}</div>`;
   }
 
